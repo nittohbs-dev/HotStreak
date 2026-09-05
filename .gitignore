@@ -1,1 +1,6 @@
 .cursor
+node_modules/
+dist/
+tools/spec-browser/public/snapshot.json
+*.log
+.DS_Store
