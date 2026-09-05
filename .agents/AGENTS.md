@@ -11,6 +11,10 @@
 
 ## ルール
 
+### 開発フロー（SE / PG）
+
+拘束の正本: [rules/dev-flow.md](rules/dev-flow.md)（設計書正本・ブランチ・Issue・`develop` 直編集禁止）。手順はスキル `dev-flow`。
+
 ### コミットメッセージ
 
 - 本文は日本語で書く
@@ -27,4 +31,4 @@
 
 | 名前 | いつ使うか | パス |
 |------|------------|------|
-| （なし） | — | `.agents/skills/<name>/SKILL.md` を追加したらここに列挙 |
+| `dev-flow` | 設計・Issue・実装・PR・ブランチ・SE/PG・次何する | [skills/dev-flow/SKILL.md](skills/dev-flow/SKILL.md) |
