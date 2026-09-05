@@ -32,10 +32,11 @@ description: Enforces HotStreak SE/PG development flow with develop as integrati
 ### やること
 
 1. `develop` から `design/<feature-id>` を切る（既存ならチェックアウト）。
-2. `docs/design/` に設計書を書く・更新する。実装コードは触らない。
-3. コミットは台帳どおり。例: `docs: <feature-id> の設計を追加する`
-4. ユーザーが設計を承認したら、base **`develop`** の設計PRを作る。
-5. `main` 向けには出さない。
+2. 設計書の作成・更新はスキル **`design-doc`** に従う（テンプレ・表ヘッダ・ID 固定）。外部スキルは使わない。
+3. `docs/design/` に設計書を書く・更新する。実装コードは触らない。
+4. コミットは台帳どおり。例: `docs: <feature-id> の設計を追加する`
+5. ユーザーが設計を承認したら、base **`develop`** の設計PRを作る。
+6. `main` 向けには出さない。
 
 ### 設計PR本文（最低限）
 
