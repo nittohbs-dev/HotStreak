@@ -1,0 +1,14 @@
+project: spec-browser
+title: Spec Browser（設計把握ビューア）
+status: draft
+
+features:
+  - id: spec-browser
+    name: 設計把握キャンバス
+    status: draft
+    requirements:
+      - REQ-sb-001
+      - REQ-sb-002
+      - REQ-sb-003
+      - REQ-sb-004
+      - REQ-sb-005

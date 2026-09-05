@@ -15,6 +15,10 @@
 
 拘束の正本: [rules/dev-flow.md](rules/dev-flow.md)（設計書正本・ブランチ・Issue・`develop` 直編集禁止）。手順はスキル `dev-flow`。
 
+### 設計書の形
+
+正本はスキル `design-doc`（表ヘッダ・ID・章順）。形式変更はスキル・テンプレ・spec-browser indexer を同時に揃える。
+
 ### コミットメッセージ
 
 - 本文は日本語で書く
@@ -32,3 +36,4 @@
 | 名前 | いつ使うか | パス |
 |------|------------|------|
 | `dev-flow` | 設計・Issue・実装・PR・ブランチ・SE/PG・次何する | [skills/dev-flow/SKILL.md](skills/dev-flow/SKILL.md) |
+| `design-doc` | 設計書の作成・更新・scaffold・スキーマ固定 | [skills/design-doc/SKILL.md](skills/design-doc/SKILL.md) |
