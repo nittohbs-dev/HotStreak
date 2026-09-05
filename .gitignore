@@ -2,5 +2,6 @@
 node_modules/
 dist/
 tools/spec-browser/public/snapshot.json
+.playwright-mcp/
 *.log
 .DS_Store
