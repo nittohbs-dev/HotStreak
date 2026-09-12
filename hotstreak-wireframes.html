@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ja"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ホットストリーク ワイヤーフレーム一覧</title><style>
+:root{--ink:#1a1a1a;--muted:#6f6f6b;--line:#d6d6d2;--paper:#fff;--fill:#f4f4f2;--accent:#2f6fb0;--accent-bg:#e8f0f8;--ok:#2e6b45;--ok-bg:#e7f1ea;--risk:#9a4a2f;--risk-bg:#f7ebe5}
+*{box-sizing:border-box}
+body{margin:0;padding:32px 16px;background:#e9e9e5;color:var(--ink);
+font-family:"Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic",system-ui,sans-serif;
+font-size:14px;line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1140px;margin:0 auto}
+.sheet-head{margin:0 0 28px}
+.sheet-head h1{font-size:20px;font-weight:600;margin:0 0 4px}
+.sheet-head p{margin:0;color:var(--muted);font-size:13px}
+.grid{display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start}
+.slot{width:340px}
+.slot-label{font-size:13px;font-weight:600;margin:0 0 2px}
+.slot-note{font-size:12px;color:var(--muted);margin:0 0 10px}
+.phone{width:340px;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:18px 16px}
+.stamp{font-size:11px;color:var(--muted);letter-spacing:.04em;margin:0 0 10px}
+.h1{font-size:20px;font-weight:600;margin:0 0 4px}
+.h2{font-size:16px;font-weight:600;margin:0 0 4px}
+.sub{font-size:12px;color:var(--muted);margin:0 0 14px}
+.panel{background:var(--fill);border-radius:8px;padding:14px}
+.row{display:flex;align-items:center;justify-content:space-between;
+border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.row+.row{margin-top:6px}
+.row.sel{border:2px solid var(--accent);padding:9px 11px}
+.row.off{opacity:.45}
+.stack{display:flex;flex-direction:column;gap:6px}
+.cols4{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.cols3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.cell{background:var(--fill);border-radius:8px;padding:10px 2px;text-align:center}
+.cell.lead{background:#f6efe2}
+.cell .r{font-size:11px;color:var(--muted);margin:0}
+.cell .n{font-size:13px;margin:4px 0 0}
+.avatar{width:30px;height:30px;border-radius:50%;background:var(--paper);
+border:1px solid var(--line);margin:6px auto}
+.hand{border:1px solid var(--line);border-radius:10px;padding:12px 6px;text-align:center;min-height:126px;
+display:flex;flex-direction:column;justify-content:space-between}
+.hand.sel{border:2px solid var(--accent);padding:11px 5px}
+.hand .cn{font-size:13px;font-weight:600;margin:0}
+.hand .ct{font-size:11px;color:var(--muted);margin:6px 0 0;line-height:1.4}
+.hand .cnew{font-size:10px;color:var(--accent);margin:6px 0 0}
+.bar{display:flex;align-items:center;justify-content:space-between;
+background:var(--accent-bg);color:var(--accent);border-radius:8px;padding:9px 11px;
+font-size:13px;font-weight:600}
+.bar span.r{font-weight:400;font-size:12px}
+.timer{display:flex;align-items:center;justify-content:space-between;
+border:1px solid var(--line);border-radius:8px;padding:9px 11px;font-size:13px;margin-bottom:10px}
+.timer b{font-size:18px}
+.event{background:#f6efe2;border-radius:8px;padding:11px;margin-bottom:12px}
+.event .k{font-size:11px;color:var(--muted);margin:0 0 2px}
+.event .v{font-size:14px;font-weight:600;margin:0}
+.event .d{font-size:12px;color:var(--muted);margin:2px 0 0}
+.tk{display:flex;flex-direction:column;gap:2px}
+.tk .nm{font-size:14px}
+.side{display:inline-block;font-size:11px;border-radius:4px;padding:1px 7px;margin-left:6px;
+background:var(--fill);color:var(--muted)}
+.side.risky{background:var(--risk-bg);color:var(--risk)}
+.flip{font-size:11px;color:var(--accent)}
+.pay{text-align:right}
+.pay .v{font-size:15px;font-weight:600;margin:0}
+.pay .c{font-size:11px;color:var(--muted);margin:0}
+.x2{display:inline-block;font-size:11px;font-weight:600;background:var(--risk-bg);color:var(--risk);
+border-radius:4px;padding:1px 6px;margin-left:5px}
+.tags{display:flex;gap:6px;flex-wrap:wrap}
+.tag{font-size:12px;background:var(--fill);border-radius:6px;padding:5px 11px}
+.tag.risky{background:var(--risk-bg);color:var(--risk)}
+.tag.empty{background:none;border:1px dashed var(--line);color:var(--muted)}
+.btn{display:block;width:100%;margin-top:14px;padding:11px;border:1px solid var(--ink);
+border-radius:8px;background:var(--paper);font:inherit;font-size:14px;cursor:pointer}
+.field{border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-bottom:14px}
+.field .k{font-size:11px;color:var(--muted);margin:0 0 2px}
+.field .v{font-size:15px;margin:0}
+.field .cur{color:var(--accent)}
+.ghost{border:1px dashed var(--line);border-radius:8px;padding:11px;text-align:center;
+font-size:12px;color:var(--muted)}
+.divider{border-top:1px solid var(--line);margin:14px 0 10px}
+.lbl{font-size:12px;color:var(--muted);margin:0 0 6px}
+.money{background:var(--ok-bg);border-radius:8px;padding:13px;margin-bottom:14px}
+.money .k{font-size:12px;color:var(--ok);margin:0 0 2px}
+.money .v{font-size:24px;font-weight:600;color:var(--ok);margin:0 0 4px}
+.money .d{font-size:12px;color:var(--ok);margin:0}
+.rank{display:flex;justify-content:space-between;padding:7px 2px;border-bottom:1px solid var(--line)}
+.rank:last-child{border-bottom:none}
+.rank.me{color:var(--accent);font-weight:600}
+.vote{display:flex;justify-content:space-between;align-items:center;padding:7px 2px;border-bottom:1px solid var(--line)}
+.vote:last-child{border-bottom:none}
+.vote .p{font-size:13px}
+.vote .t{font-size:11px;color:var(--muted)}
+.spec{width:340px;font-size:12px;color:var(--muted)}
+.spec h3{font-size:13px;color:var(--ink);margin:0 0 6px}
+.spec ul{margin:0;padding-left:18px}
+.spec li{margin-bottom:4px}
+@media print{body{background:#fff;padding:0}.slot{page-break-inside:avoid}}
+</style></head>
+<body><div class="wrap">
+<div class="sheet-head"><h1>ホットストリーク ワイヤーフレーム一覧</h1><p>スマートフォン5画面と画面遷移。ブラウザで開いて印刷するとPDF化できます。</p></div>
+<div class="grid"><div class="slot" style="width:100%;max-width:720px">
+<p class="slot-label">画面遷移</p>
+<p class="slot-note">カード提出〜結果発表を3ラウンド繰り返し、3回目終了後にタイトルへ戻る</p>
+<div class="phone" style="width:100%">
+<div class="stack">
+<div class="row" style="justify-content:center">1. タイトル画面</div>
+<p style="text-align:center;margin:0;color:var(--muted)">↓ 名前入力 → 物理ボタン</p>
+<div class="row" style="justify-content:center">2. カード提出画面</div>
+<p style="text-align:center;margin:0;color:var(--muted)">↓ 全員提出 または 20秒経過</p>
+<div class="row" style="justify-content:center">3. 馬券選択画面</div>
+<p style="text-align:center;margin:0;color:var(--muted)">↓ 2周目の最終投票</p>
+<div class="row" style="justify-content:center">4. レース中の画面</div>
+<p style="text-align:center;margin:0;color:var(--muted)">↓ ゴール</p>
+<div class="row" style="justify-content:center">5. 結果発表画面</div>
+<p style="text-align:center;margin:0;color:var(--muted)">↓ 15秒</p>
+<div class="row" style="justify-content:center;border-style:dashed">1〜2回目は 2 へ戻る ／ 3回目は 1 へ戻る</div>
+</div>
+</div>
+</div><div class="slot">
+<p class="slot-label">1. タイトル画面</p>
+<p class="slot-note">名前を入力してQRで参加</p>
+<div class="phone">
+<p class="stamp">画面1 / タイトル</p>
+<p class="h1" style="text-align:center">ホットストリーク</p>
+<p class="sub" style="text-align:center">QRを読み取って参加</p>
+<div class="field">
+<p class="k">プレイヤー名</p>
+<p class="v cur">ヤマダ<span style="opacity:.5">|</span></p>
+</div>
+<div class="panel" style="text-align:center;margin-bottom:14px">
+<p class="lbl" style="margin:0 0 2px">参加者</p>
+<p style="font-size:26px;font-weight:600;margin:0">4 <span style="font-size:13px;color:var(--muted)">人</span></p>
+</div>
+<div class="stack" style="margin-bottom:14px">
+<div class="row"><span>ヤマダ（自分）</span><span style="font-size:12px;color:var(--accent)">入力済</span></div>
+<div class="row"><span>サトウ</span><span style="font-size:12px;color:var(--muted)">入力済</span></div>
+<div class="row"><span style="color:var(--muted)">プレイヤー3</span><span style="font-size:12px;color:var(--muted)">入力中</span></div>
+<div class="row"><span style="color:var(--muted)">プレイヤー4</span><span style="font-size:12px;color:var(--muted)">入力中</span></div>
+</div>
+<button class="btn">この名前で決定</button>
+<div class="ghost" style="margin-top:10px">全員の入力後、物理ボタンでカード提出へ</div>
+</div>
+<div class="spec" style="margin-top:12px"><h3>仕様メモ</h3><ul><li>QR読取のたびに参加者数をインクリメントし全端末へ配信</li><li>名前は入力確定後、全端末の参加者リストに反映</li><li>画面遷移のトリガーは物理ボタン</li></ul></div>
+</div><div class="slot">
+<p class="slot-label">2. カード提出画面</p>
+<p class="slot-note">3枚の手札から1枚提出。20秒で自動遷移</p>
+<div class="phone">
+<p class="stamp">画面2 / カード提出</p>
+<div class="timer"><span>カードを1枚提出</span><b>20</b></div>
+<p class="sub" style="margin-bottom:10px">ラウンド 2/3 ・ 手札3枚</p>
+<div class="cols3">
+<div class="hand sel"><p class="cn">カードA</p><p class="ct">効果テキスト</p></div>
+<div class="hand"><p class="cn">カードC</p><p class="ct">効果テキスト</p></div>
+<div class="hand"><p class="cn">カードE</p><p class="ct">効果テキスト</p><p class="cnew">今回追加</p></div>
+</div>
+<div class="divider"></div>
+<p class="lbl">提出状況</p>
+<div>
+<div class="vote"><span class="p">ヤマダ（自分）</span><span class="t">選択中</span></div>
+<div class="vote"><span class="p">サトウ</span><span class="t">提出済</span></div>
+<div class="vote"><span class="p">プレイヤー3</span><span class="t">未提出</span></div>
+<div class="vote"><span class="p">プレイヤー4</span><span class="t">提出済</span></div>
+</div>
+<button class="btn">このカードを提出する</button>
+<div class="ghost" style="margin-top:10px">20秒経過で自動提出（未選択はランダム）</div>
+</div>
+<div class="spec" style="margin-top:12px"><h3>仕様メモ</h3><ul><li>ラウンド1は3枚配布。2ラウンド目以降は残り2枚＋ランダム1枚</li><li>20秒のカウントダウンはサーバー時刻を基準に全端末同期</li><li>時間切れ時は未選択プレイヤーのカードをサーバー側でランダム決定</li><li>全員提出、または20秒経過で馬券選択へ遷移</li></ul></div>
+</div><div class="slot">
+<p class="slot-label">3. 馬券選択画面</p>
+<p class="slot-note">表裏でオッズを切替えて1枚ずつ投票</p>
+<div class="phone">
+<p class="stamp">画面3 / 馬券選択</p>
+<div class="bar" style="margin-bottom:6px">あなたの番です<span class="r">2周目 3/4人目</span></div>
+<p class="sub" style="margin-bottom:12px">ラウンド 1/3 ・ 残り馬券から1枚選択</p>
+<div class="stack">
+<div class="row sel"><div class="tk"><span class="nm">馬券A<span class="side">ノーマル</span></span><span class="flip">タップで裏返す → リスキー</span></div><div class="pay"><p class="v">$300</p><p class="c">残り 2枚</p></div></div>
+<div class="row"><div class="tk"><span class="nm">馬券B<span class="side risky">リスキー</span></span><span class="flip">タップで裏返す → ノーマル</span></div><div class="pay"><p class="v">$900</p><p class="c">残り 3枚</p></div></div>
+<div class="row"><div class="tk"><span class="nm">馬券C<span class="side">ノーマル</span></span></div><div class="pay"><p class="v">$200</p><p class="c">残り 1枚</p></div></div>
+<div class="row"><div class="tk"><span class="nm">馬券D<span class="side">ノーマル</span></span></div><div class="pay"><p class="v">$400</p><p class="c">残り 2枚</p></div></div>
+<div class="row"><div class="tk"><span class="nm">馬券E<span class="side">ノーマル</span></span></div><div class="pay"><p class="v">$500</p><p class="c">残り 3枚</p></div></div>
+<div class="row off"><div class="tk"><span class="nm">馬券F<span class="side">ノーマル</span></span></div><div class="pay"><p class="v">$800</p><p class="c">残り 0枚</p></div></div>
+</div>
+<div class="divider"></div>
+<p class="lbl">所持中の馬券</p>
+<div class="tags"><span class="tag risky">馬券B リスキー</span><span class="tag empty">未選択</span></div>
+<button class="btn">この馬券に投票する</button>
+</div>
+<div class="spec" style="margin-top:12px"><h3>仕様メモ</h3><ul><li>馬券在庫（6種×3枚）はサーバーで一元管理し全端末に同期</li><li>カードをタップするとノーマル／リスキーが裏返り、払戻額が切替わる</li><li>表示額は当たった場合の払戻額。残り0枚は選択不可</li><li>3ラウンド目は払戻額を2倍にし、×2バッジを付与</li><li>2周目の最後の投票でレース中へ遷移</li></ul></div>
+</div><div class="slot">
+<p class="slot-label">3b. 馬券選択画面（3ラウンド目）</p>
+<p class="slot-note">払戻額が2倍になる表示差分</p>
+<div class="phone">
+<p class="stamp">画面3 差分 / 馬券選択（3ラウンド目）</p>
+<div class="bar" style="background:#f7ebe5;color:#9a4a2f;margin-bottom:6px">最終ラウンド 配当2倍<span class="r">2周目 3/4人目</span></div>
+<p class="sub" style="margin-bottom:12px">ラウンド 3/3 ・ 払戻額はすべて×2表示</p>
+<div class="stack">
+<div class="row sel"><div class="tk"><span class="nm">馬券A<span class="side">ノーマル</span></span><span class="flip">タップで裏返す → リスキー</span></div><div class="pay"><p class="v">$600<span class="x2">×2</span></p><p class="c">残り 2枚</p></div></div>
+<div class="row"><div class="tk"><span class="nm">馬券B<span class="side risky">リスキー</span></span><span class="flip">タップで裏返す → ノーマル</span></div><div class="pay"><p class="v">$1,800<span class="x2">×2</span></p><p class="c">残り 3枚</p></div></div>
+<div class="row"><div class="tk"><span class="nm">馬券C<span class="side">ノーマル</span></span></div><div class="pay"><p class="v">$400<span class="x2">×2</span></p><p class="c">残り 1枚</p></div></div>
+</div>
+<div class="ghost" style="margin-top:12px">他の構造は通常ラウンドと同一</div>
+</div>
+</div><div class="slot">
+<p class="slot-label">4. レース中の画面</p>
+<p class="slot-note">イベントと全員の馬券を表示</p>
+<div class="phone">
+<p class="stamp">画面4 / レース中</p>
+<div class="event"><p class="k">今回のイベント</p><p class="v">イベント名</p><p class="d">効果の説明文（別画面で決定済み）</p></div>
+<p class="h2">レース進行中</p>
+<p class="sub">順位は左から1位 → 4位</p>
+<div class="cols4">
+<div class="cell lead"><p class="r">1位</p><div class="avatar"></div><p class="n">馬C</p></div>
+<div class="cell"><p class="r">2位</p><div class="avatar"></div><p class="n">馬A</p></div>
+<div class="cell"><p class="r">3位</p><div class="avatar"></div><p class="n">馬D</p></div>
+<div class="cell"><p class="r">4位</p><div class="avatar"></div><p class="n">馬B</p></div>
+</div>
+<p class="sub" style="text-align:center;margin:10px 0 0">順位変動でリアルタイム並び替え</p>
+<div class="divider"></div>
+<p class="lbl">全員の馬券</p>
+<div>
+<div class="vote"><span class="p">ヤマダ（自分）</span><span class="t">馬券B リスキー ／ 馬券E</span></div>
+<div class="vote"><span class="p">サトウ</span><span class="t">馬券A ／ 馬券C</span></div>
+<div class="vote"><span class="p">プレイヤー3</span><span class="t">馬券D ／ 馬券A リスキー</span></div>
+<div class="vote"><span class="p">プレイヤー4</span><span class="t">馬券E ／ 馬券F</span></div>
+</div>
+<div class="ghost" style="margin-top:12px">操作不可 ・ ゴール後に自動遷移</div>
+</div>
+<div class="spec" style="margin-top:12px"><h3>仕様メモ</h3><ul><li>そのラウンドのイベント名と効果を上部に固定表示</li><li>4体を順位順に横並び表示、順位変動で並び替え</li><li>全プレイヤーの投票済み馬券を表裏込みで一覧表示</li><li>ゴール判定で結果発表へ自動遷移</li></ul></div>
+</div><div class="slot">
+<p class="slot-label">5. 結果発表画面</p>
+<p class="slot-note">着順・払戻・プレイヤー順位を15秒表示</p>
+<div class="phone">
+<p class="stamp">画面5 / 結果発表</p>
+<p class="h2" style="margin-bottom:12px">ラウンド1 結果</p>
+<p class="lbl">着順</p>
+<div class="cols4" style="margin-bottom:14px">
+<div class="cell lead"><p class="r">1位</p><p class="n">馬C</p></div>
+<div class="cell"><p class="r">2位</p><p class="n">馬A</p></div>
+<div class="cell"><p class="r">3位</p><p class="n">馬D</p></div>
+<div class="cell"><p class="r">4位</p><p class="n">馬B</p></div>
+</div>
+<div class="money">
+<p class="k">あなたの獲得金額</p>
+<p class="v">$1,400</p>
+<p class="d">馬券B リスキー $900 ・ 馬券E $500</p>
+</div>
+<p class="lbl">プレイヤー順位</p>
+<div>
+<div class="rank"><span>1位 サトウ</span><span>$1,800</span></div>
+<div class="rank me"><span>2位 ヤマダ（自分）</span><span>$1,400</span></div>
+<div class="rank"><span>3位 プレイヤー3</span><span>$700</span></div>
+<div class="rank"><span>4位 プレイヤー4</span><span>$0</span></div>
+</div>
+<div class="ghost" style="margin-top:14px">15秒後、次のラウンドのカード提出へ<br>（3回目はタイトルへ戻る）</div>
+</div>
+<div class="spec" style="margin-top:12px"><h3>仕様メモ</h3><ul><li>着順と所持馬券（表裏）から払戻額を算出</li><li>3ラウンド目の払戻は2倍で計算</li><li>15秒後に自動遷移。1〜2回目はカード提出、3回目はタイトルへ</li></ul></div>
+</div></div>
+</div></body></html>
