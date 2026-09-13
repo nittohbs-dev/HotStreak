@@ -15,3 +15,6 @@ features:
   - id: card-seed
     title: カード仕込み
     status: draft
+  - id: race
+    title: レース進行
+    status: draft
