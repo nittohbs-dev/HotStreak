@@ -6,3 +6,6 @@ features:
   - id: lobby
     title: 参加・ロビー
     status: draft
+  - id: setup-cards
+    title: 公開カード準備
+    status: draft

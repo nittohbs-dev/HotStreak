@@ -21,11 +21,12 @@
 
 ```mermaid
 flowchart LR
-  SCR_phone_001[SCR-phone-001 ロビー] -->|全員名前確定_or_Enter| SCR_phone_002[SCR-phone-002 マ券]
+  SCR_phone_001[SCR-phone-001 ロビー] -->|全員名前確定_or_Enter| PhoneWait[Phone待機]
+  PhoneWait -->|setup.advanced| SCR_phone_002[SCR-phone-002 マ券]
   SCR_display_001[SCR-display-001 参加受付] -->|全員名前確定_or_Enter| SCR_display_002[SCR-display-002 公開カード]
 ```
 
-※ SCR-phone-002 / SCR-display-002 は setup-cards 機能の設計で詳細化する。
+※ 公開カード中は Phone 専用 SCR なし（待機）。SCR-display-002 は [setup-cards](../setup-cards/screens.md)、SCR-phone-002 は betting 設計で詳細化。
 
 ## 対応マトリクス
 

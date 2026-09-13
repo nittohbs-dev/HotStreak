@@ -75,12 +75,14 @@ src/
 ├── hotstreak_core/          # 共有ドメイン・機能サービス
 │   ├── domain/              # CLS-HS-*
 │   └── features/
-│       └── lobby/           # CLS-lobby-001
+│       ├── lobby/           # CLS-lobby-001
+│       └── setup_cards/     # CLS-setup-001
 ├── hotstreak_sync/          # 同期サーバ（FastAPI + WebSocket）
 │   └── api/
 └── hotstreak_display/       # Pygame（ラズパイ）
     └── screens/
-        └── lobby.py         # CLS-lobby-010
+        ├── lobby.py         # CLS-lobby-010
+        └── setup_cards.py   # CLS-setup-010
 ```
 
 ```mermaid
