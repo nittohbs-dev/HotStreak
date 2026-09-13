@@ -36,6 +36,15 @@ function JumpList({
   )
 }
 
+function JsonBlock({ title, value }: { title: string; value?: string | null }) {
+  return (
+    <>
+      <h3>{title}</h3>
+      {value ? <pre className="json-block">{value}</pre> : <p className="muted">未記載</p>}
+    </>
+  )
+}
+
 export function InspectorPanel({
   nodeId,
   data,
@@ -79,7 +88,12 @@ export function InspectorPanel({
       {data.kind === 'Feature' && detail && (
         <>
           {detail.status && <p>状態: {detail.status}</p>}
-          {detail.summary && <p>{detail.summary}</p>}
+          {detail.summary && (
+            <>
+              <h3>概要</h3>
+              <p>{detail.summary}</p>
+            </>
+          )}
           <h3>要件</h3>
           {(detail.reqs ?? []).length === 0 && <p className="muted">なし</p>}
           <ul>
@@ -101,11 +115,21 @@ export function InspectorPanel({
           <h3>API</h3>
           {(detail.apis ?? []).length === 0 && <p className="muted">なし</p>}
           <ul>
-            {(detail.apis ?? []).map((a) => (
-              <li key={a['API-ID']}>
-                {a['API-ID']} {a['メソッド']} {a['パス']}
-              </li>
-            ))}
+            {(detail.apis ?? []).map((a) => {
+              const apiId = a['API-ID'] || a.id
+              return (
+                <li key={apiId}>
+                  <button
+                    type="button"
+                    className="jump-link"
+                    onClick={() => onNavigate(`${pid}:api:${apiId}`)}
+                  >
+                    {apiId}
+                  </button>{' '}
+                  {a['メソッド']} {a['パス']}
+                </li>
+              )
+            })}
           </ul>
           <h3>関連クラス</h3>
           <JumpList
@@ -118,8 +142,38 @@ export function InspectorPanel({
 
       {(data.kind === 'ClassCommon' || data.kind === 'ClassFeature') && detail && (
         <>
-          <p>{detail.responsibility || '責務未記載'}</p>
+          <h3>概要</h3>
+          <p>{detail.responsibility || '未記載'}</p>
           <p>層: {detail.layer || '—'}</p>
+          <h3>メソッド</h3>
+          {(detail.methods ?? []).length === 0 ? (
+            <p className="muted">未記載</p>
+          ) : (
+            <table className="col-table">
+              <thead>
+                <tr>
+                  <th>メソッド</th>
+                  <th>引数</th>
+                  <th>戻り値</th>
+                  <th>概要</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(detail.methods ?? []).map((m, i) => (
+                  <tr key={`${m['メソッド']}-${i}`}>
+                    <td>{m['メソッド']}</td>
+                    <td>
+                      <code>{m['引数']}</code>
+                    </td>
+                    <td>
+                      <code>{m['戻り値']}</code>
+                    </td>
+                    <td>{m['概要']}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
           <h3>継承元</h3>
           {detail.inheritsFrom ? (
             <JumpList
@@ -148,6 +202,31 @@ export function InspectorPanel({
             toNodeId={(id) => `${pid}:table:${id}`}
             onNavigate={onNavigate}
           />
+        </>
+      )}
+
+      {data.kind === 'Api' && detail && (
+        <>
+          <h3>概要</h3>
+          <p>{detail['概要'] || detail.bodySummary || detail.name || '未記載'}</p>
+          <p>
+            {detail['メソッド']} {detail['パス']}
+          </p>
+          <p>認証: {detail['認証'] || '—'}</p>
+          <p>主な入力: {detail['主な入力'] || '—'}</p>
+          <p>主な出力: {detail['主な出力'] || '—'}</p>
+          <JsonBlock title="リクエスト JSON" value={detail.requestJson} />
+          <JsonBlock title="レスポンス JSON" value={detail.responseJson} />
+          {detail.featureId && (
+            <>
+              <h3>機能</h3>
+              <JumpList
+                items={[detail.featureId]}
+                toNodeId={(id) => `${pid}:feature:${id}`}
+                onNavigate={onNavigate}
+              />
+            </>
+          )}
         </>
       )}
 
@@ -188,17 +267,21 @@ export function InspectorPanel({
         </>
       )}
 
-      <h3>ソース</h3>
-      {(detail?.sourceHits ?? []).length === 0 ? (
-        <p className="muted">未検出</p>
-      ) : (
-        <ul>
-          {(detail?.sourceHits ?? []).map((h) => (
-            <li key={`${h.id}-${h.file}`}>
-              <code>{h.file}</code>
-            </li>
-          ))}
-        </ul>
+      {data.kind !== 'Api' && (
+        <>
+          <h3>ソース</h3>
+          {(detail?.sourceHits ?? []).length === 0 ? (
+            <p className="muted">未検出</p>
+          ) : (
+            <ul>
+              {(detail?.sourceHits ?? []).map((h) => (
+                <li key={`${h.id}-${h.file}`}>
+                  <code>{h.file}</code>
+                </li>
+              ))}
+            </ul>
+          )}
+        </>
       )}
     </aside>
   )
