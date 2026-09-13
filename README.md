@@ -6,8 +6,10 @@
 
 | パス | 内容 |
 |------|------|
-| [`docs/design/`](docs/design/) | 設計書（機能設計の正本） |
-| [`docs/design/wireframes/`](docs/design/wireframes/) | 画面ワイヤー・ラフ設計画像 |
+| [`docs/design/hotstreak/`](docs/design/hotstreak/) | ゲーム本体の設計書（骨格） |
+| [`docs/design/hotstreak/manual.html`](docs/design/hotstreak/manual.html) | デジタル版の説明書（草案・ブラウザ閲覧） |
+| [`docs/design/wireframes/`](docs/design/wireframes/) | 画面ワイヤー・ラフ（phone / display） |
+| [`docs/design/spec-browser/`](docs/design/spec-browser/) | 設計把握ビューアの設計書 |
 | [`AGENTS.md`](AGENTS.md) | エージェント向け前提 |
 
 開発フロー・ブランチ規則は [`.agents/AGENTS.md`](.agents/AGENTS.md) を参照。

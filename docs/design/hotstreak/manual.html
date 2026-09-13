@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ホットストリーク デジタル版 — 説明書（草案）</title>
+<style>
+:root {
+  --ink: #1c1b19;
+  --muted: #5c5a55;
+  --line: #d2d0c8;
+  --paper: #faf9f6;
+  --card: #fff;
+  --accent: #1f5f4a;
+  --accent-soft: #e4f0eb;
+  --warn: #8a4520;
+  --warn-soft: #f6ebe3;
+  --max: 720px;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic", system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+}
+.wrap { max-width: var(--max); margin: 0 auto; padding: 40px 20px 80px; }
+header.hero {
+  border-bottom: 2px solid var(--ink);
+  padding-bottom: 24px;
+  margin-bottom: 32px;
+}
+header.hero .badge {
+  display: inline-block;
+  font-size: 11px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--warn);
+  background: var(--warn-soft);
+  padding: 4px 10px;
+  border-radius: 4px;
+  margin-bottom: 12px;
+}
+header.hero h1 {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0 0 8px;
+  letter-spacing: -.02em;
+}
+header.hero .sub {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+nav.toc {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 16px 20px;
+  margin-bottom: 36px;
+}
+nav.toc h2 {
+  font-size: 13px;
+  margin: 0 0 10px;
+  color: var(--muted);
+  font-weight: 600;
+}
+nav.toc ol {
+  margin: 0;
+  padding-left: 20px;
+}
+nav.toc li { margin: 4px 0; }
+nav.toc a { color: var(--accent); text-decoration: none; }
+nav.toc a:hover { text-decoration: underline; }
+section {
+  margin-bottom: 40px;
+}
+section h2 {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+}
+section h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 22px 0 8px;
+}
+p { margin: 0 0 12px; }
+ul, ol { margin: 0 0 14px; padding-left: 1.3em; }
+li { margin-bottom: 6px; }
+.note {
+  background: var(--accent-soft);
+  border-left: 3px solid var(--accent);
+  padding: 12px 14px;
+  border-radius: 0 8px 8px 0;
+  font-size: 14px;
+  margin: 14px 0;
+}
+.warn {
+  background: var(--warn-soft);
+  border-left: 3px solid var(--warn);
+  padding: 12px 14px;
+  border-radius: 0 8px 8px 0;
+  font-size: 14px;
+  margin: 14px 0;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin: 12px 0 16px;
+  background: var(--card);
+}
+th, td {
+  border: 1px solid var(--line);
+  padding: 8px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  background: #f0efe9;
+  font-weight: 600;
+}
+.flow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin: 16px 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+.flow .step {
+  background: var(--card);
+  border: 1px solid var(--ink);
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+.flow .arrow { color: var(--muted); }
+.device {
+  display: grid;
+  gap: 12px;
+  margin: 14px 0;
+}
+@media (min-width: 560px) {
+  .device { grid-template-columns: 1fr 1fr; }
+}
+.device .box {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+.device .box h3 { margin: 0 0 8px; font-size: 15px; }
+.device .box p { margin: 0; font-size: 13px; color: var(--muted); }
+footer {
+  margin-top: 48px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+  font-size: 12px;
+  color: var(--muted);
+}
+@media print {
+  body { background: #fff; }
+  .wrap { padding: 0; max-width: none; }
+  nav.toc { break-after: avoid; }
+  section { break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <div class="badge">草案 / draft — 設計仕様ベース</div>
+  <h1>ホットストリーク<br>デジタル版 説明書</h1>
+  <p class="sub">会場ディスプレイ ＋ スマホで遊ぶ、予測不能なドタバタ徒競走。<br>
+  原作ボードゲーム『ホットストリーク 熱狂・絶叫・徒競走』（CMYK / 数寄ゲームズ）のデジタル再現。</p>
+</header>
+
+<nav class="toc" aria-label="目次">
+  <h2>目次</h2>
+  <ol>
+    <li><a href="#about">このゲームについて</a></li>
+    <li><a href="#setup">用意するもの・役割</a></li>
+    <li><a href="#progress">進行のしかた（重要）</a></li>
+    <li><a href="#play">遊び方（1試合の流れ）</a></li>
+    <li><a href="#screens">画面の見かた（スマホ／ディスプレイ）</a></li>
+    <li><a href="#race">レース中に起きること</a></li>
+    <li><a href="#win">勝ち方</a></li>
+    <li><a href="#terms">用語集</a></li>
+  </ol>
+</nav>
+
+<section id="about">
+  <h2>1. このゲームについて</h2>
+  <p>4体の<strong>マスコット</strong>がコースを走るレースに、<strong>マ券</strong>や<strong>サイドベット</strong>で賭けます。レース前に手札からカードを1枚<strong>仕込む</strong>と、展開に少しだけ口を出せます。</p>
+  <p>全<strong>3レース</strong>。終わったとき所持金がいちばん多いプレイヤーの勝ちです。</p>
+  <p>デジタル版では、大きな画面（ディスプレイ）でみんなで観戦し、各自のスマホで操作します。</p>
+  <div class="note">人数の目安は <strong>3〜8人</strong>（標準ルール想定）。2人用・大人数用バリアントは今の仕様範囲外です。</div>
+</section>
+
+<section id="setup">
+  <h2>2. 用意するもの・役割</h2>
+  <div class="device">
+    <div class="box">
+      <h3>ディスプレイ（Raspberry Pi）</h3>
+      <p>QR・公開カード・レース演出・着順など、会場共有の画面。進行用の <strong>Enter ボタン</strong>もこちら側。</p>
+    </div>
+    <div class="box">
+      <h3>スマホ（各プレイヤー）</h3>
+      <p>参加、マ券の選択、カード仕込み、観戦中の自分情報・配当の確認。</p>
+    </div>
+  </div>
+  <h3>開始時の配布（標準）</h3>
+  <ul>
+    <li>所持金 <strong>$10</strong></li>
+    <li>手札 <strong>3枚</strong></li>
+    <li>公開カード（マスコットごとのスターター＋人数に応じた枚数）をディスプレイに表向き表示</li>
+  </ul>
+</section>
+
+<section id="progress">
+  <h2>3. 進行のしかた（重要）</h2>
+  <p>スマホに<strong>制限時間で勝手に次へ進む機能はありません</strong>。</p>
+  <table>
+    <thead>
+      <tr><th>トリガー</th><th>内容</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>全員揃い</strong></td>
+        <td>その段階で必要な操作を全員が終えたとき（例: 全員が名前確定、全員がマ券2枚取得、全員が仕込み済）</td>
+      </tr>
+      <tr>
+        <td><strong>ラズパイ Enter</strong></td>
+        <td>司会・運営が Enter を押して次の段階へ進める</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="warn">例外: レースそのもののカードめくり・着順確定は、ルールの計算結果で進みます（タイマーではありません）。配当のあとに次のレースやロビーへ戻るときは、原則 <strong>Enter</strong> です。</div>
+</section>
+
+<section id="play">
+  <h2>4. 遊び方（1試合の流れ）</h2>
+
+  <h3>全体像</h3>
+  <div class="flow">
+    <span class="step">参加</span><span class="arrow">→</span>
+    <span class="step">公開カード</span><span class="arrow">→</span>
+    <span class="step">マ券</span><span class="arrow">→</span>
+    <span class="step">仕込み</span><span class="arrow">→</span>
+    <span class="step">レース</span><span class="arrow">→</span>
+    <span class="step">配当</span>
+  </div>
+  <p>「マ券 → 仕込み → レース → 配当」を <strong>3回</strong>繰り返します。</p>
+
+  <h3>① 参加（ロビー）</h3>
+  <ol>
+    <li>ディスプレイの QR をスマホで読み取る</li>
+    <li>プレイヤー名を入力して確定する</li>
+    <li>全員の名前が揃う、または Enter でセットアップ完了</li>
+  </ol>
+
+  <h3>② 公開カード</h3>
+  <p>これからレースに入りうるカードの一部が、ディスプレイに表向きで並びます。マスコットごとの「気配」を見てから賭けましょう。</p>
+
+  <h3>③ マ券・サイドベット（スネークドラフト）</h3>
+  <ul>
+    <li>各プレイヤーが <strong>2枚</strong>取る（マスコットへのマ券、またはサイドベット）</li>
+    <li>取った直後に表裏を選ぶ: <strong>セーフ</strong> / <strong>リスキー</strong></li>
+    <li>順番はスネーク（時計回り → 逆順）</li>
+    <li><strong>第3レースだけ</strong>: 自分の2枚のうち <strong>1枚だけ</strong>配当をダブルに指定（マイナスも倍。全体×2ではない）</li>
+  </ul>
+
+  <h3>④ カード仕込み</h3>
+  <p>手札から <strong>1枚</strong>を選び、レーシングデッキに裏向きで入れます。全員が仕込むか、Enter で次へ。</p>
+  <p>公開カードと仕込みを合わせて、開始時の山は標準で <strong>18枚</strong>になります。</p>
+
+  <h3>⑤ レース</h3>
+  <ol>
+    <li>山をシャッフルし、上から3枚を捨てる（バーン）「3, 2, 1… GO!」</li>
+    <li>1枚ずつめくり、表示どおりマスコットが動く</li>
+    <li>山が尽きたらリシャッフルし、<strong>コース短縮</strong>（奥が消える演出）。短縮で埋まった位置のマスコットは失格</li>
+    <li><strong>3体</strong>がゴールまたは失格したらレース終了。4体目は残りの着順</li>
+  </ol>
+
+  <h3>⑥ 配当</h3>
+  <ul>
+    <li>マスコットのマ券: 着順に応じた金額（4着は $0）</li>
+    <li>サイドベット: お題の YES/NO が当たれば配当。リスキー面は外れで損することもある</li>
+    <li>所持金が足りない損失は払える分まで → 最低 $0</li>
+  </ul>
+  <p>Enter で次のレースへ。レース間ではマ券の返却、新しいサイドベットお題、手札の補充（再び3枚）、コースとマスコットのリセット、ドラフト先頭のローテが行われます。</p>
+</section>
+
+<section id="screens">
+  <h2>5. 画面の見かた</h2>
+
+  <h3>ディスプレイ（みんなで見る）</h3>
+  <table>
+    <thead><tr><th>場面</th><th>だいたいの表示</th></tr></thead>
+    <tbody>
+      <tr><td>参加</td><td>QR、参加者リスト</td></tr>
+      <tr><td>公開カード</td><td>表向きのカード一覧</td></tr>
+      <tr><td>マ券中</td><td>サイドベットお題、手番・残り札の共有</td></tr>
+      <tr><td>仕込み〜開始前</td><td>進捗、束の準備、まもなく開始</td></tr>
+      <tr><td>レース</td><td>コース、マスコット、今回のカード、コース短縮</td></tr>
+      <tr><td>結果</td><td>着順の大きな表示</td></tr>
+    </tbody>
+  </table>
+
+  <h3>スマホ（自分用）</h3>
+  <table>
+    <thead><tr><th>場面</th><th>やること / 見えるもの</th></tr></thead>
+    <tbody>
+      <tr><td>ロビー</td><td>名前入力</td></tr>
+      <tr><td>マ券</td><td>ドラフト、セーフ／リスキー、第3は1枚ダブル</td></tr>
+      <tr><td>仕込み</td><td>手札から1枚選択</td></tr>
+      <tr><td>レース中</td><td>お題、簡易順位、<strong>自分のマ券・所持金・順位</strong>。「全員の状況」ボタンで他プレイヤーのマ券を小画面表示</td></tr>
+      <tr><td>配当</td><td>自分の払戻と全体の所持金順位。次へは Enter</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="race">
+  <h2>6. レース中に起きること</h2>
+  <p>めくられた「今回のカード」の例です（詳細はカード面に従います）。</p>
+  <table>
+    <thead><tr><th>効果</th><th>ざっくり</th></tr></thead>
+    <tbody>
+      <tr><td>数値移動</td><td>向いている方向へそのマス数</td></tr>
+      <tr><td>星</td><td>同方向の次の星へ（ゴール越え可）</td></tr>
+      <tr><td>転倒</td><td>伏せ。以後の移動は這って1マス</td></tr>
+      <tr><td>方向転換</td><td>向きが逆になる</td></tr>
+      <tr><td>スワーブ</td><td>左右のレーンへ。コース外は失格の原因に</td></tr>
+      <tr><td>衝突</td><td>動いた側は無事、止まっていた側が転倒</td></tr>
+      <tr><td>復帰</td><td>起き上がる／正面を向く（移動より先）</td></tr>
+      <tr><td>緑マルチ</td><td>全員同時。衝突なし・ゴール不可</td></tr>
+      <tr><td>失格（DQ）</td><td>転倒中の再転倒／衝突、コース外、短縮で埋まる、など</td></tr>
+    </tbody>
+  </table>
+  <p>レース中、スマホ側で操作してマスコットを動かすことはありません。観戦と情報確認だけです。</p>
+</section>
+
+<section id="win">
+  <h2>7. 勝ち方</h2>
+  <p>3レースすべての配当が終わったあと、<strong>所持金が最多</strong>のプレイヤーが勝利です。</p>
+</section>
+
+<section id="terms">
+  <h2>8. 用語集</h2>
+  <table>
+    <thead><tr><th>用語</th><th>意味</th></tr></thead>
+    <tbody>
+      <tr><td>マスコット</td><td>レースする4体の駒。プレイヤー本人ではない</td></tr>
+      <tr><td>マ券</td><td>勝ちマスコット投票券。着順で配当</td></tr>
+      <tr><td>サイドベット</td><td>奇妙な展開（コースアウトなど）への賭け</td></tr>
+      <tr><td>セーフ / リスキー</td><td>札の表裏。リスキーは高配当だが外れが痛いことも</td></tr>
+      <tr><td>スネークドラフト</td><td>時計回り→逆順で取る方式</td></tr>
+      <tr><td>カード仕込み</td><td>手札1枚を山に入れること</td></tr>
+      <tr><td>バーン</td><td>スタート時に山の上3枚を捨てる</td></tr>
+      <tr><td>コース短縮</td><td>山切れ後にコースが短くなる（旧称「コース崩壊」）</td></tr>
+      <tr><td>ラズパイ Enter</td><td>会場の進行ボタン</td></tr>
+      <tr><td>全員揃い</td><td>必要な操作を全員が終えた状態</td></tr>
+    </tbody>
+  </table>
+  <div class="note">使わない表記: 「馬券」「ノーマル」「イベント」（曖昧）、「払戻すべて×2」。</div>
+</section>
+
+<footer>
+  <p>HotStreak デジタル版 説明書（草案）。仕様の正本は <code>docs/design/hotstreak/00-project/overview.md</code>。<br>
+  原作 © CMYK / 日本語版 数寄ゲームズ。本ドキュメントは社内設計用の要約であり、公式ルール全文の代替ではありません。</p>
+</footer>
+
+</div>
+</body>
+</html>
