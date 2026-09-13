@@ -75,12 +75,12 @@ docs/design/<project>/
 | `features/<id>/README.md` | 必須 | 関連一覧に 画面/API/CLS/TBL |
 | `features/<id>/functional.md` | 必須 | UC / BR / `REQ-` 節 |
 | `features/<id>/screens.md` | 画面あり | `SCR-ID` 一覧、遷移 Mermaid、ASCIIワイヤー |
-| `features/<id>/api.md` | APIあり | `API-ID` / `メソッド` / `パス` / … |
-| `features/<id>/layers.md` | 必須 | `層` / `CLS-ID` / `責務` / `関連API` |
+| `features/<id>/api.md` | APIあり | 一覧表 `API-ID` / `メソッド` / `パス` / `概要` / `主な入力` / `主な出力` / `認証`。任意で各 API 節（`## API-…`）にリクエスト/レスポンス JSON |
+| `features/<id>/layers.md` | 必須 | `層` / `CLS-ID` / `責務` / `関連API`。任意で `## メソッド: CLS-…` 表（`メソッド` / `引数` / `戻り値` / `概要`） |
 | `features/<id>/classes.md` | 必須 | `CLS-ID` / `共通or固有` / `関連TBL` / `継承元`（任意列） |
 | `features/<id>/db.md` | 永続化あり | `テーブル: TBL-` とカラム表 |
 
-`継承元` 列が無い既存表は継承なしとして扱う（indexer は壊れない）。
+`継承元` 列が無い既存表は継承なしとして扱う（indexer は壊れない）。API JSON 節・メソッド表が無い場合も壊れない（インスペクタは「未記載」）。
 
 ## 辺（キャンバス）
 
@@ -94,9 +94,9 @@ indexer は推測で辺を増やさない。
 
 ## 書いてよいこと / 書いてはいけないこと
 
-**書く:** 要約表、Mermaid、追跡ID、責務の自然言語
+**書く:** 要約表、Mermaid、追跡ID、責務の自然言語、**概念的な JSON 入出力**、メソッドの引数/戻り値（自然言語または JSON 風）
 
-**書かない:** クラスシグネチャ、DTO/Props の型定義、テンプレに無いファイル名・列、コードブロックでの実装詳細
+**書かない:** 言語固有の型定義（TypeScript interface 全文など）、実装コード、テンプレに無いファイル名・必須列の改名
 
 ## 完了後
 
