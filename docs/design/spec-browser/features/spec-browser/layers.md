@@ -4,20 +4,26 @@
 
 | 層 | CLS-ID | 責務 | 関連API |
 |----|--------|------|---------|
-| Domain | CLS-sb-001 | 設計書をパースし nodes/edges を作る | |
+| Domain | CLS-sb-001 | 設計書をパースし nodes/edges を作る（全 project・継承辺含む） | |
 | Domain | CLS-sb-002 | ソース走査と ID 照合 | |
 | Domain | CLS-sb-003 | snapshot の形を定義・検証 | |
-| UI | CLS-sb-010 | キャンバス画面の組み立て | |
+| UI | CLS-sb-010 | キャンバス画面の組み立てとフィルタ状態 | |
 | UI | CLS-sb-011 | 機能ノード表示 | |
 | UI | CLS-sb-012 | クラスノード表示（共通/固有） | |
 | UI | CLS-sb-013 | テーブルノード表示 | |
-| UI | CLS-sb-014 | 右インスペクタ | |
+| UI | CLS-sb-014 | インスペクタ（関連ジャンプ） | |
+| UI | CLS-sb-015 | アウトライン（機能マルチ選択） | |
+| UI | CLS-sb-016 | プロジェクト切替 | |
+| UI | CLS-sb-017 | モバイル・ドロワーシェル | |
 
 ## 主要メソッド
 
 | 層 | メソッド | やること |
 |----|----------|----------|
-| Domain | indexDesign | テンプレ表だけを読みグラフを構築 |
+| Domain | indexDesign | テンプレ表だけを読みグラフを構築（projectId 接頭辞） |
 | Domain | scanSources | 除外パス以外を走査しヒットを付与 |
 | Domain | writeSnapshot | public/snapshot.json を書く |
+| UI | selectProject | 表示スコープを1プロジェクトに限定 |
+| UI | selectFeatures | 機能マルチ選択で部分グラフを出す |
 | UI | selectNode | 選択とクエリ同期、関連ハイライト |
+| UI | openMobileDrawer | 一覧/詳細の排他オープン |

@@ -31,5 +31,9 @@ flowchart LR
 | パス | 役割 |
 |------|------|
 | `tools/spec-browser/` | ビューア本体 |
-| `docs/design/` | 入力（ゲーム設計・本ツール設計） |
+| `docs/design/<projectId>/` | 入力。`manifest.yaml` があるディレクトリはすべて設計プロジェクト（名前非依存） |
 | `.github/workflows/spec-browser-pages.yml` | `develop` 合併後に Pages 公開 |
+
+## マルチプロジェクト
+
+indexer は `docs/design/` 直下の全 `manifest.yaml` を1つの `snapshot.json` に載せる。UI は `?project=` で常に1プロジェクトだけ表示する（混在させない）。

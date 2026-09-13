@@ -70,15 +70,17 @@ docs/design/<project>/
 |----------|------|----------|
 | `manifest.yaml` | 必須 | `project`, `title`, `status`, `features[].id` |
 | `00-project/feature-map.md` | 必須 | `機能ID` / `名前` / `ステータス` / `概要` |
-| `00-project/classes.md` | 必須 | `CLS-ID` / `名前` / `層` / `責務` / `関連TBL` |
+| `00-project/classes.md` | 必須 | `CLS-ID` / `名前` / `層` / `責務` / `関連TBL` / `継承元`（任意列。値は `CLS-…`） |
 | `00-project/db.md` | 任意 | 全体ER、共通 `TBL-` |
 | `features/<id>/README.md` | 必須 | 関連一覧に 画面/API/CLS/TBL |
 | `features/<id>/functional.md` | 必須 | UC / BR / `REQ-` 節 |
 | `features/<id>/screens.md` | 画面あり | `SCR-ID` 一覧、遷移 Mermaid、ASCIIワイヤー |
 | `features/<id>/api.md` | APIあり | `API-ID` / `メソッド` / `パス` / … |
 | `features/<id>/layers.md` | 必須 | `層` / `CLS-ID` / `責務` / `関連API` |
-| `features/<id>/classes.md` | 必須 | `CLS-ID` / `共通or固有` / `関連TBL` |
+| `features/<id>/classes.md` | 必須 | `CLS-ID` / `共通or固有` / `関連TBL` / `継承元`（任意列） |
 | `features/<id>/db.md` | 永続化あり | `テーブル: TBL-` とカラム表 |
+
+`継承元` 列が無い既存表は継承なしとして扱う（indexer は壊れない）。
 
 ## 辺（キャンバス）
 
@@ -86,7 +88,9 @@ indexer は推測で辺を増やさない。
 
 - 機能 → クラス: その機能の `classes.md` / `layers.md` に出た CLS-
 - クラス → テーブル: クラス表の「関連TBL」
+- クラス → クラス（継承）: クラス表の「継承元」（破線辺 `inherits`）
 - 共通クラス: `00-project/classes.md` 掲載
+- 設計プロジェクト: `docs/design/<projectId>/manifest.yaml` 単位。ノード ID は `{projectId}:…` 接頭辞
 
 ## 書いてよいこと / 書いてはいけないこと
 
