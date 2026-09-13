@@ -27,3 +27,18 @@
 | UI | selectFeatures | 機能マルチ選択で部分グラフを出す |
 | UI | selectNode | 選択とクエリ同期、関連ハイライト |
 | UI | openMobileDrawer | 一覧/詳細の排他オープン |
+| UI | relayoutVisible | 表示中ノードを列ごとに詰め直して fitView |
+| UI | toggleOutlineSection | アウトラインの層/API/TBL セクション開閉 |
+
+## メソッド: CLS-sb-001
+
+| メソッド | 引数 | 戻り値 | 概要 |
+|----------|------|--------|------|
+| indexDesign | `{ designRoot }` | `{ projects[], nodes[], edges[], details }` | 全 manifest を読みグラフを組み立てる |
+| parseApiBodies | `{ apiMd }` | `{ apiId, requestJson?, responseJson? }[]` | API 節の JSON を抽出する |
+
+## メソッド: CLS-sb-010
+
+| メソッド | 引数 | 戻り値 | 概要 |
+|----------|------|--------|------|
+| relayoutVisible | `{ visibleNodeIds }` | （副作用: ノード座標更新） | 表示中だけ列詰めして fitView |

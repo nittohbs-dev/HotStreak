@@ -12,6 +12,53 @@
 | API-LOBBY-004 | PUT | `/api/sessions/{sessionId}/players/{playerId}/name` | 名前確定 | displayName（非空） | player, players[] | playerId 一致 |
 | API-LOBBY-005 | POST | `/api/sessions/{sessionId}/advance` | Enter によるフェーズ進行 | sessionId | phase, players[] | Display ローカル |
 
+## API-LOBBY-001
+
+セッション作成。Display 起動時に呼ぶ。
+
+### リクエスト
+
+```json
+{}
+```
+
+### レスポンス
+
+```json
+{
+  "sessionId": "sess_…",
+  "joinUrl": "https://…/join?sessionId=sess_…",
+  "phase": "lobby"
+}
+```
+
+## API-LOBBY-003
+
+Phone がロビーに参加する。
+
+### リクエスト
+
+```json
+{}
+```
+
+### レスポンス
+
+```json
+{
+  "playerId": "p_…",
+  "phase": "lobby",
+  "players": [
+    {
+      "playerId": "p_…",
+      "displayName": "",
+      "nameReady": false,
+      "balance": 10
+    }
+  ]
+}
+```
+
 ## WebSocket
 
 接続: `WS /ws/sessions/{sessionId}`
