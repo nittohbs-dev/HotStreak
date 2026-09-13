@@ -9,3 +9,6 @@ features:
   - id: setup-cards
     title: 公開カード準備
     status: draft
+  - id: betting
+    title: マ券・サイドベット
+    status: draft
