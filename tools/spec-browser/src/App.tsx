@@ -14,13 +14,22 @@ import {
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import { InspectorPanel } from './InspectorPanel'
+import { OutlinePanel } from './OutlinePanel'
+import { ProjectSwitcher } from './ProjectSwitcher'
 import {
   ClassCommonNode,
   ClassFeatureNode,
   FeatureNode,
   TableNode,
 } from './nodes'
-import type { LayerFilter, Snapshot, SnapshotNodeData } from './types'
+import type {
+  LayerFilter,
+  MobileDrawer,
+  OutlineFeature,
+  Snapshot,
+  SnapshotEdgeData,
+  SnapshotNodeData,
+} from './types'
 
 const nodeTypes: NodeTypes = {
   feature: FeatureNode,
@@ -29,19 +38,23 @@ const nodeTypes: NodeTypes = {
   table: TableNode,
 }
 
-function readQueryNode(): string | null {
+const MOBILE_MQ = '(max-width: 768px)'
+
+function readQuery(): { project: string | null; node: string | null } {
   const params = new URLSearchParams(window.location.search)
-  return params.get('node')
+  return { project: params.get('project'), node: params.get('node') }
 }
 
-function writeQueryNode(id: string | null) {
+function writeQuery(project: string | null, node: string | null) {
   const url = new URL(window.location.href)
-  if (id) url.searchParams.set('node', id)
+  if (project) url.searchParams.set('project', project)
+  else url.searchParams.delete('project')
+  if (node) url.searchParams.set('node', node)
   else url.searchParams.delete('node')
   window.history.replaceState({}, '', url.toString())
 }
 
-function matchesFilter(node: Node, filter: LayerFilter): boolean {
+function matchesLayer(node: Node, filter: LayerFilter): boolean {
   if (filter === 'all') return true
   const kind = (node.data as SnapshotNodeData).kind
   if (filter === 'feature') return kind === 'Feature'
@@ -50,13 +63,43 @@ function matchesFilter(node: Node, filter: LayerFilter): boolean {
   return true
 }
 
+function matchesSearch(node: Node, search: string): boolean {
+  const q = search.trim().toLowerCase()
+  if (!q) return true
+  const data = node.data as SnapshotNodeData
+  return (
+    data.label.toLowerCase().includes(q) ||
+    data.subLabel.toLowerCase().includes(q) ||
+    (data.featureIds ?? []).some((f) => f.toLowerCase().includes(q))
+  )
+}
+
 function CanvasApp() {
+  const initial = readQuery()
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [filter, setFilter] = useState<LayerFilter>('all')
-  const [selectedId, setSelectedId] = useState<string | null>(readQueryNode())
+  const [search, setSearch] = useState('')
+  const [gapOnly, setGapOnly] = useState(false)
+  const [headerOpen, setHeaderOpen] = useState(false)
+  const [isMobile, setIsMobile] = useState(
+    () => window.matchMedia(MOBILE_MQ).matches,
+  )
+  const [drawer, setDrawer] = useState<MobileDrawer>('none')
+  const [projectId, setProjectId] = useState<string | null>(initial.project)
+  const [selectedFeatures, setSelectedFeatures] = useState<Set<string>>(
+    () => new Set(),
+  )
+  const [selectedId, setSelectedId] = useState<string | null>(initial.node)
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([])
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([])
+
+  useEffect(() => {
+    const mq = window.matchMedia(MOBILE_MQ)
+    const onChange = () => setIsMobile(mq.matches)
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [])
 
   useEffect(() => {
     const base = import.meta.env.BASE_URL || '/'
@@ -69,86 +112,311 @@ function CanvasApp() {
         setSnapshot(data)
         setNodes(data.nodes as Node[])
         setEdges(data.edges as Edge[])
+        const ids = data.projects.map((p) => p.id)
+        const nextProject =
+          (initial.project && ids.includes(initial.project)
+            ? initial.project
+            : ids[0]) || null
+        setProjectId(nextProject)
+        if (initial.node && !data.nodes.some((n) => n.id === initial.node)) {
+          setSelectedId(null)
+        }
       })
       .catch((e: Error) => setError(e.message))
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- initial URL once
   }, [setNodes, setEdges])
 
+  useEffect(() => {
+    writeQuery(projectId, selectedId)
+  }, [projectId, selectedId])
+
+  useEffect(() => {
+    setSelectedFeatures(new Set())
+    setSelectedId((prev) => {
+      if (!prev || !projectId) return null
+      const data = nodes.find((n) => n.id === prev)?.data as
+        | SnapshotNodeData
+        | undefined
+      if (data?.projectId && data.projectId !== projectId) return null
+      if (prev.startsWith(`${projectId}:`)) return prev
+      return null
+    })
+  }, [projectId, nodes])
+
+  const projectNodes = useMemo(
+    () =>
+      nodes.filter((n) => {
+        const d = n.data as SnapshotNodeData
+        if (d.placeholder) return true
+        return d.projectId === projectId
+      }),
+    [nodes, projectId],
+  )
+
+  const projectEdges = useMemo(
+    () =>
+      edges.filter((e) => {
+        const d = e.data as SnapshotEdgeData | undefined
+        if (d?.projectId) return d.projectId === projectId
+        return (
+          e.source.startsWith(`${projectId}:`) &&
+          e.target.startsWith(`${projectId}:`)
+        )
+      }),
+    [edges, projectId],
+  )
+
+  const outlineFeatures: OutlineFeature[] = useMemo(() => {
+    if (!projectId) return []
+    const features = projectNodes.filter((n) => {
+      const d = n.data as SnapshotNodeData
+      return d.kind === 'Feature' && !d.placeholder
+    })
+    return features.map((fn) => {
+      const fid = (fn.data as SnapshotNodeData).subLabel
+      const detail = snapshot?.details[fn.id]
+      const classIds = detail?.classIds ?? []
+      const classes = classIds
+        .map((clsId) => {
+          const nodeId = `${projectId}:class:${clsId}`
+          const cn = projectNodes.find((n) => n.id === nodeId)
+          if (!cn) return null
+          const cd = snapshot?.details[nodeId]
+          const tables = (cd?.relatedTbl ?? [])
+            .map((tblId) => {
+              const tid = `${projectId}:table:${tblId}`
+              const tn = projectNodes.find((n) => n.id === tid)
+              if (!tn) return null
+              return {
+                id: tblId,
+                name: (tn.data as SnapshotNodeData).label,
+                nodeId: tid,
+              }
+            })
+            .filter(Boolean) as OutlineFeature['classes'][0]['tables']
+          return {
+            id: clsId,
+            name: (cn.data as SnapshotNodeData).label,
+            nodeId,
+            tables,
+          }
+        })
+        .filter(Boolean) as OutlineFeature['classes']
+      return {
+        id: fid,
+        name: (fn.data as SnapshotNodeData).label,
+        nodeId: fn.id,
+        classes,
+      }
+    })
+  }, [projectNodes, projectId, snapshot])
+
+  const featureFilteredIds = useMemo(() => {
+    if (selectedFeatures.size === 0) {
+      return new Set(projectNodes.map((n) => n.id))
+    }
+    const ids = new Set<string>()
+    for (const n of projectNodes) {
+      const d = n.data as SnapshotNodeData
+      if (d.kind === 'Feature' && selectedFeatures.has(d.subLabel)) {
+        ids.add(n.id)
+      }
+      if (
+        (d.kind === 'ClassCommon' || d.kind === 'ClassFeature') &&
+        (d.featureIds ?? []).some((f) => selectedFeatures.has(f))
+      ) {
+        ids.add(n.id)
+      }
+      if (
+        d.kind === 'Table' &&
+        (d.featureIds ?? []).some((f) => selectedFeatures.has(f))
+      ) {
+        ids.add(n.id)
+      }
+    }
+    // include inherit parents of visible classes
+    let changed = true
+    while (changed) {
+      changed = false
+      for (const e of projectEdges) {
+        const kind = (e.data as SnapshotEdgeData | undefined)?.kind
+        if (kind === 'inherits' && ids.has(e.target) && !ids.has(e.source)) {
+          ids.add(e.source)
+          changed = true
+        }
+      }
+    }
+    return ids
+  }, [projectNodes, projectEdges, selectedFeatures])
+
   const visibleNodes = useMemo(
-    () => nodes.map((n) => ({ ...n, hidden: !matchesFilter(n, filter) })),
-    [nodes, filter],
+    () =>
+      projectNodes.map((n) => {
+        const d = n.data as SnapshotNodeData
+        const show =
+          d.placeholder ||
+          (featureFilteredIds.has(n.id) &&
+            matchesLayer(n, filter) &&
+            matchesSearch(n, search) &&
+            (!gapOnly || d.implemented === false))
+        return { ...n, hidden: !show }
+      }),
+    [projectNodes, featureFilteredIds, filter, search, gapOnly],
   )
 
   const relatedIds = useMemo(() => {
     if (!selectedId) return new Set<string>()
     const set = new Set<string>([selectedId])
-    for (const e of edges) {
+    for (const e of projectEdges) {
       if (e.source === selectedId) set.add(e.target)
       if (e.target === selectedId) set.add(e.source)
     }
     return set
-  }, [selectedId, edges])
+  }, [selectedId, projectEdges])
 
   const styledEdges = useMemo(
     () =>
-      edges.map((e) => {
+      projectEdges.map((e) => {
+        const src = projectNodes.find((n) => n.id === e.source)
+        const tgt = projectNodes.find((n) => n.id === e.target)
+        const srcVisible = src && featureFilteredIds.has(src.id) && matchesLayer(src, filter) && matchesSearch(src, search) && (!gapOnly || (src.data as SnapshotNodeData).implemented === false)
+        const tgtVisible = tgt && featureFilteredIds.has(tgt.id) && matchesLayer(tgt, filter) && matchesSearch(tgt, search) && (!gapOnly || (tgt.data as SnapshotNodeData).implemented === false)
         const active =
           selectedId && (e.source === selectedId || e.target === selectedId)
+        const inherits =
+          (e.data as SnapshotEdgeData | undefined)?.kind === 'inherits'
         return {
           ...e,
-          hidden:
-            filter !== 'all' &&
-            (!matchesFilter(
-              nodes.find((n) => n.id === e.source) || ({ data: {} } as Node),
-              filter,
-            ) ||
-              !matchesFilter(
-                nodes.find((n) => n.id === e.target) || ({ data: {} } as Node),
-                filter,
-              )),
+          hidden: !srcVisible || !tgtVisible,
           style: {
-            stroke: active ? '#7ee0c8' : '#4a5568',
+            stroke: active ? '#7ee0c8' : inherits ? '#8a97ab' : '#4a5568',
             strokeWidth: active ? 2.5 : 1.5,
+            strokeDasharray: inherits ? '6 4' : undefined,
           },
           animated: Boolean(active),
         }
       }),
-    [edges, selectedId, filter, nodes],
+    [
+      projectEdges,
+      projectNodes,
+      featureFilteredIds,
+      filter,
+      search,
+      gapOnly,
+      selectedId,
+    ],
   )
 
-  const onSelect = useCallback((id: string | null) => {
-    setSelectedId(id)
-    writeQueryNode(id)
+  const onSelect = useCallback(
+    (id: string | null) => {
+      setSelectedId(id)
+      if (isMobile && id) setDrawer('inspector')
+    },
+    [isMobile],
+  )
+
+  const onToggleFeature = useCallback((fid: string) => {
+    setSelectedFeatures((prev) => {
+      const next = new Set(prev)
+      if (next.has(fid)) next.delete(fid)
+      else next.add(fid)
+      return next
+    })
   }, [])
 
-  const selectedNode = nodes.find((n) => n.id === selectedId) || null
+  const onProjectChange = useCallback((id: string) => {
+    setProjectId(id)
+  }, [])
+
+  const selectedNode = projectNodes.find((n) => n.id === selectedId) || null
   const selectedData = (selectedNode?.data as SnapshotNodeData) || null
   const detail = selectedId && snapshot ? snapshot.details[selectedId] : null
+  const activeProject = snapshot?.projects.find((p) => p.id === projectId)
+  const gapDisplay = activeProject?.gapCount ?? snapshot?.gapCount ?? '—'
+
+  const openDrawer = (next: MobileDrawer) => {
+    setDrawer((cur) => (cur === next ? 'none' : next))
+  }
+
+  const outlineEl = (
+    <OutlinePanel
+      features={outlineFeatures}
+      selectedFeatures={selectedFeatures}
+      selectedNodeId={selectedId}
+      search={search}
+      onToggleFeature={onToggleFeature}
+      onSelectNode={onSelect}
+      onClose={isMobile ? () => setDrawer('none') : undefined}
+    />
+  )
+
+  const inspectorEl = (
+    <InspectorPanel
+      nodeId={selectedId}
+      data={selectedData}
+      detail={detail ?? null}
+      projectId={projectId}
+      onNavigate={onSelect}
+      onClose={isMobile ? () => setDrawer('none') : undefined}
+    />
+  )
 
   return (
     <div className="app-shell">
-      <header className="topbar">
+      <header className={`topbar${headerOpen ? ' open' : ''}`}>
+        <button
+          type="button"
+          className="menu-toggle"
+          aria-label="フィルタを開く"
+          onClick={() => setHeaderOpen((v) => !v)}
+        >
+          ≡
+        </button>
         <div className="brand">Spec Browser</div>
-        <div className="filters" role="group" aria-label="層フィルタ">
-          {(
-            [
-              ['all', '全部'],
-              ['feature', '機能'],
-              ['class', 'クラス'],
-              ['db', 'DB'],
-            ] as const
-          ).map(([id, label]) => (
-            <button
-              key={id}
-              type="button"
-              className={filter === id ? 'active' : ''}
-              onClick={() => setFilter(id)}
-            >
-              {label}
-            </button>
-          ))}
+        <ProjectSwitcher
+          projects={snapshot?.projects ?? []}
+          value={projectId}
+          onChange={onProjectChange}
+        />
+        <div className={`topbar-tools${headerOpen ? ' show' : ''}`}>
+          <input
+            className="search-input"
+            type="search"
+            placeholder="検索…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            aria-label="検索"
+          />
+          <label className="gap-only">
+            <input
+              type="checkbox"
+              checked={gapOnly}
+              onChange={(e) => setGapOnly(e.target.checked)}
+            />
+            ギャップのみ
+          </label>
+          <div className="filters" role="group" aria-label="層フィルタ">
+            {(
+              [
+                ['all', '全部'],
+                ['feature', '機能'],
+                ['class', 'クラス'],
+                ['db', 'DB'],
+              ] as const
+            ).map(([id, label]) => (
+              <button
+                key={id}
+                type="button"
+                className={filter === id ? 'active' : ''}
+                onClick={() => setFilter(id)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
         <div className="gap">
-          ギャップ {snapshot?.gapCount ?? '—'}
+          ギャップ {gapDisplay}
           <span className="muted">
             {' '}
             · ソース {snapshot?.scannedFileCount ?? 0} ファイル
@@ -156,7 +424,8 @@ function CanvasApp() {
         </div>
       </header>
 
-      <div className="main">
+      <div className={`main${isMobile ? ' mobile' : ''}`}>
+        {!isMobile && outlineEl}
         <div className="canvas-wrap">
           {error && <div className="banner error">{error}</div>}
           {!error && !snapshot && <div className="banner">読込中…</div>}
@@ -182,16 +451,41 @@ function CanvasApp() {
             minZoom={0.2}
             proOptions={{ hideAttribution: true }}
           >
-            <Background variant={BackgroundVariant.Dots} gap={18} size={1} color="#2a3344" />
+            <Background
+              variant={BackgroundVariant.Dots}
+              gap={18}
+              size={1}
+              color="#2a3344"
+            />
             <Controls showInteractive={false} />
-            <MiniMap pannable zoomable />
+            {!isMobile && <MiniMap pannable zoomable />}
           </ReactFlow>
+          {isMobile && (
+            <div className="mobile-dock">
+              <button type="button" onClick={() => openDrawer('outline')}>
+                一覧
+              </button>
+              <button type="button" onClick={() => openDrawer('inspector')}>
+                詳細
+              </button>
+            </div>
+          )}
         </div>
-        <InspectorPanel
-          nodeId={selectedId}
-          data={selectedData}
-          detail={detail ?? null}
-        />
+        {!isMobile && inspectorEl}
+        {isMobile && drawer === 'outline' && (
+          <div className="drawer-backdrop" onClick={() => setDrawer('none')}>
+            <div className="drawer sheet" onClick={(e) => e.stopPropagation()}>
+              {outlineEl}
+            </div>
+          </div>
+        )}
+        {isMobile && drawer === 'inspector' && (
+          <div className="drawer-backdrop" onClick={() => setDrawer('none')}>
+            <div className="drawer sheet" onClick={(e) => e.stopPropagation()}>
+              {inspectorEl}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
