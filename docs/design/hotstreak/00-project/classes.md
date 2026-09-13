@@ -14,3 +14,4 @@
 | CLS-HS-006 | BetTicket | Domain | マ券／サイドベット札の種類・表裏・ダブル指定 | |
 | CLS-HS-007 | SideBetPrompt | Domain | サイドベットお題文面 | |
 | CLS-HS-008 | SnakeDraft | Domain | スネーク手番・周回 | |
+| CLS-HS-009 | RacingDeck | Domain | 公開＋仕込みによるレーシングデッキ | |
