@@ -4,13 +4,59 @@ type Props = {
   nodeId: string | null
   data: SnapshotNodeData | null
   detail: DetailPayload | null
+  projectId: string | null
+  onNavigate: (nodeId: string) => void
+  onClose?: () => void
 }
 
-export function InspectorPanel({ nodeId, data, detail }: Props) {
+function JumpList({
+  items,
+  toNodeId,
+  onNavigate,
+}: {
+  items: string[]
+  toNodeId: (localId: string) => string
+  onNavigate: (nodeId: string) => void
+}) {
+  if (!items.length) return <p className="muted">なし</p>
+  return (
+    <ul>
+      {items.map((id) => (
+        <li key={id}>
+          <button
+            type="button"
+            className="jump-link"
+            onClick={() => onNavigate(toNodeId(id))}
+          >
+            {id}
+          </button>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+export function InspectorPanel({
+  nodeId,
+  data,
+  detail,
+  projectId,
+  onNavigate,
+  onClose,
+}: Props) {
+  const pid = projectId || data?.projectId || detail?.projectId || ''
+
   if (!nodeId || !data) {
     return (
       <aside className="inspector">
-        <h2>インスペクタ</h2>
+        <div className="outline-header">
+          <h2>インスペクタ</h2>
+          {onClose && (
+            <button type="button" className="drawer-close" onClick={onClose}>
+              閉じる
+            </button>
+          )}
+        </div>
         <p className="muted">ノードを選択すると詳細が表示されます。</p>
       </aside>
     )
@@ -18,7 +64,14 @@ export function InspectorPanel({ nodeId, data, detail }: Props) {
 
   return (
     <aside className="inspector">
-      <h2>{data.label}</h2>
+      <div className="outline-header">
+        <h2>{data.label}</h2>
+        {onClose && (
+          <button type="button" className="drawer-close" onClick={onClose}>
+            閉じる
+          </button>
+        )}
+      </div>
       <p className="muted">
         {data.subLabel} · {data.kind}
       </p>
@@ -55,11 +108,11 @@ export function InspectorPanel({ nodeId, data, detail }: Props) {
             ))}
           </ul>
           <h3>関連クラス</h3>
-          <ul>
-            {(detail.classIds ?? []).map((id) => (
-              <li key={id}>{id}</li>
-            ))}
-          </ul>
+          <JumpList
+            items={detail.classIds ?? []}
+            toNodeId={(id) => `${pid}:class:${id}`}
+            onNavigate={onNavigate}
+          />
         </>
       )}
 
@@ -67,18 +120,34 @@ export function InspectorPanel({ nodeId, data, detail }: Props) {
         <>
           <p>{detail.responsibility || '責務未記載'}</p>
           <p>層: {detail.layer || '—'}</p>
+          <h3>継承元</h3>
+          {detail.inheritsFrom ? (
+            <JumpList
+              items={[detail.inheritsFrom]}
+              toNodeId={(id) => `${pid}:class:${id}`}
+              onNavigate={onNavigate}
+            />
+          ) : (
+            <p className="muted">なし</p>
+          )}
+          <h3>継承先</h3>
+          <JumpList
+            items={detail.inheritsTo ?? []}
+            toNodeId={(id) => `${pid}:class:${id}`}
+            onNavigate={onNavigate}
+          />
           <h3>使う機能</h3>
-          <ul>
-            {(detail.features ?? []).map((f) => (
-              <li key={f}>{f}</li>
-            ))}
-          </ul>
+          <JumpList
+            items={detail.features ?? []}
+            toNodeId={(id) => `${pid}:feature:${id}`}
+            onNavigate={onNavigate}
+          />
           <h3>関連テーブル</h3>
-          <ul>
-            {(detail.relatedTbl ?? []).map((t) => (
-              <li key={t}>{t}</li>
-            ))}
-          </ul>
+          <JumpList
+            items={detail.relatedTbl ?? []}
+            toNodeId={(id) => `${pid}:table:${id}`}
+            onNavigate={onNavigate}
+          />
         </>
       )}
 
@@ -105,17 +174,17 @@ export function InspectorPanel({ nodeId, data, detail }: Props) {
             </tbody>
           </table>
           <h3>所有機能</h3>
-          <ul>
-            {(detail.features ?? []).map((f) => (
-              <li key={f}>{f}</li>
-            ))}
-          </ul>
+          <JumpList
+            items={detail.features ?? []}
+            toNodeId={(id) => `${pid}:feature:${id}`}
+            onNavigate={onNavigate}
+          />
           <h3>触るクラス</h3>
-          <ul>
-            {(detail.classes ?? []).map((c) => (
-              <li key={c}>{c}</li>
-            ))}
-          </ul>
+          <JumpList
+            items={detail.classes ?? []}
+            toNodeId={(id) => `${pid}:class:${id}`}
+            onNavigate={onNavigate}
+          />
         </>
       )}
 

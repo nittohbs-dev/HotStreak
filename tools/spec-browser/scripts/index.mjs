@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * DesignIndexer (CLS-sb-001) + SourceScanner (CLS-sb-002)
- * REQ-sb-001 / REQ-sb-005 — reads only design-doc template headers.
+ * REQ-sb-001 / REQ-sb-005 / REQ-sb-006 / REQ-sb-010
  */
 import fs from 'node:fs'
 import path from 'node:path'
@@ -77,8 +77,11 @@ function splitRow(line) {
   return trimmed.split('|').map((c) => c.trim())
 }
 
+/** Required headers as prefix; extra columns (e.g. 継承元) allowed. */
 function tableByHeaders(tables, expected) {
-  return tables.find((t) => expected.every((h, idx) => t.headers[idx] === h)) || null
+  return (
+    tables.find((t) => expected.every((h, idx) => t.headers[idx] === h)) || null
+  )
 }
 
 function rowsAsObjects(table) {
@@ -160,8 +163,18 @@ function parseRelatedTbl(value) {
     .filter((s) => /^TBL-/.test(s))
 }
 
+function parseInheritsFrom(value) {
+  if (!value) return null
+  const token = value.trim().split(/[,、\s]+/)[0]
+  return token && /^CLS-/.test(token) ? token : null
+}
+
 function ensureDir(filePath) {
   fs.mkdirSync(path.dirname(filePath), { recursive: true })
+}
+
+function nid(projectId, kind, localId) {
+  return `${projectId}:${kind}:${localId}`
 }
 
 function listDesignProjects() {
@@ -171,6 +184,7 @@ function listDesignProjects() {
     .filter((d) => d.isDirectory())
     .map((d) => d.name)
     .filter((name) => fs.existsSync(path.join(DESIGN_ROOT, name, 'manifest.yaml')))
+    .sort()
 }
 
 function indexProject(projectId) {
@@ -203,9 +217,12 @@ function indexProject(projectId) {
       layer: c['層'] || '',
       responsibility: c['責務'] || '',
       relatedTbl: parseRelatedTbl(c['関連TBL']),
+      inheritsFrom: parseInheritsFrom(c['継承元']),
+      inheritsTo: [],
       common: true,
       features: [],
       sourceHits: [],
+      projectId,
     })
   }
 
@@ -217,6 +234,7 @@ function indexProject(projectId) {
       features: [],
       classes: [],
       sourceHits: [],
+      projectId,
     })
   }
 
@@ -253,6 +271,7 @@ function indexProject(projectId) {
         features: [],
         classes: [],
         sourceHits: [],
+        projectId,
       }
       if (t.columns?.length) existing.columns = t.columns
       if (!existing.features.includes(fid)) existing.features.push(fid)
@@ -267,18 +286,23 @@ function indexProject(projectId) {
       const isCommon =
         row['共通or固有'] === '共通' || classMeta.get(id)?.common === true
       const relatedTbl = parseRelatedTbl(row['関連TBL'])
+      const inheritsFrom = parseInheritsFrom(row['継承元'])
       const existing = classMeta.get(id) || {
         id,
         name: id,
         layer: '',
         responsibility: '',
         relatedTbl: [],
+        inheritsFrom: null,
+        inheritsTo: [],
         common: isCommon,
         features: [],
         sourceHits: [],
+        projectId,
       }
       existing.common = existing.common || isCommon
       existing.relatedTbl = [...new Set([...existing.relatedTbl, ...relatedTbl])]
+      if (inheritsFrom) existing.inheritsFrom = inheritsFrom
       if (!existing.features.includes(fid)) existing.features.push(fid)
       classMeta.set(id, existing)
       for (const tbl of relatedTbl) {
@@ -289,6 +313,7 @@ function indexProject(projectId) {
           features: [],
           classes: [],
           sourceHits: [],
+          projectId,
         }
         if (!tm.features.includes(fid)) tm.features.push(fid)
         if (!tm.classes.includes(id)) tm.classes.push(id)
@@ -306,9 +331,12 @@ function indexProject(projectId) {
         layer: row['層'] || '',
         responsibility: row['責務'] || '',
         relatedTbl: [],
+        inheritsFrom: null,
+        inheritsTo: [],
         common: false,
         features: [],
         sourceHits: [],
+        projectId,
       }
       if (row['層']) existing.layer = row['層']
       if (row['責務']) existing.responsibility = row['責務']
@@ -328,11 +356,12 @@ function indexProject(projectId) {
       apis: apiList,
       classIds: [...linkedCls],
       sourceHits: [],
+      projectId,
     })
 
     const y = 80 + featureIndex * 160
     nodes.push({
-      id: `feature:${fid}`,
+      id: nid(projectId, 'feature', fid),
       type: 'feature',
       position: { x: 40, y },
       data: {
@@ -341,24 +370,49 @@ function indexProject(projectId) {
         subLabel: fid,
         reqCount: reqs.length,
         implemented: false,
+        projectId,
+        featureIds: [fid],
       },
     })
 
     for (const clsId of linkedCls) {
       edges.push({
-        id: `e:${fid}->${clsId}`,
-        source: `feature:${fid}`,
-        target: `class:${clsId}`,
+        id: `e:${projectId}:feature:${fid}->class:${clsId}`,
+        source: nid(projectId, 'feature', fid),
+        target: nid(projectId, 'class', clsId),
         type: 'default',
+        data: { kind: 'uses', projectId },
       })
     }
   })
+
+  // Resolve inheritsTo reverse links and ensure parent class nodes exist
+  for (const [clsId, meta] of classMeta) {
+    if (!meta.inheritsFrom) continue
+    if (!classMeta.has(meta.inheritsFrom)) {
+      classMeta.set(meta.inheritsFrom, {
+        id: meta.inheritsFrom,
+        name: meta.inheritsFrom,
+        layer: '',
+        responsibility: '',
+        relatedTbl: [],
+        inheritsFrom: null,
+        inheritsTo: [],
+        common: false,
+        features: [...meta.features],
+        sourceHits: [],
+        projectId,
+      })
+    }
+    const parent = classMeta.get(meta.inheritsFrom)
+    if (!parent.inheritsTo.includes(clsId)) parent.inheritsTo.push(clsId)
+  }
 
   let classIndex = 0
   for (const [clsId, meta] of classMeta) {
     const y = 60 + classIndex * 120
     nodes.push({
-      id: `class:${clsId}`,
+      id: nid(projectId, 'class', clsId),
       type: meta.common ? 'classCommon' : 'classFeature',
       position: { x: 360, y },
       data: {
@@ -368,6 +422,7 @@ function indexProject(projectId) {
         layer: meta.layer,
         featureIds: meta.features,
         implemented: false,
+        projectId,
       },
     })
     for (const tbl of meta.relatedTbl) {
@@ -379,26 +434,37 @@ function indexProject(projectId) {
           features: [...meta.features],
           classes: [clsId],
           sourceHits: [],
+          projectId,
         })
       } else {
         const tm = tableMeta.get(tbl)
         if (!tm.classes.includes(clsId)) tm.classes.push(clsId)
       }
       edges.push({
-        id: `e:${clsId}->${tbl}`,
-        source: `class:${clsId}`,
-        target: `table:${tbl}`,
+        id: `e:${projectId}:class:${clsId}->table:${tbl}`,
+        source: nid(projectId, 'class', clsId),
+        target: nid(projectId, 'table', tbl),
         type: 'default',
+        data: { kind: 'uses', projectId },
       })
     }
-    details[`class:${clsId}`] = meta
+    if (meta.inheritsFrom) {
+      edges.push({
+        id: `e:${projectId}:inherits:${meta.inheritsFrom}->${clsId}`,
+        source: nid(projectId, 'class', meta.inheritsFrom),
+        target: nid(projectId, 'class', clsId),
+        type: 'default',
+        data: { kind: 'inherits', projectId },
+      })
+    }
+    details[nid(projectId, 'class', clsId)] = meta
     classIndex += 1
   }
 
   let tableIndex = 0
   for (const [tblId, meta] of tableMeta) {
     nodes.push({
-      id: `table:${tblId}`,
+      id: nid(projectId, 'table', tblId),
       type: 'table',
       position: { x: 700, y: 60 + tableIndex * 120 },
       data: {
@@ -406,14 +472,16 @@ function indexProject(projectId) {
         label: meta.name,
         subLabel: tblId,
         implemented: false,
+        projectId,
+        featureIds: meta.features,
       },
     })
-    details[`table:${tblId}`] = meta
+    details[nid(projectId, 'table', tblId)] = meta
     tableIndex += 1
   }
 
   for (const [fid, meta] of featureMeta) {
-    details[`feature:${fid}`] = meta
+    details[nid(projectId, 'feature', fid)] = meta
   }
 
   return {
@@ -451,7 +519,6 @@ function scanSources(indexed) {
   for (const d of SCAN_DIRS) {
     walkFiles(path.join(REPO_ROOT, d), files)
   }
-  // also allow tools excluded already via name
 
   const contentByFile = files.map((f) => ({
     file: path.relative(REPO_ROOT, f).replace(/\\/g, '/'),
@@ -461,6 +528,9 @@ function scanSources(indexed) {
   let gapCount = 0
 
   for (const project of indexed) {
+    let projectGap = 0
+    const { projectId } = project
+
     for (const [fid, meta] of project.featureMeta) {
       const hits = []
       for (const req of meta.reqs) {
@@ -474,10 +544,15 @@ function scanSources(indexed) {
         }
       }
       meta.sourceHits = uniqueHits(hits)
-      const node = project.nodes.find((n) => n.id === `feature:${fid}`)
+      const node = project.nodes.find(
+        (n) => n.id === nid(projectId, 'feature', fid),
+      )
       if (node) node.data.implemented = meta.sourceHits.length > 0
-      if (meta.reqs.length && meta.sourceHits.length === 0) gapCount += 1
-      project.details[`feature:${fid}`] = meta
+      if (meta.reqs.length && meta.sourceHits.length === 0) {
+        gapCount += 1
+        projectGap += 1
+      }
+      project.details[nid(projectId, 'feature', fid)] = meta
     }
 
     for (const [clsId, meta] of project.classMeta) {
@@ -489,26 +564,41 @@ function scanSources(indexed) {
         }
       }
       meta.sourceHits = uniqueHits(hits)
-      const node = project.nodes.find((n) => n.id === `class:${clsId}`)
+      const node = project.nodes.find(
+        (n) => n.id === nid(projectId, 'class', clsId),
+      )
       if (node) node.data.implemented = meta.sourceHits.length > 0
-      if (meta.sourceHits.length === 0) gapCount += 1
-      project.details[`class:${clsId}`] = meta
+      if (meta.sourceHits.length === 0) {
+        gapCount += 1
+        projectGap += 1
+      }
+      project.details[nid(projectId, 'class', clsId)] = meta
     }
 
     for (const [tblId, meta] of project.tableMeta) {
       const hits = []
       for (const { file, text } of contentByFile) {
         if (text.includes(tblId)) hits.push({ id: tblId, file })
-        if (text.includes(`@Table`) && text.includes(tblId.replace(/^TBL-/, ''))) {
+        if (
+          text.includes(`@Table`) &&
+          text.includes(tblId.replace(/^TBL-/, ''))
+        ) {
           hits.push({ id: tblId, file })
         }
       }
       meta.sourceHits = uniqueHits(hits)
-      const node = project.nodes.find((n) => n.id === `table:${tblId}`)
+      const node = project.nodes.find(
+        (n) => n.id === nid(projectId, 'table', tblId),
+      )
       if (node) node.data.implemented = meta.sourceHits.length > 0
-      if (meta.sourceHits.length === 0) gapCount += 1
-      project.details[`table:${tblId}`] = meta
+      if (meta.sourceHits.length === 0) {
+        gapCount += 1
+        projectGap += 1
+      }
+      project.details[nid(projectId, 'table', tblId)] = meta
     }
+
+    project.gapCount = projectGap
   }
 
   return { gapCount, scannedFileCount: contentByFile.length }
@@ -578,14 +668,8 @@ function main() {
   const details = {}
   const projectSummaries = []
 
-  indexed.forEach((p, pi) => {
-    const xOffset = pi * 980
-    for (const n of p.nodes) {
-      nodes.push({
-        ...n,
-        position: { x: n.position.x + xOffset, y: n.position.y },
-      })
-    }
+  for (const p of indexed) {
+    nodes.push(...p.nodes)
     edges.push(...p.edges)
     Object.assign(details, p.details)
     projectSummaries.push({
@@ -595,10 +679,10 @@ function main() {
       featureCount: p.featureMeta.size,
       classCount: p.classMeta.size,
       tableCount: p.tableMeta.size,
+      gapCount: p.gapCount ?? 0,
     })
-  })
+  }
 
-  // dedupe edges
   const edgeSeen = new Set()
   const uniqueEdges = edges.filter((e) => {
     if (edgeSeen.has(e.id)) return false
@@ -620,7 +704,7 @@ function main() {
   ensureDir(OUT_FILE)
   fs.writeFileSync(OUT_FILE, JSON.stringify(snapshot, null, 2))
   console.log(
-    `Wrote snapshot: ${nodes.length} nodes, ${uniqueEdges.length} edges, gaps=${scan.gapCount} -> ${OUT_FILE}`,
+    `Wrote snapshot: ${nodes.length} nodes, ${uniqueEdges.length} edges, gaps=${scan.gapCount}, projects=${projectSummaries.map((p) => p.id).join(',')} -> ${OUT_FILE}`,
   )
 }
 
