@@ -25,6 +25,7 @@
 | TST-betting-003 | Service | レース1で double 拒否・レース3で1枚のみ | REQ-betting-005 |
 | TST-betting-004 | Service | 全員2枚で card-seed | REQ-betting-006 |
 | TST-betting-006 | API | 他者番の pick は 403 | REQ-betting-001 |
+| TST-betting-007 | API | 未完了 advance は 409・force-advance なし | REQ-betting-007 |
 
 ## 受け入れ条件マッピング
 
@@ -41,9 +42,5 @@
 ## OPEN
 
 （なし）
-
-| TST-ID | 層 | 観点 | 関連REQ |
-|--------|-----|------|---------|
-| TST-betting-007 | API | 未完了 advance は 409・force-advance なし | REQ-betting-007 |
 
 ※ 配当額表示の E2E は payout 観測確定表を TST データとする。
