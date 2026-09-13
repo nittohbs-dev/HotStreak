@@ -18,3 +18,4 @@
 | CLS-HS-010 | Mascot | Domain | マスコット位置・向き・転倒・DQ | |
 | CLS-HS-011 | Course | Domain | コースマス・短縮 | |
 | CLS-HS-012 | RaceEngine | Domain | めくり・効果・終了判定 | |
+| CLS-HS-013 | PayoutCalculator | Domain | 着順・札面からの精算 | |
