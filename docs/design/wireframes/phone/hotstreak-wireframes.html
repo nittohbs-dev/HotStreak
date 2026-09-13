@@ -98,20 +98,20 @@ font-size:12px;color:var(--muted)}
 <div class="sheet-head"><h1>ホットストリーク ワイヤーフレーム一覧</h1><p>スマートフォン5画面と画面遷移。ブラウザで開いて印刷するとPDF化できます。</p></div>
 <div class="grid"><div class="slot" style="width:100%;max-width:720px">
 <p class="slot-label">画面遷移</p>
-<p class="slot-note">カード提出〜結果発表を3ラウンド繰り返し、3回目終了後にタイトルへ戻る</p>
+<p class="slot-note">カード仕込み〜配当を3レース。進行は全員揃いまたはラズパイ Enter（時間遷移なし）</p>
 <div class="phone" style="width:100%">
 <div class="stack">
 <div class="row" style="justify-content:center">1. タイトル画面</div>
-<p style="text-align:center;margin:0;color:var(--muted)">↓ 名前入力 → 物理ボタン</p>
-<div class="row" style="justify-content:center">2. カード提出画面</div>
-<p style="text-align:center;margin:0;color:var(--muted)">↓ 全員提出 または 20秒経過</p>
-<div class="row" style="justify-content:center">3. 馬券選択画面</div>
-<p style="text-align:center;margin:0;color:var(--muted)">↓ 2周目の最終投票</p>
+<p style="text-align:center;margin:0;color:var(--muted)">↓ 全員名前確定 または Enter</p>
+<div class="row" style="justify-content:center">2. マ券ドラフト</div>
+<p style="text-align:center;margin:0;color:var(--muted)">↓ 全員2枚 または Enter</p>
+<div class="row" style="justify-content:center">3. カード仕込み</div>
+<p style="text-align:center;margin:0;color:var(--muted)">↓ 全員仕込み または Enter</p>
 <div class="row" style="justify-content:center">4. レース中の画面</div>
-<p style="text-align:center;margin:0;color:var(--muted)">↓ ゴール</p>
+<p style="text-align:center;margin:0;color:var(--muted)">↓ レース演算終了（着順確定）</p>
 <div class="row" style="justify-content:center">5. 結果発表画面</div>
-<p style="text-align:center;margin:0;color:var(--muted)">↓ 15秒</p>
-<div class="row" style="justify-content:center;border-style:dashed">1〜2回目は 2 へ戻る ／ 3回目は 1 へ戻る</div>
+<p style="text-align:center;margin:0;color:var(--muted)">↓ Enter</p>
+<div class="row" style="justify-content:center;border-style:dashed">1〜2回目は 2 へ ／ 3回目は 1 へ</div>
 </div>
 </div>
 </div><div class="slot">
@@ -136,33 +136,33 @@ font-size:12px;color:var(--muted)}
 <div class="row"><span style="color:var(--muted)">プレイヤー4</span><span style="font-size:12px;color:var(--muted)">入力中</span></div>
 </div>
 <button class="btn">この名前で決定</button>
-<div class="ghost" style="margin-top:10px">全員の入力後、物理ボタンでカード提出へ</div>
+<div class="ghost" style="margin-top:10px">全員入力後、またはラズパイ Enter で次へ</div>
 </div>
-<div class="spec" style="margin-top:12px"><h3>仕様メモ</h3><ul><li>QR読取のたびに参加者数をインクリメントし全端末へ配信</li><li>名前は入力確定後、全端末の参加者リストに反映</li><li>画面遷移のトリガーは物理ボタン</li></ul></div>
+<div class="spec" style="margin-top:12px"><h3>仕様メモ</h3><ul><li>QR読取のたびに参加者数をインクリメントし全端末へ配信</li><li>名前は入力確定後、全端末の参加者リストに反映</li><li>進行は全員揃い、またはラズパイ Enter（時間遷移なし）</li></ul></div>
 </div><div class="slot">
-<p class="slot-label">2. カード提出画面</p>
-<p class="slot-note">3枚の手札から1枚提出。20秒で自動遷移</p>
+<p class="slot-label">2. カード仕込み画面</p>
+<p class="slot-note">3枚の手札から1枚仕込み。全員済または Enter で次へ</p>
 <div class="phone">
-<p class="stamp">画面2 / カード提出</p>
-<div class="timer"><span>カードを1枚提出</span><b>20</b></div>
-<p class="sub" style="margin-bottom:10px">ラウンド 2/3 ・ 手札3枚</p>
+<p class="stamp">画面2 / カード仕込み</p>
+<div class="timer"><span>カードを1枚仕込む</span><b style="font-size:13px;font-weight:600">2/4</b></div>
+<p class="sub" style="margin-bottom:10px">レース 2/3 ・ 手札3枚</p>
 <div class="cols3">
 <div class="hand sel"><p class="cn">カードA</p><p class="ct">効果テキスト</p></div>
 <div class="hand"><p class="cn">カードC</p><p class="ct">効果テキスト</p></div>
 <div class="hand"><p class="cn">カードE</p><p class="ct">効果テキスト</p><p class="cnew">今回追加</p></div>
 </div>
 <div class="divider"></div>
-<p class="lbl">提出状況</p>
+<p class="lbl">仕込み状況</p>
 <div>
 <div class="vote"><span class="p">ヤマダ（自分）</span><span class="t">選択中</span></div>
-<div class="vote"><span class="p">サトウ</span><span class="t">提出済</span></div>
-<div class="vote"><span class="p">プレイヤー3</span><span class="t">未提出</span></div>
-<div class="vote"><span class="p">プレイヤー4</span><span class="t">提出済</span></div>
+<div class="vote"><span class="p">サトウ</span><span class="t">済</span></div>
+<div class="vote"><span class="p">プレイヤー3</span><span class="t">未</span></div>
+<div class="vote"><span class="p">プレイヤー4</span><span class="t">済</span></div>
 </div>
-<button class="btn">このカードを提出する</button>
-<div class="ghost" style="margin-top:10px">20秒経過で自動提出（未選択はランダム）</div>
+<button class="btn">このカードを仕込む</button>
+<div class="ghost" style="margin-top:10px">全員済、またはラズパイ Enter で次へ（時間切れなし）</div>
 </div>
-<div class="spec" style="margin-top:12px"><h3>仕様メモ</h3><ul><li>ラウンド1は3枚配布。2ラウンド目以降は残り2枚＋ランダム1枚</li><li>20秒のカウントダウンはサーバー時刻を基準に全端末同期</li><li>時間切れ時は未選択プレイヤーのカードをサーバー側でランダム決定</li><li>全員提出、または20秒経過で馬券選択へ遷移</li></ul></div>
+<div class="spec" style="margin-top:12px"><h3>仕様メモ</h3><ul><li>レース1は手札3枚。以降は残り＋補充</li><li>時間遷移・タイマー強制は使わない</li><li>全員仕込み完了、または Enter でレースへ</li></ul></div>
 </div><div class="slot">
 <p class="slot-label">3. 馬券選択画面</p>
 <p class="slot-note">表裏でオッズを切替えて1枚ずつ投票</p>
@@ -200,10 +200,10 @@ font-size:12px;color:var(--muted)}
 </div>
 </div><div class="slot">
 <p class="slot-label">4. レース中の画面</p>
-<p class="slot-note">イベントと全員の馬券を表示</p>
+<p class="slot-note">自分のマ券・金額・順位。全員状況はボタンで小画面</p>
 <div class="phone">
 <p class="stamp">画面4 / レース中</p>
-<div class="event"><p class="k">今回のイベント</p><p class="v">イベント名</p><p class="d">効果の説明文（別画面で決定済み）</p></div>
+<div class="event"><p class="k">サイドベットお題</p><p class="v">お題テキスト</p><p class="d">YES / NO の内容</p></div>
 <p class="h2">レース進行中</p>
 <p class="sub">順位は左から1位 → 4位</p>
 <div class="cols4">
@@ -214,22 +214,35 @@ font-size:12px;color:var(--muted)}
 </div>
 <p class="sub" style="text-align:center;margin:10px 0 0">順位変動でリアルタイム並び替え</p>
 <div class="divider"></div>
-<p class="lbl">全員の馬券</p>
+<p class="lbl">あなたのマ券</p>
+<div class="tags" style="margin-bottom:10px"><span class="tag risky">馬券B リスキー</span><span class="tag">馬券E</span></div>
+<div class="row" style="margin-bottom:6px"><span>所持金</span><span style="font-weight:600">$1,400</span></div>
+<div class="row" style="margin-bottom:10px"><span>順位</span><span style="font-weight:600">2位 / 4人</span></div>
+<button class="btn">全員の状況</button>
+<div class="ghost" style="margin-top:10px">着順確定後に配当へ（ルール演算・タイマーではない）</div>
+</div>
+<div class="spec" style="margin-top:12px"><h3>仕様メモ</h3><ul><li>上部はサイドベットお題（旧「イベント」）</li><li>4体を順位順に横並び、順位変動で並び替え</li><li>下部は自分の購入マ券・所持金・プレイヤー順位（全員一覧は出さない）</li><li>「全員の状況」で小画面を開き、他プレイヤーのマ券を参照</li><li>ゴール／失格で着順確定後に配当へ（時間遷移なし）</li></ul></div>
+</div>
+<div class="slot">
+<p class="slot-label">4b. 全員状況（小画面）</p>
+<p class="slot-note">レース中画面からボタンで開くモーダル</p>
+<div class="phone">
+<p class="stamp">画面4b / 全員状況</p>
+<div class="row" style="margin-bottom:12px"><span class="h2" style="margin:0">全員の状況</span><span style="color:var(--muted)">×</span></div>
 <div>
 <div class="vote"><span class="p">ヤマダ（自分）</span><span class="t">馬券B リスキー ／ 馬券E</span></div>
 <div class="vote"><span class="p">サトウ</span><span class="t">馬券A ／ 馬券C</span></div>
 <div class="vote"><span class="p">プレイヤー3</span><span class="t">馬券D ／ 馬券A リスキー</span></div>
 <div class="vote"><span class="p">プレイヤー4</span><span class="t">馬券E ／ 馬券F</span></div>
 </div>
-<div class="ghost" style="margin-top:12px">操作不可 ・ ゴール後に自動遷移</div>
+<div class="ghost" style="margin-top:12px">× または外側タップでレース中に戻る</div>
 </div>
-<div class="spec" style="margin-top:12px"><h3>仕様メモ</h3><ul><li>そのラウンドのイベント名と効果を上部に固定表示</li><li>4体を順位順に横並び表示、順位変動で並び替え</li><li>全プレイヤーの投票済み馬券を表裏込みで一覧表示</li><li>ゴール判定で結果発表へ自動遷移</li></ul></div>
 </div><div class="slot">
 <p class="slot-label">5. 結果発表画面</p>
-<p class="slot-note">着順・払戻・プレイヤー順位を15秒表示</p>
+<p class="slot-note">着順・払戻・プレイヤー順位。次へは Enter</p>
 <div class="phone">
 <p class="stamp">画面5 / 結果発表</p>
-<p class="h2" style="margin-bottom:12px">ラウンド1 結果</p>
+<p class="h2" style="margin-bottom:12px">レース1 結果</p>
 <p class="lbl">着順</p>
 <div class="cols4" style="margin-bottom:14px">
 <div class="cell lead"><p class="r">1位</p><p class="n">馬C</p></div>
@@ -249,8 +262,8 @@ font-size:12px;color:var(--muted)}
 <div class="rank"><span>3位 プレイヤー3</span><span>$700</span></div>
 <div class="rank"><span>4位 プレイヤー4</span><span>$0</span></div>
 </div>
-<div class="ghost" style="margin-top:14px">15秒後、次のラウンドのカード提出へ<br>（3回目はタイトルへ戻る）</div>
+<div class="ghost" style="margin-top:14px">ラズパイ Enter で次へ<br>（1〜2回目はマ券ドラフト／3回目はタイトル）</div>
 </div>
-<div class="spec" style="margin-top:12px"><h3>仕様メモ</h3><ul><li>着順と所持馬券（表裏）から払戻額を算出</li><li>3ラウンド目の払戻は2倍で計算</li><li>15秒後に自動遷移。1〜2回目はカード提出、3回目はタイトルへ</li></ul></div>
+<div class="spec" style="margin-top:12px"><h3>仕様メモ</h3><ul><li>着順と所持マ券（表裏）から払戻額を算出</li><li>第3レースは指定1枚のみダブル</li><li>15秒などの時間遷移はしない。Enter で次フェーズ</li></ul></div>
 </div></div>
 </div></body></html>
