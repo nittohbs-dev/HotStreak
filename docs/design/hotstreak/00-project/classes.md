@@ -15,3 +15,6 @@
 | CLS-HS-007 | SideBetPrompt | Domain | サイドベットお題文面 | |
 | CLS-HS-008 | SnakeDraft | Domain | スネーク手番・周回 | |
 | CLS-HS-009 | RacingDeck | Domain | 公開＋仕込みによるレーシングデッキ | |
+| CLS-HS-010 | Mascot | Domain | マスコット位置・向き・転倒・DQ | |
+| CLS-HS-011 | Course | Domain | コースマス・短縮 | |
+| CLS-HS-012 | RaceEngine | Domain | めくり・効果・終了判定 | |

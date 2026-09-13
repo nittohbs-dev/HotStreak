@@ -13,7 +13,7 @@
 | race | レース進行 | draft | バーン、めくり、カード効果、DQ、コース短縮 |
 | payout | 配当 | draft | 精算とレース間リセット（札戻し・お題更新・手札補充・先頭ローテ） |
 
-※ `manifest.yaml` の `features` は、各機能の `features/<id>/` を起こす設計PRで同期する。現時点: `lobby`, `setup-cards`, `betting`, `card-seed` を掲載。
+※ `manifest.yaml` の `features` は、各機能の `features/<id>/` を起こす設計PRで同期する。現時点: `lobby`, `setup-cards`, `betting`, `card-seed`, `race` を掲載。
 
 ## 機能間の関係
 
