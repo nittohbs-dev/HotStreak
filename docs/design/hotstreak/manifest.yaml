@@ -12,3 +12,6 @@ features:
   - id: betting
     title: マ券・サイドベット
     status: draft
+  - id: card-seed
+    title: カード仕込み
+    status: draft
