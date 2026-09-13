@@ -2,4 +2,7 @@ project: hotstreak
 title: HotStreak（ホットストリーク）
 status: draft
 
-features: []
+features:
+  - id: lobby
+    title: 参加・ロビー
+    status: draft
