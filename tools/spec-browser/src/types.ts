@@ -1,4 +1,4 @@
-export type NodeKind = 'Feature' | 'ClassCommon' | 'ClassFeature' | 'Table'
+export type NodeKind = 'Feature' | 'ClassCommon' | 'ClassFeature' | 'Table' | 'Api'
 
 export type SnapshotNodeData = {
   kind: NodeKind
@@ -25,6 +25,13 @@ export type ProjectSummary = {
   classCount: number
   tableCount: number
   gapCount?: number
+}
+
+export type MethodRow = {
+  メソッド?: string
+  引数?: string
+  戻り値?: string
+  概要?: string
 }
 
 export type Snapshot = {
@@ -58,7 +65,12 @@ export type DetailPayload = {
   reqs?: Array<{ id: string; title: string; body: string }>
   screens?: Array<Record<string, string>>
   wires?: Array<{ id: string; name: string; wire: string }>
-  apis?: Array<Record<string, string>>
+  apis?: Array<Record<string, string> & {
+    requestJson?: string | null
+    responseJson?: string | null
+    bodySummary?: string
+    featureId?: string
+  }>
   classIds?: string[]
   layer?: string
   responsibility?: string
@@ -71,20 +83,33 @@ export type DetailPayload = {
   projectId?: string
   inheritsFrom?: string | null
   inheritsTo?: string[]
+  methods?: MethodRow[]
+  requestJson?: string | null
+  responseJson?: string | null
+  bodySummary?: string
+  featureId?: string
+  'メソッド'?: string
+  'パス'?: string
+  '概要'?: string
+  '主な入力'?: string
+  '主な出力'?: string
+  '認証'?: string
+  'API-ID'?: string
 }
 
 export type LayerFilter = 'all' | 'feature' | 'class' | 'db'
 
 export type MobileDrawer = 'none' | 'outline' | 'inspector'
 
-export type OutlineFeature = {
+export type OutlineItem = {
   id: string
   name: string
   nodeId: string
-  classes: Array<{
-    id: string
-    name: string
-    nodeId: string
-    tables: Array<{ id: string; name: string; nodeId: string }>
-  }>
+}
+
+export type OutlineModel = {
+  features: OutlineItem[]
+  layers: Array<{ name: string; items: OutlineItem[] }>
+  apis: OutlineItem[]
+  tables: OutlineItem[]
 }

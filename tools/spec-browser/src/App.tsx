@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Background,
   BackgroundVariant,
@@ -8,6 +8,7 @@ import {
   ReactFlowProvider,
   useEdgesState,
   useNodesState,
+  useReactFlow,
   type Edge,
   type Node,
   type NodeTypes,
@@ -25,7 +26,7 @@ import {
 import type {
   LayerFilter,
   MobileDrawer,
-  OutlineFeature,
+  OutlineModel,
   Snapshot,
   SnapshotEdgeData,
   SnapshotNodeData,
@@ -39,6 +40,8 @@ const nodeTypes: NodeTypes = {
 }
 
 const MOBILE_MQ = '(max-width: 768px)'
+const COL_X = { Feature: 40, Class: 360, Table: 700 } as const
+const ROW_GAP = 120
 
 function readQuery(): { project: string | null; node: string | null } {
   const params = new URLSearchParams(window.location.search)
@@ -70,12 +73,20 @@ function matchesSearch(node: Node, search: string): boolean {
   return (
     data.label.toLowerCase().includes(q) ||
     data.subLabel.toLowerCase().includes(q) ||
-    (data.featureIds ?? []).some((f) => f.toLowerCase().includes(q))
+    (data.featureIds ?? []).some((f) => f.toLowerCase().includes(q)) ||
+    (data.layer ?? '').toLowerCase().includes(q)
   )
+}
+
+function columnOf(kind: SnapshotNodeData['kind']): number {
+  if (kind === 'Feature') return COL_X.Feature
+  if (kind === 'Table') return COL_X.Table
+  return COL_X.Class
 }
 
 function CanvasApp() {
   const initial = readQuery()
+  const { fitView } = useReactFlow()
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [filter, setFilter] = useState<LayerFilter>('all')
@@ -93,6 +104,7 @@ function CanvasApp() {
   const [selectedId, setSelectedId] = useState<string | null>(initial.node)
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([])
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([])
+  const layoutKeyRef = useRef('')
 
   useEffect(() => {
     const mq = window.matchMedia(MOBILE_MQ)
@@ -118,7 +130,11 @@ function CanvasApp() {
             ? initial.project
             : ids[0]) || null
         setProjectId(nextProject)
-        if (initial.node && !data.nodes.some((n) => n.id === initial.node)) {
+        if (
+          initial.node &&
+          !data.nodes.some((n) => n.id === initial.node) &&
+          !data.details[initial.node]
+        ) {
           setSelectedId(null)
         }
       })
@@ -134,14 +150,10 @@ function CanvasApp() {
     setSelectedFeatures(new Set())
     setSelectedId((prev) => {
       if (!prev || !projectId) return null
-      const data = nodes.find((n) => n.id === prev)?.data as
-        | SnapshotNodeData
-        | undefined
-      if (data?.projectId && data.projectId !== projectId) return null
       if (prev.startsWith(`${projectId}:`)) return prev
       return null
     })
-  }, [projectId, nodes])
+  }, [projectId])
 
   const projectNodes = useMemo(
     () =>
@@ -166,51 +178,6 @@ function CanvasApp() {
     [edges, projectId],
   )
 
-  const outlineFeatures: OutlineFeature[] = useMemo(() => {
-    if (!projectId) return []
-    const features = projectNodes.filter((n) => {
-      const d = n.data as SnapshotNodeData
-      return d.kind === 'Feature' && !d.placeholder
-    })
-    return features.map((fn) => {
-      const fid = (fn.data as SnapshotNodeData).subLabel
-      const detail = snapshot?.details[fn.id]
-      const classIds = detail?.classIds ?? []
-      const classes = classIds
-        .map((clsId) => {
-          const nodeId = `${projectId}:class:${clsId}`
-          const cn = projectNodes.find((n) => n.id === nodeId)
-          if (!cn) return null
-          const cd = snapshot?.details[nodeId]
-          const tables = (cd?.relatedTbl ?? [])
-            .map((tblId) => {
-              const tid = `${projectId}:table:${tblId}`
-              const tn = projectNodes.find((n) => n.id === tid)
-              if (!tn) return null
-              return {
-                id: tblId,
-                name: (tn.data as SnapshotNodeData).label,
-                nodeId: tid,
-              }
-            })
-            .filter(Boolean) as OutlineFeature['classes'][0]['tables']
-          return {
-            id: clsId,
-            name: (cn.data as SnapshotNodeData).label,
-            nodeId,
-            tables,
-          }
-        })
-        .filter(Boolean) as OutlineFeature['classes']
-      return {
-        id: fid,
-        name: (fn.data as SnapshotNodeData).label,
-        nodeId: fn.id,
-        classes,
-      }
-    })
-  }, [projectNodes, projectId, snapshot])
-
   const featureFilteredIds = useMemo(() => {
     if (selectedFeatures.size === 0) {
       return new Set(projectNodes.map((n) => n.id))
@@ -234,7 +201,6 @@ function CanvasApp() {
         ids.add(n.id)
       }
     }
-    // include inherit parents of visible classes
     let changed = true
     while (changed) {
       changed = false
@@ -248,6 +214,79 @@ function CanvasApp() {
     }
     return ids
   }, [projectNodes, projectEdges, selectedFeatures])
+
+  const visibilityKey = useMemo(() => {
+    const visible = projectNodes
+      .filter((n) => {
+        const d = n.data as SnapshotNodeData
+        return (
+          d.placeholder ||
+          (featureFilteredIds.has(n.id) &&
+            matchesLayer(n, filter) &&
+            matchesSearch(n, search) &&
+            (!gapOnly || d.implemented === false))
+        )
+      })
+      .map((n) => n.id)
+      .sort()
+    return `${projectId}|${visible.join(',')}`
+  }, [projectNodes, featureFilteredIds, filter, search, gapOnly, projectId])
+
+  useEffect(() => {
+    if (!projectId || !nodes.length) return
+    if (layoutKeyRef.current === visibilityKey) return
+    layoutKeyRef.current = visibilityKey
+
+    const buckets: Record<'Feature' | 'Class' | 'Table', Node[]> = {
+      Feature: [],
+      Class: [],
+      Table: [],
+    }
+    for (const n of nodes) {
+      const d = n.data as SnapshotNodeData
+      if (d.projectId && d.projectId !== projectId) continue
+      const show =
+        d.placeholder ||
+        (featureFilteredIds.has(n.id) &&
+          matchesLayer(n, filter) &&
+          matchesSearch(n, search) &&
+          (!gapOnly || d.implemented === false))
+      if (!show) continue
+      if (d.kind === 'Feature') buckets.Feature.push(n)
+      else if (d.kind === 'Table') buckets.Table.push(n)
+      else buckets.Class.push(n)
+    }
+
+    const pos = new Map<string, { x: number; y: number }>()
+    ;(['Feature', 'Class', 'Table'] as const).forEach((bucket) => {
+      buckets[bucket].forEach((n, i) => {
+        const kind = (n.data as SnapshotNodeData).kind
+        pos.set(n.id, { x: columnOf(kind), y: 60 + i * ROW_GAP })
+      })
+    })
+
+    setNodes((prev) =>
+      prev.map((n) => {
+        const p = pos.get(n.id)
+        if (!p) return n
+        return { ...n, position: p }
+      }),
+    )
+
+    requestAnimationFrame(() => {
+      fitView({ padding: 0.2, duration: 200 })
+    })
+  }, [
+    visibilityKey,
+    projectId,
+    nodes.length,
+    featureFilteredIds,
+    filter,
+    search,
+    gapOnly,
+    setNodes,
+    fitView,
+  ])
 
   const visibleNodes = useMemo(
     () =>
@@ -264,6 +303,70 @@ function CanvasApp() {
     [projectNodes, featureFilteredIds, filter, search, gapOnly],
   )
 
+  const outlineModel: OutlineModel = useMemo(() => {
+    if (!projectId || !snapshot) {
+      return { features: [], layers: [], apis: [], tables: [] }
+    }
+    const features = projectNodes
+      .filter((n) => {
+        const d = n.data as SnapshotNodeData
+        return d.kind === 'Feature' && !d.placeholder
+      })
+      .map((n) => {
+        const d = n.data as SnapshotNodeData
+        return { id: d.subLabel, name: d.label, nodeId: n.id }
+      })
+
+    const layerMap = new Map<string, OutlineModel['layers'][0]['items']>()
+    for (const n of projectNodes) {
+      const d = n.data as SnapshotNodeData
+      if (d.kind !== 'ClassCommon' && d.kind !== 'ClassFeature') continue
+      if (selectedFeatures.size > 0 && !featureFilteredIds.has(n.id)) continue
+      const layer = d.layer || '（層未設定）'
+      const list = layerMap.get(layer) || []
+      list.push({ id: d.subLabel, name: d.label, nodeId: n.id })
+      layerMap.set(layer, list)
+    }
+
+    const apis: OutlineModel['apis'] = []
+    for (const [id, detail] of Object.entries(snapshot.details)) {
+      if (!id.startsWith(`${projectId}:api:`)) continue
+      if (
+        selectedFeatures.size > 0 &&
+        detail.featureId &&
+        !selectedFeatures.has(detail.featureId)
+      ) {
+        continue
+      }
+      apis.push({
+        id: detail.id || detail['API-ID'] || id.split(':').pop() || id,
+        name: detail.name || detail['概要'] || detail.id || id,
+        nodeId: id,
+      })
+    }
+
+    const tables = projectNodes
+      .filter((n) => (n.data as SnapshotNodeData).kind === 'Table')
+      .filter((n) => selectedFeatures.size === 0 || featureFilteredIds.has(n.id))
+      .map((n) => {
+        const d = n.data as SnapshotNodeData
+        return { id: d.subLabel, name: d.label, nodeId: n.id }
+      })
+
+    return {
+      features,
+      layers: [...layerMap.entries()].map(([name, items]) => ({ name, items })),
+      apis,
+      tables,
+    }
+  }, [
+    projectId,
+    snapshot,
+    projectNodes,
+    selectedFeatures,
+    featureFilteredIds,
+  ])
+
   const relatedIds = useMemo(() => {
     if (!selectedId) return new Set<string>()
     const set = new Set<string>([selectedId])
@@ -279,8 +382,20 @@ function CanvasApp() {
       projectEdges.map((e) => {
         const src = projectNodes.find((n) => n.id === e.source)
         const tgt = projectNodes.find((n) => n.id === e.target)
-        const srcVisible = src && featureFilteredIds.has(src.id) && matchesLayer(src, filter) && matchesSearch(src, search) && (!gapOnly || (src.data as SnapshotNodeData).implemented === false)
-        const tgtVisible = tgt && featureFilteredIds.has(tgt.id) && matchesLayer(tgt, filter) && matchesSearch(tgt, search) && (!gapOnly || (tgt.data as SnapshotNodeData).implemented === false)
+        const srcVisible =
+          src &&
+          featureFilteredIds.has(src.id) &&
+          matchesLayer(src, filter) &&
+          matchesSearch(src, search) &&
+          (!gapOnly ||
+            (src.data as SnapshotNodeData).implemented === false)
+        const tgtVisible =
+          tgt &&
+          featureFilteredIds.has(tgt.id) &&
+          matchesLayer(tgt, filter) &&
+          matchesSearch(tgt, search) &&
+          (!gapOnly ||
+            (tgt.data as SnapshotNodeData).implemented === false)
         const active =
           selectedId && (e.source === selectedId || e.target === selectedId)
         const inherits =
@@ -324,13 +439,19 @@ function CanvasApp() {
     })
   }, [])
 
-  const onProjectChange = useCallback((id: string) => {
-    setProjectId(id)
-  }, [])
-
   const selectedNode = projectNodes.find((n) => n.id === selectedId) || null
-  const selectedData = (selectedNode?.data as SnapshotNodeData) || null
   const detail = selectedId && snapshot ? snapshot.details[selectedId] : null
+  const selectedData: SnapshotNodeData | null = selectedNode
+    ? (selectedNode.data as SnapshotNodeData)
+    : selectedId?.includes(':api:') && detail
+      ? {
+          kind: 'Api',
+          label: detail.name || detail['概要'] || detail.id,
+          subLabel: detail.id || detail['API-ID'] || selectedId,
+          projectId: projectId || undefined,
+        }
+      : null
+
   const activeProject = snapshot?.projects.find((p) => p.id === projectId)
   const gapDisplay = activeProject?.gapCount ?? snapshot?.gapCount ?? '—'
 
@@ -340,7 +461,7 @@ function CanvasApp() {
 
   const outlineEl = (
     <OutlinePanel
-      features={outlineFeatures}
+      model={outlineModel}
       selectedFeatures={selectedFeatures}
       selectedNodeId={selectedId}
       search={search}
@@ -376,7 +497,7 @@ function CanvasApp() {
         <ProjectSwitcher
           projects={snapshot?.projects ?? []}
           value={projectId}
-          onChange={onProjectChange}
+          onChange={setProjectId}
         />
         <div className={`topbar-tools${headerOpen ? ' show' : ''}`}>
           <input

@@ -1,7 +1,8 @@
-import type { OutlineFeature } from './types'
+import { useState, type ReactNode } from 'react'
+import type { OutlineModel } from './types'
 
 type Props = {
-  features: OutlineFeature[]
+  model: OutlineModel
   selectedFeatures: Set<string>
   selectedNodeId: string | null
   search: string
@@ -10,8 +11,34 @@ type Props = {
   onClose?: () => void
 }
 
+function Section({
+  title,
+  open,
+  onToggle,
+  children,
+}: {
+  title: string
+  open: boolean
+  onToggle: () => void
+  children: ReactNode
+}) {
+  return (
+    <div className="outline-section">
+      <button type="button" className="outline-section-toggle" onClick={onToggle}>
+        <span aria-hidden>{open ? '▼' : '▶'}</span> {title}
+      </button>
+      {open && <div className="outline-section-body">{children}</div>}
+    </div>
+  )
+}
+
+function matchQ(q: string, ...parts: string[]) {
+  if (!q) return true
+  return parts.some((p) => p.toLowerCase().includes(q))
+}
+
 export function OutlinePanel({
-  features,
+  model,
   selectedFeatures,
   selectedNodeId,
   search,
@@ -20,6 +47,24 @@ export function OutlinePanel({
   onClose,
 }: Props) {
   const q = search.trim().toLowerCase()
+  const [open, setOpen] = useState<Record<string, boolean>>({
+    features: true,
+    apis: true,
+    tables: true,
+  })
+
+  const toggle = (key: string) =>
+    setOpen((prev) => ({ ...prev, [key]: !prev[key] }))
+
+  const features = model.features.filter((f) => matchQ(q, f.id, f.name))
+  const layers = model.layers
+    .map((layer) => ({
+      ...layer,
+      items: layer.items.filter((i) => matchQ(q, i.id, i.name, layer.name)),
+    }))
+    .filter((l) => l.items.length > 0 || !q)
+  const apis = model.apis.filter((a) => matchQ(q, a.id, a.name))
+  const tables = model.tables.filter((t) => matchQ(q, t.id, t.name))
 
   return (
     <aside className="outline-panel">
@@ -31,33 +76,15 @@ export function OutlinePanel({
           </button>
         )}
       </div>
-      <p className="muted outline-hint">機能を複数選択して関係を表示</p>
-      <ul className="outline-tree">
-        {features.map((f) => {
-          const featureMatch =
-            !q ||
-            f.id.toLowerCase().includes(q) ||
-            f.name.toLowerCase().includes(q)
-          const filteredClasses = f.classes
-            .map((c) => {
-              const classMatch =
-                !q ||
-                c.id.toLowerCase().includes(q) ||
-                c.name.toLowerCase().includes(q)
-              const tables = c.tables.filter(
-                (t) =>
-                  !q ||
-                  t.id.toLowerCase().includes(q) ||
-                  t.name.toLowerCase().includes(q),
-              )
-              if (!featureMatch && !classMatch && tables.length === 0) return null
-              return { ...c, tables: classMatch || featureMatch ? c.tables : tables }
-            })
-            .filter(Boolean) as OutlineFeature['classes']
+      <p className="muted outline-hint">機能を複数選択／層・API で辿る</p>
 
-          if (!featureMatch && filteredClasses.length === 0) return null
-
-          return (
+      <Section
+        title="機能"
+        open={open.features !== false}
+        onToggle={() => toggle('features')}
+      >
+        <ul className="outline-tree">
+          {features.map((f) => (
             <li key={f.id} className="outline-feature">
               <div className="outline-feature-row">
                 <input
@@ -69,7 +96,9 @@ export function OutlinePanel({
                 <button
                   type="button"
                   className={
-                    selectedNodeId === f.nodeId ? 'outline-link active' : 'outline-link'
+                    selectedNodeId === f.nodeId
+                      ? 'outline-link active'
+                      : 'outline-link'
                   }
                   onClick={() => onSelectNode(f.nodeId)}
                 >
@@ -77,48 +106,89 @@ export function OutlinePanel({
                   <span className="muted"> {f.id}</span>
                 </button>
               </div>
-              <ul>
-                {filteredClasses.map((c) => (
-                  <li key={c.id}>
-                    <button
-                      type="button"
-                      className={
-                        selectedNodeId === c.nodeId
-                          ? 'outline-link active'
-                          : 'outline-link'
-                      }
-                      onClick={() => onSelectNode(c.nodeId)}
-                    >
-                      {c.name}
-                      <span className="muted"> {c.id}</span>
-                    </button>
-                    {c.tables.length > 0 && (
-                      <ul>
-                        {c.tables.map((t) => (
-                          <li key={t.id}>
-                            <button
-                              type="button"
-                              className={
-                                selectedNodeId === t.nodeId
-                                  ? 'outline-link active'
-                                  : 'outline-link'
-                              }
-                              onClick={() => onSelectNode(t.nodeId)}
-                            >
-                              {t.name}
-                              <span className="muted"> {t.id}</span>
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </li>
-                ))}
-              </ul>
             </li>
-          )
-        })}
-      </ul>
+          ))}
+        </ul>
+      </Section>
+
+      {layers.map((layer) => (
+        <Section
+          key={layer.name}
+          title={layer.name}
+          open={open[`layer:${layer.name}`] !== false}
+          onToggle={() => toggle(`layer:${layer.name}`)}
+        >
+          <ul className="outline-tree">
+            {layer.items.map((c) => (
+              <li key={c.id}>
+                <button
+                  type="button"
+                  className={
+                    selectedNodeId === c.nodeId
+                      ? 'outline-link active'
+                      : 'outline-link'
+                  }
+                  onClick={() => onSelectNode(c.nodeId)}
+                >
+                  {c.name}
+                  <span className="muted"> {c.id}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </Section>
+      ))}
+
+      <Section
+        title="API"
+        open={open.apis !== false}
+        onToggle={() => toggle('apis')}
+      >
+        <ul className="outline-tree">
+          {apis.length === 0 && <li className="muted">なし</li>}
+          {apis.map((a) => (
+            <li key={a.id}>
+              <button
+                type="button"
+                className={
+                  selectedNodeId === a.nodeId
+                    ? 'outline-link active'
+                    : 'outline-link'
+                }
+                onClick={() => onSelectNode(a.nodeId)}
+              >
+                {a.name}
+                <span className="muted"> {a.id}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </Section>
+
+      <Section
+        title="テーブル"
+        open={open.tables !== false}
+        onToggle={() => toggle('tables')}
+      >
+        <ul className="outline-tree">
+          {tables.map((t) => (
+            <li key={t.id}>
+              <button
+                type="button"
+                className={
+                  selectedNodeId === t.nodeId
+                    ? 'outline-link active'
+                    : 'outline-link'
+                }
+                onClick={() => onSelectNode(t.nodeId)}
+              >
+                {t.name}
+                <span className="muted"> {t.id}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </Section>
     </aside>
   )
 }

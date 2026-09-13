@@ -33,6 +33,7 @@ const COL_FEATURE_CLS = ['CLS-ID', '共通or固有', '関連TBL']
 const COL_LAYERS = ['層', 'CLS-ID', '責務', '関連API']
 const COL_SCR = ['SCR-ID', '名前', 'ルート', '主な操作', '呼ぶAPI']
 const COL_API = ['API-ID', 'メソッド', 'パス', '概要', '主な入力', '主な出力', '認証']
+const COL_METHOD = ['メソッド', '引数', '戻り値', '概要']
 
 function readText(filePath) {
   if (!fs.existsSync(filePath)) return null
@@ -169,6 +170,52 @@ function parseInheritsFrom(value) {
   return token && /^CLS-/.test(token) ? token : null
 }
 
+function extractJsonBlock(chunk, heading) {
+  const re = new RegExp(
+    `###\\s*${heading}\\s*\`\`\`(?:json)?\\s*([\\s\\S]*?)\`\`\``,
+    'i',
+  )
+  const m = chunk.match(re)
+  return m ? m[1].trim() : null
+}
+
+function extractApiBodies(md) {
+  if (!md) return new Map()
+  const map = new Map()
+  const re = /^##\s+(API-\S+)\s*$/gm
+  let m
+  const matches = [...md.matchAll(re)]
+  for (let i = 0; i < matches.length; i++) {
+    const apiId = matches[i][1]
+    const start = matches[i].index + matches[i][0].length
+    const end = i + 1 < matches.length ? matches[i + 1].index : md.length
+    const chunk = md.slice(start, end)
+    map.set(apiId, {
+      requestJson: extractJsonBlock(chunk, 'リクエスト'),
+      responseJson: extractJsonBlock(chunk, 'レスポンス'),
+      summary: chunk.match(/^([^\n#]+)/)?.[1]?.trim() || '',
+    })
+  }
+  return map
+}
+
+function extractClassMethods(md) {
+  if (!md) return new Map()
+  const map = new Map()
+  const re = /^##\s+メソッド:\s*(CLS-\S+)\s*$/gm
+  let m
+  const matches = [...md.matchAll(re)]
+  for (let i = 0; i < matches.length; i++) {
+    const clsId = matches[i][1]
+    const start = matches[i].index + matches[i][0].length
+    const end = i + 1 < matches.length ? matches[i + 1].index : md.length
+    const chunk = md.slice(start, end)
+    const table = tableByHeaders(parseTables(chunk), COL_METHOD)
+    map.set(clsId, rowsAsObjects(table))
+  }
+  return map
+}
+
 function ensureDir(filePath) {
   fs.mkdirSync(path.dirname(filePath), { recursive: true })
 }
@@ -208,6 +255,7 @@ function indexProject(projectId) {
   const classMeta = new Map()
   const tableMeta = new Map()
   const featureMeta = new Map()
+  const apiMeta = new Map()
 
   for (const c of commonClasses) {
     if (!c['CLS-ID'] || !/^CLS-/.test(c['CLS-ID'])) continue
@@ -219,6 +267,7 @@ function indexProject(projectId) {
       relatedTbl: parseRelatedTbl(c['関連TBL']),
       inheritsFrom: parseInheritsFrom(c['継承元']),
       inheritsTo: [],
+      methods: [],
       common: true,
       features: [],
       sourceHits: [],
@@ -256,12 +305,32 @@ function indexProject(projectId) {
     const reqs = extractReqSections(functional)
     const scrList = rowsAsObjects(tableByHeaders(parseTables(screens), COL_SCR))
     const apiList = rowsAsObjects(tableByHeaders(parseTables(api), COL_API))
+    const apiBodies = extractApiBodies(api)
     const wires = extractAsciiWires(screens)
     const layerRows = rowsAsObjects(tableByHeaders(parseTables(layers), COL_LAYERS))
+    const classMethods = extractClassMethods(layers)
     const classRows = rowsAsObjects(
       tableByHeaders(parseTables(classes), COL_FEATURE_CLS),
     )
     const featureTables = extractTableDefs(db)
+
+    for (const row of apiList) {
+      const id = row['API-ID']
+      if (!id || !/^API-/.test(id)) continue
+      const body = apiBodies.get(id) || {}
+      const enriched = {
+        ...row,
+        id,
+        name: row['概要'] || id,
+        featureId: fid,
+        requestJson: body.requestJson || null,
+        responseJson: body.responseJson || null,
+        bodySummary: body.summary || '',
+        projectId,
+      }
+      apiMeta.set(id, enriched)
+      details[nid(projectId, 'api', id)] = enriched
+    }
 
     for (const t of featureTables) {
       const existing = tableMeta.get(t.id) || {
@@ -295,6 +364,7 @@ function indexProject(projectId) {
         relatedTbl: [],
         inheritsFrom: null,
         inheritsTo: [],
+        methods: [],
         common: isCommon,
         features: [],
         sourceHits: [],
@@ -333,6 +403,7 @@ function indexProject(projectId) {
         relatedTbl: [],
         inheritsFrom: null,
         inheritsTo: [],
+        methods: [],
         common: false,
         features: [],
         sourceHits: [],
@@ -344,6 +415,18 @@ function indexProject(projectId) {
       classMeta.set(id, existing)
     }
 
+    for (const [clsId, methods] of classMethods) {
+      const existing = classMeta.get(clsId)
+      if (existing && methods?.length) {
+        existing.methods = methods
+      }
+    }
+
+    const enrichedApis = apiList.map((row) => {
+      const id = row['API-ID']
+      return id && apiMeta.has(id) ? apiMeta.get(id) : row
+    })
+
     featureMeta.set(fid, {
       id: fid,
       name: mapRow['名前'] || fid,
@@ -353,7 +436,7 @@ function indexProject(projectId) {
       reqs,
       screens: scrList,
       wires,
-      apis: apiList,
+      apis: enrichedApis,
       classIds: [...linkedCls],
       sourceHits: [],
       projectId,
@@ -398,6 +481,7 @@ function indexProject(projectId) {
         relatedTbl: [],
         inheritsFrom: null,
         inheritsTo: [],
+        methods: [],
         common: false,
         features: [...meta.features],
         sourceHits: [],
@@ -494,6 +578,7 @@ function indexProject(projectId) {
     classMeta,
     tableMeta,
     featureMeta,
+    apiMeta,
   }
 }
 

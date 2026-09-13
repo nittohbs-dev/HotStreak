@@ -170,9 +170,37 @@ body,
   font-size: 1.05rem;
 }
 
-.outline-hint {
-  margin: 0.35rem 0 0.75rem;
-  font-size: 0.78rem;
+.outline-section {
+  margin-bottom: 0.75rem;
+}
+
+.outline-section-toggle {
+  width: 100%;
+  text-align: left;
+  background: #182235;
+  color: #d7e2f2;
+  border: 1px solid #2a3a55;
+  border-radius: 8px;
+  padding: 0.4rem 0.55rem;
+  min-height: 2.25rem;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+}
+
+.outline-section-body {
+  margin-top: 0.4rem;
+  padding-left: 0.15rem;
+}
+
+.json-block {
+  background: #0b1020;
+  border: 1px solid #243247;
+  border-radius: 8px;
+  padding: 0.5rem;
+  overflow: auto;
+  font-size: 0.72rem;
+  white-space: pre-wrap;
 }
 
 .outline-tree,
