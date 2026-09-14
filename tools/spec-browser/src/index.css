@@ -132,13 +132,94 @@ body,
 .main {
   flex: 1;
   display: grid;
-  grid-template-columns: 260px 1fr 320px;
+  grid-template-columns: 280px 1fr 400px;
   min-height: 0;
 }
 
 .main.mobile {
   grid-template-columns: 1fr;
   position: relative;
+}
+
+.side-pane {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.side-pane .outline-panel,
+.side-pane .inspector {
+  flex: 1;
+  min-height: 0;
+}
+
+.pane-resize {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: col-resize;
+  z-index: 4;
+}
+
+.outline-side .pane-resize {
+  right: -3px;
+}
+
+.inspector-side .pane-resize {
+  left: -3px;
+}
+
+.pane-resize:hover,
+.pane-resize:focus-visible {
+  background: rgba(126, 224, 200, 0.35);
+}
+
+body.pane-resizing {
+  cursor: col-resize;
+  user-select: none;
+}
+
+body.pane-resizing iframe,
+body.pane-resizing .react-flow {
+  pointer-events: none;
+}
+
+.pane-reopen {
+  position: absolute;
+  z-index: 7;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #182235;
+  color: #e8eef7;
+  border: 1px solid #2a3a55;
+  padding: 0.55rem 0.45rem;
+  writing-mode: vertical-rl;
+  letter-spacing: 0.08em;
+  font-size: 0.78rem;
+  min-height: 4.5rem;
+}
+
+.pane-reopen.left {
+  left: 0;
+  border-left: 0;
+  border-radius: 0 8px 8px 0;
+}
+
+.pane-reopen.right {
+  right: 0;
+  border-right: 0;
+  border-radius: 8px 0 0 8px;
+}
+
+.pane-reopen:hover {
+  border-color: #7ee0c8;
+  color: #7ee0c8;
 }
 
 .outline-panel,

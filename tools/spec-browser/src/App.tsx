@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type MouseEvent as ReactMouseEvent,
+} from 'react'
 import {
   Background,
   BackgroundVariant,
@@ -48,6 +55,16 @@ const CLASS_SUBCOL_GAP = 200
 const COL_AFTER_CLASS_GAP = 240
 const ROW_GAP = 100
 const LAYER_ORDER = ['Domain', 'Service', 'UI', 'API']
+const OUTLINE_DEFAULT = 280
+const INSPECTOR_DEFAULT = 400
+const OUTLINE_MIN = 200
+const OUTLINE_MAX = 520
+const INSPECTOR_MIN = 280
+const INSPECTOR_MAX = 640
+
+function clamp(n: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, n))
+}
 
 function readQuery(): { project: string | null; node: string | null } {
   const params = new URLSearchParams(window.location.search)
@@ -109,6 +126,10 @@ function CanvasApp() {
     () => window.matchMedia(MOBILE_MQ).matches,
   )
   const [drawer, setDrawer] = useState<MobileDrawer>('none')
+  const [outlineOpen, setOutlineOpen] = useState(true)
+  const [inspectorOpen, setInspectorOpen] = useState(true)
+  const [outlineWidth, setOutlineWidth] = useState(OUTLINE_DEFAULT)
+  const [inspectorWidth, setInspectorWidth] = useState(INSPECTOR_DEFAULT)
   const [projectId, setProjectId] = useState<string | null>(initial.project)
   const [selectedFeatures, setSelectedFeatures] = useState<Set<string>>(
     () => new Set(),
@@ -465,7 +486,10 @@ function CanvasApp() {
   const onSelect = useCallback(
     (id: string | null) => {
       setSelectedId(id)
-      if (isMobile && id) setDrawer('inspector')
+      if (id) {
+        if (isMobile) setDrawer('inspector')
+        else setInspectorOpen(true)
+      }
     },
     [isMobile],
   )
@@ -478,6 +502,34 @@ function CanvasApp() {
       return next
     })
   }, [])
+
+  const startResize = useCallback(
+    (side: 'outline' | 'inspector', event: ReactMouseEvent<HTMLButtonElement>) => {
+      event.preventDefault()
+      const startX = event.clientX
+      const startW = side === 'outline' ? outlineWidth : inspectorWidth
+      const onMove = (ev: globalThis.MouseEvent) => {
+        if (side === 'outline') {
+          setOutlineWidth(
+            clamp(startW + (ev.clientX - startX), OUTLINE_MIN, OUTLINE_MAX),
+          )
+        } else {
+          setInspectorWidth(
+            clamp(startW - (ev.clientX - startX), INSPECTOR_MIN, INSPECTOR_MAX),
+          )
+        }
+      }
+      const onUp = () => {
+        window.removeEventListener('mousemove', onMove)
+        window.removeEventListener('mouseup', onUp)
+        document.body.classList.remove('pane-resizing')
+      }
+      document.body.classList.add('pane-resizing')
+      window.addEventListener('mousemove', onMove)
+      window.addEventListener('mouseup', onUp)
+    },
+    [outlineWidth, inspectorWidth],
+  )
 
   const selectedNode = projectNodes.find((n) => n.id === selectedId) || null
   const detail = selectedId && snapshot ? snapshot.details[selectedId] : null
@@ -507,7 +559,9 @@ function CanvasApp() {
       search={search}
       onToggleFeature={onToggleFeature}
       onSelectNode={onSelect}
-      onClose={isMobile ? () => setDrawer('none') : undefined}
+      onClose={
+        isMobile ? () => setDrawer('none') : () => setOutlineOpen(false)
+      }
     />
   )
 
@@ -518,9 +572,17 @@ function CanvasApp() {
       detail={detail ?? null}
       projectId={projectId}
       onNavigate={onSelect}
-      onClose={isMobile ? () => setDrawer('none') : undefined}
+      onClose={
+        isMobile ? () => setDrawer('none') : () => setInspectorOpen(false)
+      }
     />
   )
+
+  const desktopColumns = [
+    outlineOpen ? `${outlineWidth}px` : '0fr',
+    '1fr',
+    inspectorOpen ? `${inspectorWidth}px` : '0fr',
+  ].join(' ')
 
   return (
     <div className="app-shell">
@@ -586,11 +648,42 @@ function CanvasApp() {
         </div>
       </header>
 
-      <div className={`main${isMobile ? ' mobile' : ''}`}>
-        {!isMobile && outlineEl}
+      <div
+        className={`main${isMobile ? ' mobile' : ''}`}
+        style={isMobile ? undefined : { gridTemplateColumns: desktopColumns }}
+      >
+        {!isMobile && outlineOpen && (
+          <div className="side-pane outline-side">
+            {outlineEl}
+            <button
+              type="button"
+              className="pane-resize"
+              aria-label="アウトラインの幅を変更"
+              onMouseDown={(e) => startResize('outline', e)}
+            />
+          </div>
+        )}
         <div className="canvas-wrap">
           {error && <div className="banner error">{error}</div>}
           {!error && !snapshot && <div className="banner">読込中…</div>}
+          {!isMobile && !outlineOpen && (
+            <button
+              type="button"
+              className="pane-reopen left"
+              onClick={() => setOutlineOpen(true)}
+            >
+              一覧
+            </button>
+          )}
+          {!isMobile && !inspectorOpen && (
+            <button
+              type="button"
+              className="pane-reopen right"
+              onClick={() => setInspectorOpen(true)}
+            >
+              詳細
+            </button>
+          )}
           <ReactFlow
             nodes={visibleNodes.map((n) => ({
               ...n,
@@ -635,7 +728,17 @@ function CanvasApp() {
             </div>
           )}
         </div>
-        {!isMobile && inspectorEl}
+        {!isMobile && inspectorOpen && (
+          <div className="side-pane inspector-side">
+            <button
+              type="button"
+              className="pane-resize"
+              aria-label="インスペクタの幅を変更"
+              onMouseDown={(e) => startResize('inspector', e)}
+            />
+            {inspectorEl}
+          </div>
+        )}
         {isMobile && drawer === 'outline' && (
           <div className="drawer-backdrop" onClick={() => setDrawer('none')}>
             <div className="drawer sheet" onClick={(e) => e.stopPropagation()}>
