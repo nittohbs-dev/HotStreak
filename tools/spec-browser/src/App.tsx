@@ -21,6 +21,7 @@ import {
   ClassCommonNode,
   ClassFeatureNode,
   FeatureNode,
+  ApiNode,
   TableNode,
 } from './nodes'
 import type {
@@ -36,12 +37,17 @@ const nodeTypes: NodeTypes = {
   feature: FeatureNode,
   classCommon: ClassCommonNode,
   classFeature: ClassFeatureNode,
+  api: ApiNode,
   table: TableNode,
 }
 
 const MOBILE_MQ = '(max-width: 768px)'
-const COL_X = { Feature: 40, Class: 360, Table: 700 } as const
-const ROW_GAP = 120
+const COL_FEATURE_X = 40
+const COL_CLASS_BASE_X = 280
+const CLASS_SUBCOL_GAP = 200
+const COL_AFTER_CLASS_GAP = 240
+const ROW_GAP = 100
+const LAYER_ORDER = ['Domain', 'Service', 'UI', 'API']
 
 function readQuery(): { project: string | null; node: string | null } {
   const params = new URLSearchParams(window.location.search)
@@ -62,6 +68,7 @@ function matchesLayer(node: Node, filter: LayerFilter): boolean {
   const kind = (node.data as SnapshotNodeData).kind
   if (filter === 'feature') return kind === 'Feature'
   if (filter === 'class') return kind === 'ClassCommon' || kind === 'ClassFeature'
+  if (filter === 'api') return kind === 'Api'
   if (filter === 'db') return kind === 'Table'
   return true
 }
@@ -78,10 +85,15 @@ function matchesSearch(node: Node, search: string): boolean {
   )
 }
 
-function columnOf(kind: SnapshotNodeData['kind']): number {
-  if (kind === 'Feature') return COL_X.Feature
-  if (kind === 'Table') return COL_X.Table
-  return COL_X.Class
+function sortLayers(names: string[]): string[] {
+  return [...names].sort((a, b) => {
+    const ia = LAYER_ORDER.indexOf(a)
+    const ib = LAYER_ORDER.indexOf(b)
+    if (ia === -1 && ib === -1) return a.localeCompare(b, 'ja')
+    if (ia === -1) return 1
+    if (ib === -1) return -1
+    return ia - ib
+  })
 }
 
 function CanvasApp() {
@@ -195,6 +207,12 @@ function CanvasApp() {
         ids.add(n.id)
       }
       if (
+        d.kind === 'Api' &&
+        (d.featureIds ?? []).some((f) => selectedFeatures.has(f))
+      ) {
+        ids.add(n.id)
+      }
+      if (
         d.kind === 'Table' &&
         (d.featureIds ?? []).some((f) => selectedFeatures.has(f))
       ) {
@@ -237,9 +255,15 @@ function CanvasApp() {
     if (layoutKeyRef.current === visibilityKey) return
     layoutKeyRef.current = visibilityKey
 
-    const buckets: Record<'Feature' | 'Class' | 'Table', Node[]> = {
+    const buckets: {
+      Feature: Node[]
+      Class: Node[]
+      Api: Node[]
+      Table: Node[]
+    } = {
       Feature: [],
       Class: [],
+      Api: [],
       Table: [],
     }
     for (const n of nodes) {
@@ -254,15 +278,41 @@ function CanvasApp() {
       if (!show) continue
       if (d.kind === 'Feature') buckets.Feature.push(n)
       else if (d.kind === 'Table') buckets.Table.push(n)
+      else if (d.kind === 'Api') buckets.Api.push(n)
       else buckets.Class.push(n)
     }
 
     const pos = new Map<string, { x: number; y: number }>()
-    ;(['Feature', 'Class', 'Table'] as const).forEach((bucket) => {
-      buckets[bucket].forEach((n, i) => {
-        const kind = (n.data as SnapshotNodeData).kind
-        pos.set(n.id, { x: columnOf(kind), y: 60 + i * ROW_GAP })
+    buckets.Feature.forEach((n, i) => {
+      pos.set(n.id, { x: COL_FEATURE_X, y: 60 + i * ROW_GAP })
+    })
+
+    const byLayer = new Map<string, Node[]>()
+    for (const n of buckets.Class) {
+      const layer = (n.data as SnapshotNodeData).layer || '（層未設定）'
+      const list = byLayer.get(layer) || []
+      list.push(n)
+      byLayer.set(layer, list)
+    }
+    const layers = sortLayers([...byLayer.keys()])
+    layers.forEach((layer, li) => {
+      const x = COL_CLASS_BASE_X + li * CLASS_SUBCOL_GAP
+      ;(byLayer.get(layer) || []).forEach((n, i) => {
+        pos.set(n.id, { x, y: 60 + i * ROW_GAP })
       })
+    })
+
+    const apiX =
+      COL_CLASS_BASE_X +
+      Math.max(layers.length, 1) * CLASS_SUBCOL_GAP +
+      COL_AFTER_CLASS_GAP -
+      CLASS_SUBCOL_GAP
+    buckets.Api.forEach((n, i) => {
+      pos.set(n.id, { x: apiX, y: 60 + i * ROW_GAP })
+    })
+    const tableX = apiX + COL_AFTER_CLASS_GAP
+    buckets.Table.forEach((n, i) => {
+      pos.set(n.id, { x: tableX, y: 60 + i * ROW_GAP })
     })
 
     setNodes((prev) =>
@@ -304,7 +354,7 @@ function CanvasApp() {
   )
 
   const outlineModel: OutlineModel = useMemo(() => {
-    if (!projectId || !snapshot) {
+    if (!projectId) {
       return { features: [], layers: [], apis: [], tables: [] }
     }
     const features = projectNodes
@@ -328,22 +378,13 @@ function CanvasApp() {
       layerMap.set(layer, list)
     }
 
-    const apis: OutlineModel['apis'] = []
-    for (const [id, detail] of Object.entries(snapshot.details)) {
-      if (!id.startsWith(`${projectId}:api:`)) continue
-      if (
-        selectedFeatures.size > 0 &&
-        detail.featureId &&
-        !selectedFeatures.has(detail.featureId)
-      ) {
-        continue
-      }
-      apis.push({
-        id: detail.id || detail['API-ID'] || id.split(':').pop() || id,
-        name: detail.name || detail['概要'] || detail.id || id,
-        nodeId: id,
+    const apis: OutlineModel['apis'] = projectNodes
+      .filter((n) => (n.data as SnapshotNodeData).kind === 'Api')
+      .filter((n) => selectedFeatures.size === 0 || featureFilteredIds.has(n.id))
+      .map((n) => {
+        const d = n.data as SnapshotNodeData
+        return { id: d.subLabel, name: d.label, nodeId: n.id }
       })
-    }
 
     const tables = projectNodes
       .filter((n) => (n.data as SnapshotNodeData).kind === 'Table')
@@ -361,7 +402,6 @@ function CanvasApp() {
     }
   }, [
     projectId,
-    snapshot,
     projectNodes,
     selectedFeatures,
     featureFilteredIds,
@@ -522,6 +562,7 @@ function CanvasApp() {
                 ['all', '全部'],
                 ['feature', '機能'],
                 ['class', 'クラス'],
+                ['api', 'API'],
                 ['db', 'DB'],
               ] as const
             ).map(([id, label]) => (
@@ -579,7 +620,9 @@ function CanvasApp() {
               color="#2a3344"
             />
             <Controls showInteractive={false} />
-            {!isMobile && <MiniMap pannable zoomable />}
+            {!isMobile && (
+              <MiniMap pannable zoomable style={{ width: 120, height: 90 }} />
+            )}
           </ReactFlow>
           {isMobile && (
             <div className="mobile-dock">

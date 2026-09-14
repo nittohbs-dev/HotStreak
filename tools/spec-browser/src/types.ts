@@ -75,6 +75,7 @@ export type DetailPayload = {
   layer?: string
   responsibility?: string
   relatedTbl?: string[]
+  relatedApis?: string[]
   features?: string[]
   columns?: Array<Record<string, string>>
   classes?: string[]
@@ -97,7 +98,7 @@ export type DetailPayload = {
   'API-ID'?: string
 }
 
-export type LayerFilter = 'all' | 'feature' | 'class' | 'db'
+export type LayerFilter = 'all' | 'feature' | 'class' | 'api' | 'db'
 
 export type MobileDrawer = 'none' | 'outline' | 'inspector'
 

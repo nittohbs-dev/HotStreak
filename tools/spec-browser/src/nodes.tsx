@@ -29,6 +29,9 @@ function SpecNode({
           {data.layer ? ` · ${data.layer}` : ''}
         </div>
       )}
+      {data.kind === 'Api' && data.layer && (
+        <div className="spec-node-meta">{data.layer}</div>
+      )}
       <Handle type="source" position={Position.Right} />
     </div>
   )
@@ -50,6 +53,12 @@ export const ClassFeatureNode = memo(function ClassFeatureNode({
   data,
 }: NodeProps & { data: SnapshotNodeData }) {
   return <SpecNode data={data} colorClass="class-feature" />
+})
+
+export const ApiNode = memo(function ApiNode({
+  data,
+}: NodeProps & { data: SnapshotNodeData }) {
+  return <SpecNode data={data} colorClass="api" />
 })
 
 export const TableNode = memo(function TableNode({

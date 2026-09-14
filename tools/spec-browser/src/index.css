@@ -360,6 +360,11 @@ body,
   border-color: #6b7fd7;
 }
 
+.spec-node.api {
+  background: linear-gradient(160deg, #2a1f3d, #35264a);
+  border-color: #9b7bd4;
+}
+
 .spec-node-title {
   font-weight: 650;
   font-size: 0.92rem;
@@ -417,6 +422,8 @@ body,
 
 .react-flow__minimap {
   background: #101827 !important;
+  width: 120px !important;
+  height: 90px !important;
 }
 
 .mobile-dock {

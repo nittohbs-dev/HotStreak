@@ -76,7 +76,7 @@ export function OutlinePanel({
           </button>
         )}
       </div>
-      <p className="muted outline-hint">機能を複数選択／層・API で辿る</p>
+      <p className="muted outline-hint">機能を複数選択／層・エンドポイントで辿る</p>
 
       <Section
         title="機能"
@@ -140,7 +140,7 @@ export function OutlinePanel({
       ))}
 
       <Section
-        title="API"
+        title="エンドポイント"
         open={open.apis !== false}
         onToggle={() => toggle('apis')}
       >
