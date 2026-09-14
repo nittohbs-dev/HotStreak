@@ -5,8 +5,9 @@
 | TST-ID | 種別 | 対象 | 観点 | 関連REQ | 関連SCR/CMP | Playwright spec |
 |--------|------|------|------|---------|-------------|-----------------|
 | TST-sb-001 | E2E | 空状態 | プレースホルダ表示 | REQ-sb-002 | SCR-sb-002 | tools/spec-browser/tests/e2e/TST-sb-001.spec.ts |
-| TST-sb-002 | E2E | キャンバス | ノードと辺の表示 | REQ-sb-002 | SCR-sb-001 | tools/spec-browser/tests/e2e/TST-sb-002.spec.ts |
+| TST-sb-002 | E2E | キャンバス | Feature/Class/Api/Table と辺の表示 | REQ-sb-002 | SCR-sb-001 | tools/spec-browser/tests/e2e/TST-sb-002.spec.ts |
 | TST-sb-003 | E2E | インスペクタ | 選択で詳細更新 | REQ-sb-003 | SCR-sb-001 | tools/spec-browser/tests/e2e/TST-sb-003.spec.ts |
+| TST-sb-004 | E2E | アウトライン | 層 API とエンドポイントが別見出し | REQ-sb-007 | SCR-sb-001 | tools/spec-browser/tests/e2e/TST-sb-004.spec.ts |
 
 種別: **E2E** = Playwright E2E、`CT` = Playwright Component Test
 
@@ -15,8 +16,9 @@
 | TST-ID | 画面 | 操作 | 期待結果 |
 |--------|------|------|----------|
 | TST-sb-001 | SCR-sb-002 | 空 snapshot で開く | 案内ノードが見える |
-| TST-sb-002 | SCR-sb-001 | サンプル snapshot で開く | Feature/Class/Table と辺が見える |
+| TST-sb-002 | SCR-sb-001 | サンプル snapshot で開く | Feature/Class/Api/Table と辺が見える |
 | TST-sb-003 | SCR-sb-001 | 機能ノードをクリック | 右パネルに REQ が出る |
+| TST-sb-004 | SCR-sb-001 | アウトラインを見る | 「エンドポイント」節があり、層「API」と併存しても別見出し |
 
 ## コンポーネントシナリオ
 
@@ -40,3 +42,5 @@
 | REQ-sb-003 | TST-sb-003 |
 | REQ-sb-004 | （CI 手動確認） |
 | REQ-sb-005 | TST-sb-011 |
+| REQ-sb-007 | TST-sb-004 |
+| REQ-sb-014 | （UI 手動確認） |
