@@ -84,22 +84,22 @@ export function OutlinePanel({
     <aside className="outline-panel">
       <div className="outline-header">
         <h2>アウトライン</h2>
-        <div className="outline-header-actions">
-          <button
-            type="button"
-            className="drawer-close"
-            onClick={closeAllSections}
-          >
-            全て閉じる
+        {onClose && (
+          <button type="button" className="drawer-close" onClick={onClose}>
+            閉じる
           </button>
-          {onClose && (
-            <button type="button" className="drawer-close" onClick={onClose}>
-              閉じる
-            </button>
-          )}
-        </div>
+        )}
       </div>
-      <p className="muted outline-hint">機能を複数選択／層・エンドポイントで辿る</p>
+      <div className="outline-toolbar">
+        <p className="muted outline-hint">機能を複数選択／層・エンドポイントで辿る</p>
+        <button
+          type="button"
+          className="outline-collapse-all"
+          onClick={closeAllSections}
+        >
+          セクションを全て閉じる
+        </button>
+      </div>
 
       <Section
         title="機能"

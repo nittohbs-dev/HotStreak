@@ -245,11 +245,31 @@ body.pane-resizing .react-flow {
   gap: 0.5rem;
 }
 
-.outline-header-actions {
+.outline-toolbar {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: flex-start;
   gap: 0.35rem;
-  justify-content: flex-end;
+  margin: 0.35rem 0 0.65rem;
+}
+
+.outline-hint {
+  margin: 0;
+}
+
+.outline-collapse-all {
+  background: transparent;
+  border: 1px solid #2a3a55;
+  color: #9eb0c9;
+  border-radius: 6px;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.outline-collapse-all:hover {
+  border-color: #7ee0c8;
+  color: #7ee0c8;
 }
 
 .outline-header h2,
