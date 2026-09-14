@@ -425,13 +425,55 @@ body.pane-resizing .react-flow {
 }
 
 .spec-node {
-  min-width: 160px;
-  max-width: 220px;
-  padding: 0.55rem 0.7rem 0.65rem;
+  width: 200px;
+  max-width: 200px;
+  min-height: 72px;
+  max-height: 96px;
+  box-sizing: border-box;
+  padding: 0.45rem 0.6rem 0.5rem;
   border-radius: 12px;
   border: 1px solid transparent;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
   position: relative;
+  overflow: hidden;
+}
+
+.spec-node-title {
+  font-weight: 650;
+  font-size: 0.84rem;
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  word-break: break-word;
+}
+
+.spec-node-sub {
+  font-size: 0.7rem;
+  color: #b7c3d6;
+  margin-top: 0.12rem;
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  overflow: hidden;
+  word-break: break-word;
+}
+
+.spec-node-meta {
+  margin-top: 0.25rem;
+  font-size: 0.68rem;
+  color: #9eb0c9;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.spec-node.api .spec-node-title {
+  -webkit-line-clamp: 1;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.78rem;
 }
 
 .spec-node.feature {
@@ -487,23 +529,6 @@ body.pane-resizing .react-flow {
     rgba(74, 85, 104, 0.35) 40%,
     rgba(74, 85, 104, 0.1)
   );
-}
-
-.spec-node-title {
-  font-weight: 650;
-  font-size: 0.92rem;
-}
-
-.spec-node-sub {
-  font-size: 0.72rem;
-  color: #b7c3d6;
-  margin-top: 0.15rem;
-}
-
-.spec-node-meta {
-  margin-top: 0.35rem;
-  font-size: 0.72rem;
-  color: #9eb0c9;
 }
 
 .node-badge {

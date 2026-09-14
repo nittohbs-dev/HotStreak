@@ -14,12 +14,16 @@ function SpecNode({
   data: SnapshotNodeData
   colorClass: string
 }) {
+  const isApi = data.kind === 'Api'
+  const title = isApi ? data.subLabel : data.label
+  const subtitle = isApi ? data.label : data.subLabel
+
   return (
-    <div className={`spec-node ${colorClass}`}>
+    <div className={`spec-node ${colorClass}`} title={`${data.label}\n${data.subLabel}`}>
       {!data.placeholder && <Badge ok={data.implemented} />}
       <Handle type="target" position={Position.Left} />
-      <div className="spec-node-title">{data.label}</div>
-      <div className="spec-node-sub">{data.subLabel}</div>
+      <div className="spec-node-title">{title}</div>
+      {subtitle && <div className="spec-node-sub">{subtitle}</div>}
       {data.kind === 'Feature' && !data.placeholder && (
         <div className="spec-node-meta">REQ {data.reqCount ?? 0}</div>
       )}
@@ -29,7 +33,7 @@ function SpecNode({
           {data.layer ? ` · ${data.layer}` : ''}
         </div>
       )}
-      {data.kind === 'Api' && data.layer && (
+      {isApi && data.layer && (
         <div className="spec-node-meta">{data.layer}</div>
       )}
       <Handle type="source" position={Position.Right} />
