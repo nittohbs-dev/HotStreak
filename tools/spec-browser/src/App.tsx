@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type MouseEvent as ReactMouseEvent,
+} from 'react'
 import {
   Background,
   BackgroundVariant,
@@ -21,7 +28,9 @@ import {
   ClassCommonNode,
   ClassFeatureNode,
   FeatureNode,
+  ApiNode,
   TableNode,
+  LayerGuideNode,
 } from './nodes'
 import type {
   LayerFilter,
@@ -36,12 +45,53 @@ const nodeTypes: NodeTypes = {
   feature: FeatureNode,
   classCommon: ClassCommonNode,
   classFeature: ClassFeatureNode,
+  api: ApiNode,
   table: TableNode,
+  layerGuide: LayerGuideNode,
 }
 
 const MOBILE_MQ = '(max-width: 768px)'
-const COL_X = { Feature: 40, Class: 360, Table: 700 } as const
-const ROW_GAP = 120
+const COL_FEATURE_X = 40
+const COL_CLASS_BASE_X = 280
+const CLASS_SUBCOL_GAP = 230
+const COL_AFTER_CLASS_GAP = 260
+const ROW_GAP = 118
+const MAX_STACK = 8
+const LAYER_SEP = 40
+const LAYER_ORDER = ['Domain', 'Service', 'UI', 'API']
+const OUTLINE_DEFAULT = 280
+const INSPECTOR_DEFAULT = 400
+const OUTLINE_MIN = 200
+const OUTLINE_MAX = 520
+const INSPECTOR_MIN = 280
+const INSPECTOR_MAX = 640
+const GUIDE_PREFIX = '__guide:'
+
+function clamp(n: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, n))
+}
+
+function placeWrapped(
+  items: Node[],
+  baseX: number,
+  pos: Map<string, { x: number; y: number }>,
+) {
+  items.forEach((n, i) => {
+    const col = Math.floor(i / MAX_STACK)
+    const row = i % MAX_STACK
+    pos.set(n.id, {
+      x: baseX + col * CLASS_SUBCOL_GAP,
+      y: 60 + row * ROW_GAP,
+    })
+  })
+  const cols = Math.max(1, Math.ceil(items.length / MAX_STACK) || 1)
+  return baseX + cols * CLASS_SUBCOL_GAP
+}
+
+function stackHeight(count: number) {
+  const rows = Math.min(MAX_STACK, Math.max(count, 1))
+  return 60 + rows * ROW_GAP
+}
 
 function readQuery(): { project: string | null; node: string | null } {
   const params = new URLSearchParams(window.location.search)
@@ -62,6 +112,7 @@ function matchesLayer(node: Node, filter: LayerFilter): boolean {
   const kind = (node.data as SnapshotNodeData).kind
   if (filter === 'feature') return kind === 'Feature'
   if (filter === 'class') return kind === 'ClassCommon' || kind === 'ClassFeature'
+  if (filter === 'api') return kind === 'Api'
   if (filter === 'db') return kind === 'Table'
   return true
 }
@@ -78,10 +129,15 @@ function matchesSearch(node: Node, search: string): boolean {
   )
 }
 
-function columnOf(kind: SnapshotNodeData['kind']): number {
-  if (kind === 'Feature') return COL_X.Feature
-  if (kind === 'Table') return COL_X.Table
-  return COL_X.Class
+function sortLayers(names: string[]): string[] {
+  return [...names].sort((a, b) => {
+    const ia = LAYER_ORDER.indexOf(a)
+    const ib = LAYER_ORDER.indexOf(b)
+    if (ia === -1 && ib === -1) return a.localeCompare(b, 'ja')
+    if (ia === -1) return 1
+    if (ib === -1) return -1
+    return ia - ib
+  })
 }
 
 function CanvasApp() {
@@ -97,6 +153,10 @@ function CanvasApp() {
     () => window.matchMedia(MOBILE_MQ).matches,
   )
   const [drawer, setDrawer] = useState<MobileDrawer>('none')
+  const [outlineOpen, setOutlineOpen] = useState(true)
+  const [inspectorOpen, setInspectorOpen] = useState(true)
+  const [outlineWidth, setOutlineWidth] = useState(OUTLINE_DEFAULT)
+  const [inspectorWidth, setInspectorWidth] = useState(INSPECTOR_DEFAULT)
   const [projectId, setProjectId] = useState<string | null>(initial.project)
   const [selectedFeatures, setSelectedFeatures] = useState<Set<string>>(
     () => new Set(),
@@ -195,6 +255,12 @@ function CanvasApp() {
         ids.add(n.id)
       }
       if (
+        d.kind === 'Api' &&
+        (d.featureIds ?? []).some((f) => selectedFeatures.has(f))
+      ) {
+        ids.add(n.id)
+      }
+      if (
         d.kind === 'Table' &&
         (d.featureIds ?? []).some((f) => selectedFeatures.has(f))
       ) {
@@ -237,12 +303,19 @@ function CanvasApp() {
     if (layoutKeyRef.current === visibilityKey) return
     layoutKeyRef.current = visibilityKey
 
-    const buckets: Record<'Feature' | 'Class' | 'Table', Node[]> = {
+    const buckets: {
+      Feature: Node[]
+      Class: Node[]
+      Api: Node[]
+      Table: Node[]
+    } = {
       Feature: [],
       Class: [],
+      Api: [],
       Table: [],
     }
     for (const n of nodes) {
+      if (n.id.startsWith(GUIDE_PREFIX)) continue
       const d = n.data as SnapshotNodeData
       if (d.projectId && d.projectId !== projectId) continue
       const show =
@@ -254,24 +327,68 @@ function CanvasApp() {
       if (!show) continue
       if (d.kind === 'Feature') buckets.Feature.push(n)
       else if (d.kind === 'Table') buckets.Table.push(n)
+      else if (d.kind === 'Api') buckets.Api.push(n)
       else buckets.Class.push(n)
     }
 
     const pos = new Map<string, { x: number; y: number }>()
-    ;(['Feature', 'Class', 'Table'] as const).forEach((bucket) => {
-      buckets[bucket].forEach((n, i) => {
-        const kind = (n.data as SnapshotNodeData).kind
-        pos.set(n.id, { x: columnOf(kind), y: 60 + i * ROW_GAP })
+    let cursorX = placeWrapped(buckets.Feature, COL_FEATURE_X, pos)
+    cursorX = Math.max(cursorX + LAYER_SEP, COL_CLASS_BASE_X)
+
+    const byLayer = new Map<string, Node[]>()
+    for (const n of buckets.Class) {
+      const layer = (n.data as SnapshotNodeData).layer || '（層未設定）'
+      const list = byLayer.get(layer) || []
+      list.push(n)
+      byLayer.set(layer, list)
+    }
+    const layers = sortLayers([...byLayer.keys()])
+    let maxGuideH = stackHeight(
+      Math.max(
+        buckets.Feature.length,
+        buckets.Api.length,
+        buckets.Table.length,
+        ...layers.map((layer) => (byLayer.get(layer) || []).length),
+        1,
+      ),
+    )
+
+    const guides: Node[] = []
+    layers.forEach((layer) => {
+      const items = byLayer.get(layer) || []
+      guides.push({
+        id: `${GUIDE_PREFIX}${projectId}:${layer}`,
+        type: 'layerGuide',
+        position: { x: cursorX - 18, y: 20 },
+        data: {
+          kind: 'Feature',
+          label: layer,
+          subLabel: '',
+          placeholder: true,
+          projectId: projectId || undefined,
+          guideHeight: maxGuideH,
+        },
+        selectable: false,
+        draggable: false,
+        connectable: false,
+        focusable: false,
       })
+      cursorX = placeWrapped(items, cursorX, pos) + LAYER_SEP
     })
 
-    setNodes((prev) =>
-      prev.map((n) => {
+    const apiX = Math.max(cursorX, COL_CLASS_BASE_X) + 20
+    cursorX = placeWrapped(buckets.Api, apiX, pos)
+    placeWrapped(buckets.Table, cursorX + COL_AFTER_CLASS_GAP - CLASS_SUBCOL_GAP, pos)
+
+    setNodes((prev) => {
+      const withoutGuides = prev.filter((n) => !n.id.startsWith(GUIDE_PREFIX))
+      const moved = withoutGuides.map((n) => {
         const p = pos.get(n.id)
         if (!p) return n
         return { ...n, position: p }
-      }),
-    )
+      })
+      return [...moved, ...guides]
+    })
 
     requestAnimationFrame(() => {
       fitView({ padding: 0.2, duration: 200 })
@@ -291,6 +408,9 @@ function CanvasApp() {
   const visibleNodes = useMemo(
     () =>
       projectNodes.map((n) => {
+        if (n.id.startsWith(GUIDE_PREFIX)) {
+          return { ...n, hidden: false }
+        }
         const d = n.data as SnapshotNodeData
         const show =
           d.placeholder ||
@@ -304,7 +424,7 @@ function CanvasApp() {
   )
 
   const outlineModel: OutlineModel = useMemo(() => {
-    if (!projectId || !snapshot) {
+    if (!projectId) {
       return { features: [], layers: [], apis: [], tables: [] }
     }
     const features = projectNodes
@@ -328,22 +448,13 @@ function CanvasApp() {
       layerMap.set(layer, list)
     }
 
-    const apis: OutlineModel['apis'] = []
-    for (const [id, detail] of Object.entries(snapshot.details)) {
-      if (!id.startsWith(`${projectId}:api:`)) continue
-      if (
-        selectedFeatures.size > 0 &&
-        detail.featureId &&
-        !selectedFeatures.has(detail.featureId)
-      ) {
-        continue
-      }
-      apis.push({
-        id: detail.id || detail['API-ID'] || id.split(':').pop() || id,
-        name: detail.name || detail['概要'] || detail.id || id,
-        nodeId: id,
+    const apis: OutlineModel['apis'] = projectNodes
+      .filter((n) => (n.data as SnapshotNodeData).kind === 'Api')
+      .filter((n) => selectedFeatures.size === 0 || featureFilteredIds.has(n.id))
+      .map((n) => {
+        const d = n.data as SnapshotNodeData
+        return { id: d.subLabel, name: d.label, nodeId: n.id }
       })
-    }
 
     const tables = projectNodes
       .filter((n) => (n.data as SnapshotNodeData).kind === 'Table')
@@ -361,7 +472,6 @@ function CanvasApp() {
     }
   }, [
     projectId,
-    snapshot,
     projectNodes,
     selectedFeatures,
     featureFilteredIds,
@@ -425,7 +535,10 @@ function CanvasApp() {
   const onSelect = useCallback(
     (id: string | null) => {
       setSelectedId(id)
-      if (isMobile && id) setDrawer('inspector')
+      if (id) {
+        if (isMobile) setDrawer('inspector')
+        else setInspectorOpen(true)
+      }
     },
     [isMobile],
   )
@@ -438,6 +551,34 @@ function CanvasApp() {
       return next
     })
   }, [])
+
+  const startResize = useCallback(
+    (side: 'outline' | 'inspector', event: ReactMouseEvent<HTMLButtonElement>) => {
+      event.preventDefault()
+      const startX = event.clientX
+      const startW = side === 'outline' ? outlineWidth : inspectorWidth
+      const onMove = (ev: globalThis.MouseEvent) => {
+        if (side === 'outline') {
+          setOutlineWidth(
+            clamp(startW + (ev.clientX - startX), OUTLINE_MIN, OUTLINE_MAX),
+          )
+        } else {
+          setInspectorWidth(
+            clamp(startW - (ev.clientX - startX), INSPECTOR_MIN, INSPECTOR_MAX),
+          )
+        }
+      }
+      const onUp = () => {
+        window.removeEventListener('mousemove', onMove)
+        window.removeEventListener('mouseup', onUp)
+        document.body.classList.remove('pane-resizing')
+      }
+      document.body.classList.add('pane-resizing')
+      window.addEventListener('mousemove', onMove)
+      window.addEventListener('mouseup', onUp)
+    },
+    [outlineWidth, inspectorWidth],
+  )
 
   const selectedNode = projectNodes.find((n) => n.id === selectedId) || null
   const detail = selectedId && snapshot ? snapshot.details[selectedId] : null
@@ -467,7 +608,9 @@ function CanvasApp() {
       search={search}
       onToggleFeature={onToggleFeature}
       onSelectNode={onSelect}
-      onClose={isMobile ? () => setDrawer('none') : undefined}
+      onClose={
+        isMobile ? () => setDrawer('none') : () => setOutlineOpen(false)
+      }
     />
   )
 
@@ -478,9 +621,17 @@ function CanvasApp() {
       detail={detail ?? null}
       projectId={projectId}
       onNavigate={onSelect}
-      onClose={isMobile ? () => setDrawer('none') : undefined}
+      onClose={
+        isMobile ? () => setDrawer('none') : () => setInspectorOpen(false)
+      }
     />
   )
+
+  const desktopColumns = [
+    ...(outlineOpen ? [`${outlineWidth}px`] : []),
+    'minmax(0, 1fr)',
+    ...(inspectorOpen ? [`${inspectorWidth}px`] : []),
+  ].join(' ')
 
   return (
     <div className="app-shell">
@@ -522,6 +673,7 @@ function CanvasApp() {
                 ['all', '全部'],
                 ['feature', '機能'],
                 ['class', 'クラス'],
+                ['api', 'API'],
                 ['db', 'DB'],
               ] as const
             ).map(([id, label]) => (
@@ -545,17 +697,53 @@ function CanvasApp() {
         </div>
       </header>
 
-      <div className={`main${isMobile ? ' mobile' : ''}`}>
-        {!isMobile && outlineEl}
+      <div
+        className={`main${isMobile ? ' mobile' : ''}`}
+        style={isMobile ? undefined : { gridTemplateColumns: desktopColumns }}
+      >
+        {!isMobile && outlineOpen && (
+          <div className="side-pane outline-side">
+            {outlineEl}
+            <button
+              type="button"
+              className="pane-resize"
+              aria-label="アウトラインの幅を変更"
+              onMouseDown={(e) => startResize('outline', e)}
+            />
+          </div>
+        )}
         <div className="canvas-wrap">
           {error && <div className="banner error">{error}</div>}
           {!error && !snapshot && <div className="banner">読込中…</div>}
+          {!isMobile && !outlineOpen && (
+            <button
+              type="button"
+              className="pane-reopen left"
+              onClick={() => setOutlineOpen(true)}
+            >
+              一覧
+            </button>
+          )}
+          {!isMobile && !inspectorOpen && (
+            <button
+              type="button"
+              className="pane-reopen right"
+              onClick={() => setInspectorOpen(true)}
+            >
+              詳細
+            </button>
+          )}
           <ReactFlow
             nodes={visibleNodes.map((n) => ({
               ...n,
               selected: n.id === selectedId,
               style: {
-                opacity: selectedId && !relatedIds.has(n.id) ? 0.45 : 1,
+                opacity:
+                  selectedId &&
+                  !n.id.startsWith(GUIDE_PREFIX) &&
+                  !relatedIds.has(n.id)
+                    ? 0.45
+                    : 1,
               },
             }))}
             edges={styledEdges}
@@ -579,7 +767,9 @@ function CanvasApp() {
               color="#2a3344"
             />
             <Controls showInteractive={false} />
-            {!isMobile && <MiniMap pannable zoomable />}
+            {!isMobile && (
+              <MiniMap pannable zoomable style={{ width: 120, height: 90 }} />
+            )}
           </ReactFlow>
           {isMobile && (
             <div className="mobile-dock">
@@ -592,7 +782,17 @@ function CanvasApp() {
             </div>
           )}
         </div>
-        {!isMobile && inspectorEl}
+        {!isMobile && inspectorOpen && (
+          <div className="side-pane inspector-side">
+            <button
+              type="button"
+              className="pane-resize"
+              aria-label="インスペクタの幅を変更"
+              onMouseDown={(e) => startResize('inspector', e)}
+            />
+            {inspectorEl}
+          </div>
+        )}
         {isMobile && drawer === 'outline' && (
           <div className="drawer-backdrop" onClick={() => setDrawer('none')}>
             <div className="drawer sheet" onClick={(e) => e.stopPropagation()}>

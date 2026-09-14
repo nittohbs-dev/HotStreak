@@ -196,6 +196,12 @@ export function InspectorPanel({
             toNodeId={(id) => `${pid}:feature:${id}`}
             onNavigate={onNavigate}
           />
+          <h3>関連API</h3>
+          <JumpList
+            items={detail.relatedApis ?? []}
+            toNodeId={(id) => `${pid}:api:${id}`}
+            onNavigate={onNavigate}
+          />
           <h3>関連テーブル</h3>
           <JumpList
             items={detail.relatedTbl ?? []}

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * DesignIndexer (CLS-sb-001) + SourceScanner (CLS-sb-002)
- * REQ-sb-001 / REQ-sb-005 / REQ-sb-006 / REQ-sb-010
+ * REQ-sb-001 / REQ-sb-005 / REQ-sb-006 / REQ-sb-010（Api ノード・関連API 辺含む）
  */
 import fs from 'node:fs'
 import path from 'node:path'
@@ -164,6 +164,47 @@ function parseRelatedTbl(value) {
     .filter((s) => /^TBL-/.test(s))
 }
 
+/** Parse 関連API cells: `API-X-001`, `API-X-001, 002`, `API-X-001〜003`. */
+function parseRelatedApis(value) {
+  if (!value) return []
+  const seen = new Set()
+  const out = []
+  const add = (id) => {
+    if (/^API-[A-Za-z0-9]+-\d{3}$/.test(id) && !seen.has(id)) {
+      seen.add(id)
+      out.push(id)
+    }
+  }
+
+  let text = String(value)
+  text = text.replace(
+    /(API-[A-Za-z0-9]+-)(\d{3})\s*[〜~\-–—]\s*(\d{3})/g,
+    (_, prefix, a, b) => {
+      const start = Number(a)
+      const end = Number(b)
+      const ids = []
+      for (let n = start; n <= end; n += 1) {
+        const id = `${prefix}${String(n).padStart(3, '0')}`
+        add(id)
+        ids.push(id)
+      }
+      return ids.join(', ')
+    },
+  )
+
+  for (const id of text.match(/API-[A-Za-z0-9]+-\d{3}/g) || []) add(id)
+
+  const prefixMatch = text.match(/API-[A-Za-z0-9]+-/)
+  if (prefixMatch) {
+    const prefix = prefixMatch[0]
+    const withoutFull = text.replace(/API-[A-Za-z0-9]+-\d{3}/g, ' ')
+    for (const m of withoutFull.matchAll(/\b(\d{3})\b/g)) {
+      add(`${prefix}${m[1]}`)
+    }
+  }
+  return out
+}
+
 function parseInheritsFrom(value) {
   if (!value) return null
   const token = value.trim().split(/[,、\s]+/)[0]
@@ -265,6 +306,7 @@ function indexProject(projectId) {
       layer: c['層'] || '',
       responsibility: c['責務'] || '',
       relatedTbl: parseRelatedTbl(c['関連TBL']),
+      relatedApis: [],
       inheritsFrom: parseInheritsFrom(c['継承元']),
       inheritsTo: [],
       methods: [],
@@ -362,6 +404,7 @@ function indexProject(projectId) {
         layer: '',
         responsibility: '',
         relatedTbl: [],
+        relatedApis: [],
         inheritsFrom: null,
         inheritsTo: [],
         methods: [],
@@ -395,12 +438,14 @@ function indexProject(projectId) {
       const id = row['CLS-ID']
       if (!id || !/^CLS-/.test(id)) continue
       linkedCls.add(id)
+      const relatedApis = parseRelatedApis(row['関連API'])
       const existing = classMeta.get(id) || {
         id,
         name: id,
         layer: row['層'] || '',
         responsibility: row['責務'] || '',
         relatedTbl: [],
+        relatedApis: [],
         inheritsFrom: null,
         inheritsTo: [],
         methods: [],
@@ -411,6 +456,9 @@ function indexProject(projectId) {
       }
       if (row['層']) existing.layer = row['層']
       if (row['責務']) existing.responsibility = row['責務']
+      existing.relatedApis = [
+        ...new Set([...(existing.relatedApis || []), ...relatedApis]),
+      ]
       if (!existing.features.includes(fid)) existing.features.push(fid)
       classMeta.set(id, existing)
     }
@@ -467,6 +515,18 @@ function indexProject(projectId) {
         data: { kind: 'uses', projectId },
       })
     }
+
+    for (const row of apiList) {
+      const apiId = row['API-ID']
+      if (!apiId || !/^API-/.test(apiId) || !apiMeta.has(apiId)) continue
+      edges.push({
+        id: `e:${projectId}:feature:${fid}->api:${apiId}`,
+        source: nid(projectId, 'feature', fid),
+        target: nid(projectId, 'api', apiId),
+        type: 'default',
+        data: { kind: 'uses', projectId },
+      })
+    }
   })
 
   // Resolve inheritsTo reverse links and ensure parent class nodes exist
@@ -479,6 +539,7 @@ function indexProject(projectId) {
         layer: '',
         responsibility: '',
         relatedTbl: [],
+        relatedApis: [],
         inheritsFrom: null,
         inheritsTo: [],
         methods: [],
@@ -532,6 +593,16 @@ function indexProject(projectId) {
         data: { kind: 'uses', projectId },
       })
     }
+    for (const apiId of meta.relatedApis || []) {
+      if (!apiMeta.has(apiId)) continue
+      edges.push({
+        id: `e:${projectId}:class:${clsId}->api:${apiId}`,
+        source: nid(projectId, 'class', clsId),
+        target: nid(projectId, 'api', apiId),
+        type: 'default',
+        data: { kind: 'uses', projectId },
+      })
+    }
     if (meta.inheritsFrom) {
       edges.push({
         id: `e:${projectId}:inherits:${meta.inheritsFrom}->${clsId}`,
@@ -545,12 +616,32 @@ function indexProject(projectId) {
     classIndex += 1
   }
 
+  let apiIndex = 0
+  for (const [apiId, meta] of apiMeta) {
+    nodes.push({
+      id: nid(projectId, 'api', apiId),
+      type: 'api',
+      position: { x: 700, y: 60 + apiIndex * 120 },
+      data: {
+        kind: 'Api',
+        label: meta.name || meta['概要'] || apiId,
+        subLabel: apiId,
+        layer: meta['メソッド'] || '',
+        featureIds: meta.featureId ? [meta.featureId] : [],
+        implemented: false,
+        projectId,
+      },
+    })
+    details[nid(projectId, 'api', apiId)] = meta
+    apiIndex += 1
+  }
+
   let tableIndex = 0
   for (const [tblId, meta] of tableMeta) {
     nodes.push({
       id: nid(projectId, 'table', tblId),
       type: 'table',
-      position: { x: 700, y: 60 + tableIndex * 120 },
+      position: { x: 980, y: 60 + tableIndex * 120 },
       data: {
         kind: 'Table',
         label: meta.name,

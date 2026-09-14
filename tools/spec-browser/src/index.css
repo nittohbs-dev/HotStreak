@@ -132,13 +132,94 @@ body,
 .main {
   flex: 1;
   display: grid;
-  grid-template-columns: 260px 1fr 320px;
+  grid-template-columns: 280px 1fr 400px;
   min-height: 0;
 }
 
 .main.mobile {
   grid-template-columns: 1fr;
   position: relative;
+}
+
+.side-pane {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.side-pane .outline-panel,
+.side-pane .inspector {
+  flex: 1;
+  min-height: 0;
+}
+
+.pane-resize {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: col-resize;
+  z-index: 4;
+}
+
+.outline-side .pane-resize {
+  right: -3px;
+}
+
+.inspector-side .pane-resize {
+  left: -3px;
+}
+
+.pane-resize:hover,
+.pane-resize:focus-visible {
+  background: rgba(126, 224, 200, 0.35);
+}
+
+body.pane-resizing {
+  cursor: col-resize;
+  user-select: none;
+}
+
+body.pane-resizing iframe,
+body.pane-resizing .react-flow {
+  pointer-events: none;
+}
+
+.pane-reopen {
+  position: absolute;
+  z-index: 7;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #182235;
+  color: #e8eef7;
+  border: 1px solid #2a3a55;
+  padding: 0.55rem 0.45rem;
+  writing-mode: vertical-rl;
+  letter-spacing: 0.08em;
+  font-size: 0.78rem;
+  min-height: 4.5rem;
+}
+
+.pane-reopen.left {
+  left: 0;
+  border-left: 0;
+  border-radius: 0 8px 8px 0;
+}
+
+.pane-reopen.right {
+  right: 0;
+  border-right: 0;
+  border-radius: 8px 0 0 8px;
+}
+
+.pane-reopen:hover {
+  border-color: #7ee0c8;
+  color: #7ee0c8;
 }
 
 .outline-panel,
@@ -162,6 +243,33 @@ body,
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
+}
+
+.outline-toolbar {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  margin: 0.35rem 0 0.65rem;
+}
+
+.outline-hint {
+  margin: 0;
+}
+
+.outline-collapse-all {
+  background: transparent;
+  border: 1px solid #2a3a55;
+  color: #9eb0c9;
+  border-radius: 6px;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.outline-collapse-all:hover {
+  border-color: #7ee0c8;
+  color: #7ee0c8;
 }
 
 .outline-header h2,
@@ -217,6 +325,12 @@ body,
 
 .outline-feature {
   margin-bottom: 0.55rem;
+}
+
+.outline-feature.checked .outline-feature-row {
+  background: #16353a;
+  border-radius: 6px;
+  padding: 0.15rem 0.25rem 0.15rem 0.1rem;
 }
 
 .outline-feature-row {
@@ -331,13 +445,55 @@ body,
 }
 
 .spec-node {
-  min-width: 160px;
-  max-width: 220px;
-  padding: 0.55rem 0.7rem 0.65rem;
+  width: 200px;
+  max-width: 200px;
+  min-height: 72px;
+  max-height: 96px;
+  box-sizing: border-box;
+  padding: 0.45rem 0.6rem 0.5rem;
   border-radius: 12px;
   border: 1px solid transparent;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
   position: relative;
+  overflow: hidden;
+}
+
+.spec-node-title {
+  font-weight: 650;
+  font-size: 0.84rem;
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  word-break: break-word;
+}
+
+.spec-node-sub {
+  font-size: 0.7rem;
+  color: #b7c3d6;
+  margin-top: 0.12rem;
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  overflow: hidden;
+  word-break: break-word;
+}
+
+.spec-node-meta {
+  margin-top: 0.25rem;
+  font-size: 0.68rem;
+  color: #9eb0c9;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.spec-node.api .spec-node-title {
+  -webkit-line-clamp: 1;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.78rem;
 }
 
 .spec-node.feature {
@@ -360,21 +516,39 @@ body,
   border-color: #6b7fd7;
 }
 
-.spec-node-title {
-  font-weight: 650;
-  font-size: 0.92rem;
+.spec-node.api {
+  background: linear-gradient(160deg, #2a1f3d, #35264a);
+  border-color: #9b7bd4;
 }
 
-.spec-node-sub {
-  font-size: 0.72rem;
-  color: #b7c3d6;
-  margin-top: 0.15rem;
+.layer-guide {
+  width: 18px;
+  pointer-events: none;
 }
 
-.spec-node-meta {
-  margin-top: 0.35rem;
+.layer-guide-label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: rotate(-90deg);
+  transform-origin: left top;
+  translate: 14px 0;
+  white-space: nowrap;
   font-size: 0.72rem;
-  color: #9eb0c9;
+  letter-spacing: 0.06em;
+  color: #7f8fa8;
+}
+
+.layer-guide-line {
+  margin-left: 8px;
+  width: 1px;
+  height: 100%;
+  background: linear-gradient(
+    180deg,
+    rgba(126, 224, 200, 0.55),
+    rgba(74, 85, 104, 0.35) 40%,
+    rgba(74, 85, 104, 0.1)
+  );
 }
 
 .node-badge {
@@ -417,6 +591,8 @@ body,
 
 .react-flow__minimap {
   background: #101827 !important;
+  width: 120px !important;
+  height: 90px !important;
 }
 
 .mobile-dock {

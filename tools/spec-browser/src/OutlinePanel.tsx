@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import type { OutlineModel } from './types'
 
 type Props = {
@@ -47,11 +47,7 @@ export function OutlinePanel({
   onClose,
 }: Props) {
   const q = search.trim().toLowerCase()
-  const [open, setOpen] = useState<Record<string, boolean>>({
-    features: true,
-    apis: true,
-    tables: true,
-  })
+  const [open, setOpen] = useState<Record<string, boolean>>({})
 
   const toggle = (key: string) =>
     setOpen((prev) => ({ ...prev, [key]: !prev[key] }))
@@ -66,6 +62,24 @@ export function OutlinePanel({
   const apis = model.apis.filter((a) => matchQ(q, a.id, a.name))
   const tables = model.tables.filter((t) => matchQ(q, t.id, t.name))
 
+  const sectionKeys = useMemo(
+    () => [
+      'features',
+      ...layers.map((l) => `layer:${l.name}`),
+      'apis',
+      'tables',
+    ],
+    [layers],
+  )
+
+  const closeAllSections = () => {
+    const next: Record<string, boolean> = {}
+    for (const key of sectionKeys) next[key] = false
+    setOpen(next)
+  }
+
+  const isOpen = (key: string) => open[key] === true
+
   return (
     <aside className="outline-panel">
       <div className="outline-header">
@@ -76,16 +90,32 @@ export function OutlinePanel({
           </button>
         )}
       </div>
-      <p className="muted outline-hint">機能を複数選択／層・API で辿る</p>
+      <div className="outline-toolbar">
+        <p className="muted outline-hint">機能を複数選択／層・エンドポイントで辿る</p>
+        <button
+          type="button"
+          className="outline-collapse-all"
+          onClick={closeAllSections}
+        >
+          セクションを全て閉じる
+        </button>
+      </div>
 
       <Section
         title="機能"
-        open={open.features !== false}
+        open={isOpen('features')}
         onToggle={() => toggle('features')}
       >
         <ul className="outline-tree">
           {features.map((f) => (
-            <li key={f.id} className="outline-feature">
+            <li
+              key={f.id}
+              className={
+                selectedFeatures.has(f.id)
+                  ? 'outline-feature checked'
+                  : 'outline-feature'
+              }
+            >
               <div className="outline-feature-row">
                 <input
                   type="checkbox"
@@ -96,7 +126,7 @@ export function OutlinePanel({
                 <button
                   type="button"
                   className={
-                    selectedNodeId === f.nodeId
+                    selectedNodeId === f.nodeId || selectedFeatures.has(f.id)
                       ? 'outline-link active'
                       : 'outline-link'
                   }
@@ -115,7 +145,7 @@ export function OutlinePanel({
         <Section
           key={layer.name}
           title={layer.name}
-          open={open[`layer:${layer.name}`] !== false}
+          open={isOpen(`layer:${layer.name}`)}
           onToggle={() => toggle(`layer:${layer.name}`)}
         >
           <ul className="outline-tree">
@@ -140,8 +170,8 @@ export function OutlinePanel({
       ))}
 
       <Section
-        title="API"
-        open={open.apis !== false}
+        title="エンドポイント"
+        open={isOpen('apis')}
         onToggle={() => toggle('apis')}
       >
         <ul className="outline-tree">
@@ -167,7 +197,7 @@ export function OutlinePanel({
 
       <Section
         title="テーブル"
-        open={open.tables !== false}
+        open={isOpen('tables')}
         onToggle={() => toggle('tables')}
       >
         <ul className="outline-tree">
