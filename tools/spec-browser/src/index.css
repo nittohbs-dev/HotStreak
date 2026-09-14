@@ -245,6 +245,13 @@ body.pane-resizing .react-flow {
   gap: 0.5rem;
 }
 
+.outline-header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  justify-content: flex-end;
+}
+
 .outline-header h2,
 .inspector h2 {
   margin: 0;
@@ -450,6 +457,36 @@ body.pane-resizing .react-flow {
 .spec-node.api {
   background: linear-gradient(160deg, #2a1f3d, #35264a);
   border-color: #9b7bd4;
+}
+
+.layer-guide {
+  width: 18px;
+  pointer-events: none;
+}
+
+.layer-guide-label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: rotate(-90deg);
+  transform-origin: left top;
+  translate: 14px 0;
+  white-space: nowrap;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  color: #7f8fa8;
+}
+
+.layer-guide-line {
+  margin-left: 8px;
+  width: 1px;
+  height: 100%;
+  background: linear-gradient(
+    180deg,
+    rgba(126, 224, 200, 0.55),
+    rgba(74, 85, 104, 0.35) 40%,
+    rgba(74, 85, 104, 0.1)
+  );
 }
 
 .spec-node-title {

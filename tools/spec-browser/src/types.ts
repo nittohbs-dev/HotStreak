@@ -10,6 +10,7 @@ export type SnapshotNodeData = {
   implemented?: boolean
   placeholder?: boolean
   projectId?: string
+  guideHeight?: number
 }
 
 export type SnapshotEdgeData = {

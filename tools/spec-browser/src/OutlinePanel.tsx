@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import type { OutlineModel } from './types'
 
 type Props = {
@@ -47,11 +47,7 @@ export function OutlinePanel({
   onClose,
 }: Props) {
   const q = search.trim().toLowerCase()
-  const [open, setOpen] = useState<Record<string, boolean>>({
-    features: true,
-    apis: true,
-    tables: true,
-  })
+  const [open, setOpen] = useState<Record<string, boolean>>({})
 
   const toggle = (key: string) =>
     setOpen((prev) => ({ ...prev, [key]: !prev[key] }))
@@ -66,21 +62,48 @@ export function OutlinePanel({
   const apis = model.apis.filter((a) => matchQ(q, a.id, a.name))
   const tables = model.tables.filter((t) => matchQ(q, t.id, t.name))
 
+  const sectionKeys = useMemo(
+    () => [
+      'features',
+      ...layers.map((l) => `layer:${l.name}`),
+      'apis',
+      'tables',
+    ],
+    [layers],
+  )
+
+  const closeAllSections = () => {
+    const next: Record<string, boolean> = {}
+    for (const key of sectionKeys) next[key] = false
+    setOpen(next)
+  }
+
+  const isOpen = (key: string) => open[key] === true
+
   return (
     <aside className="outline-panel">
       <div className="outline-header">
         <h2>アウトライン</h2>
-        {onClose && (
-          <button type="button" className="drawer-close" onClick={onClose}>
-            閉じる
+        <div className="outline-header-actions">
+          <button
+            type="button"
+            className="drawer-close"
+            onClick={closeAllSections}
+          >
+            全て閉じる
           </button>
-        )}
+          {onClose && (
+            <button type="button" className="drawer-close" onClick={onClose}>
+              閉じる
+            </button>
+          )}
+        </div>
       </div>
       <p className="muted outline-hint">機能を複数選択／層・エンドポイントで辿る</p>
 
       <Section
         title="機能"
-        open={open.features !== false}
+        open={isOpen('features')}
         onToggle={() => toggle('features')}
       >
         <ul className="outline-tree">
@@ -122,7 +145,7 @@ export function OutlinePanel({
         <Section
           key={layer.name}
           title={layer.name}
-          open={open[`layer:${layer.name}`] !== false}
+          open={isOpen(`layer:${layer.name}`)}
           onToggle={() => toggle(`layer:${layer.name}`)}
         >
           <ul className="outline-tree">
@@ -148,7 +171,7 @@ export function OutlinePanel({
 
       <Section
         title="エンドポイント"
-        open={open.apis !== false}
+        open={isOpen('apis')}
         onToggle={() => toggle('apis')}
       >
         <ul className="outline-tree">
@@ -174,7 +197,7 @@ export function OutlinePanel({
 
       <Section
         title="テーブル"
-        open={open.tables !== false}
+        open={isOpen('tables')}
         onToggle={() => toggle('tables')}
       >
         <ul className="outline-tree">

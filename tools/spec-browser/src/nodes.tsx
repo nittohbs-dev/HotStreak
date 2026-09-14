@@ -66,3 +66,18 @@ export const TableNode = memo(function TableNode({
 }: NodeProps & { data: SnapshotNodeData }) {
   return <SpecNode data={data} colorClass="table" />
 })
+
+export const LayerGuideNode = memo(function LayerGuideNode({
+  data,
+}: NodeProps & { data: SnapshotNodeData }) {
+  return (
+    <div
+      className="layer-guide"
+      style={{ height: data.guideHeight ?? 820 }}
+      aria-hidden
+    >
+      <div className="layer-guide-label">{data.label}</div>
+      <div className="layer-guide-line" />
+    </div>
+  )
+})

@@ -30,6 +30,7 @@ import {
   FeatureNode,
   ApiNode,
   TableNode,
+  LayerGuideNode,
 } from './nodes'
 import type {
   LayerFilter,
@@ -46,6 +47,7 @@ const nodeTypes: NodeTypes = {
   classFeature: ClassFeatureNode,
   api: ApiNode,
   table: TableNode,
+  layerGuide: LayerGuideNode,
 }
 
 const MOBILE_MQ = '(max-width: 768px)'
@@ -54,6 +56,8 @@ const COL_CLASS_BASE_X = 280
 const CLASS_SUBCOL_GAP = 200
 const COL_AFTER_CLASS_GAP = 240
 const ROW_GAP = 100
+const MAX_STACK = 8
+const LAYER_SEP = 36
 const LAYER_ORDER = ['Domain', 'Service', 'UI', 'API']
 const OUTLINE_DEFAULT = 280
 const INSPECTOR_DEFAULT = 400
@@ -61,9 +65,32 @@ const OUTLINE_MIN = 200
 const OUTLINE_MAX = 520
 const INSPECTOR_MIN = 280
 const INSPECTOR_MAX = 640
+const GUIDE_PREFIX = '__guide:'
 
 function clamp(n: number, min: number, max: number) {
   return Math.min(max, Math.max(min, n))
+}
+
+function placeWrapped(
+  items: Node[],
+  baseX: number,
+  pos: Map<string, { x: number; y: number }>,
+) {
+  items.forEach((n, i) => {
+    const col = Math.floor(i / MAX_STACK)
+    const row = i % MAX_STACK
+    pos.set(n.id, {
+      x: baseX + col * CLASS_SUBCOL_GAP,
+      y: 60 + row * ROW_GAP,
+    })
+  })
+  const cols = Math.max(1, Math.ceil(items.length / MAX_STACK) || 1)
+  return baseX + cols * CLASS_SUBCOL_GAP
+}
+
+function stackHeight(count: number) {
+  const rows = Math.min(MAX_STACK, Math.max(count, 1))
+  return 60 + rows * ROW_GAP
 }
 
 function readQuery(): { project: string | null; node: string | null } {
@@ -288,6 +315,7 @@ function CanvasApp() {
       Table: [],
     }
     for (const n of nodes) {
+      if (n.id.startsWith(GUIDE_PREFIX)) continue
       const d = n.data as SnapshotNodeData
       if (d.projectId && d.projectId !== projectId) continue
       const show =
@@ -304,9 +332,8 @@ function CanvasApp() {
     }
 
     const pos = new Map<string, { x: number; y: number }>()
-    buckets.Feature.forEach((n, i) => {
-      pos.set(n.id, { x: COL_FEATURE_X, y: 60 + i * ROW_GAP })
-    })
+    let cursorX = placeWrapped(buckets.Feature, COL_FEATURE_X, pos)
+    cursorX = Math.max(cursorX + LAYER_SEP, COL_CLASS_BASE_X)
 
     const byLayer = new Map<string, Node[]>()
     for (const n of buckets.Class) {
@@ -316,33 +343,52 @@ function CanvasApp() {
       byLayer.set(layer, list)
     }
     const layers = sortLayers([...byLayer.keys()])
-    layers.forEach((layer, li) => {
-      const x = COL_CLASS_BASE_X + li * CLASS_SUBCOL_GAP
-      ;(byLayer.get(layer) || []).forEach((n, i) => {
-        pos.set(n.id, { x, y: 60 + i * ROW_GAP })
+    let maxGuideH = stackHeight(
+      Math.max(
+        buckets.Feature.length,
+        buckets.Api.length,
+        buckets.Table.length,
+        ...layers.map((layer) => (byLayer.get(layer) || []).length),
+        1,
+      ),
+    )
+
+    const guides: Node[] = []
+    layers.forEach((layer) => {
+      const items = byLayer.get(layer) || []
+      guides.push({
+        id: `${GUIDE_PREFIX}${projectId}:${layer}`,
+        type: 'layerGuide',
+        position: { x: cursorX - 18, y: 20 },
+        data: {
+          kind: 'Feature',
+          label: layer,
+          subLabel: '',
+          placeholder: true,
+          projectId: projectId || undefined,
+          guideHeight: maxGuideH,
+        },
+        selectable: false,
+        draggable: false,
+        connectable: false,
+        focusable: false,
       })
+      cursorX = placeWrapped(items, cursorX, pos) + LAYER_SEP
     })
 
-    const apiX =
-      COL_CLASS_BASE_X +
-      Math.max(layers.length, 1) * CLASS_SUBCOL_GAP +
-      COL_AFTER_CLASS_GAP -
-      CLASS_SUBCOL_GAP
-    buckets.Api.forEach((n, i) => {
-      pos.set(n.id, { x: apiX, y: 60 + i * ROW_GAP })
-    })
-    const tableX = apiX + COL_AFTER_CLASS_GAP
-    buckets.Table.forEach((n, i) => {
-      pos.set(n.id, { x: tableX, y: 60 + i * ROW_GAP })
-    })
+    const apiX = Math.max(cursorX, COL_CLASS_BASE_X) + 20
+    cursorX = placeWrapped(buckets.Api, apiX, pos)
+    placeWrapped(buckets.Table, cursorX + COL_AFTER_CLASS_GAP - CLASS_SUBCOL_GAP, pos)
 
-    setNodes((prev) =>
-      prev.map((n) => {
+    setNodes((prev) => {
+      const withoutGuides = prev.filter((n) => !n.id.startsWith(GUIDE_PREFIX))
+      const moved = withoutGuides.map((n) => {
         const p = pos.get(n.id)
         if (!p) return n
         return { ...n, position: p }
-      }),
-    )
+      })
+      return [...moved, ...guides]
+    })
 
     requestAnimationFrame(() => {
       fitView({ padding: 0.2, duration: 200 })
@@ -362,6 +408,9 @@ function CanvasApp() {
   const visibleNodes = useMemo(
     () =>
       projectNodes.map((n) => {
+        if (n.id.startsWith(GUIDE_PREFIX)) {
+          return { ...n, hidden: false }
+        }
         const d = n.data as SnapshotNodeData
         const show =
           d.placeholder ||
@@ -689,7 +738,12 @@ function CanvasApp() {
               ...n,
               selected: n.id === selectedId,
               style: {
-                opacity: selectedId && !relatedIds.has(n.id) ? 0.45 : 1,
+                opacity:
+                  selectedId &&
+                  !n.id.startsWith(GUIDE_PREFIX) &&
+                  !relatedIds.has(n.id)
+                    ? 0.45
+                    : 1,
               },
             }))}
             edges={styledEdges}
