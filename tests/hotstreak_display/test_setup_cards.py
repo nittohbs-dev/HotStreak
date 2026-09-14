@@ -99,8 +99,12 @@ class ScreenTests(unittest.TestCase):
         self.screen.handle_message("setup.state", payload)
         surface = pygame.Surface((1280, 720))
         view.draw(surface, self.screen)
-        self.assertNotEqual(surface.get_at((70, 210)), surface.get_at((0, 0)))
-        self.assertNotEqual(surface.get_at((1005, 493)), surface.get_at((0, 0)))
+        # 最大15枚の最後のカードも描画され、背景だけになっていない。
+        last_card = pygame.Rect(938, 495, 172, 132)
+        self.assertNotEqual(
+            pygame.image.tobytes(surface.subsurface(last_card), "RGB"),
+            pygame.image.tobytes(view.background.subsurface(last_card), "RGB"),
+        )
 
 
 class ConnectionTests(unittest.TestCase):

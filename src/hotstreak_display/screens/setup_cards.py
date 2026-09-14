@@ -202,6 +202,79 @@ class DisplaySetupRoot:
         self.fonts = {size: pygame.font.Font(path, size) for size in (16, 20, 24, 32, 44)}
         for font in self.fonts.values():
             font.set_bold(True)
+        self.background = self.make_room()
+
+    @staticmethod
+    def make_room():
+        """低解像度で描いた部屋を整数倍拡大し、ラフのドット感に寄せる。"""
+        room = pygame.Surface((320, 180))
+        room.fill((17, 18, 23))
+        for row in range(18):
+            y = 20 + row * 7
+            for col in range(17):
+                x = col * 21 - (10 if row % 2 else 0)
+                shade = (row * 11 + col * 7) % 12
+                pygame.draw.rect(room, (29 + shade, 24 + shade // 2, 27 + shade // 3), (x, y, 20, 6))
+                pygame.draw.line(room, (49, 34, 32), (x + 1, y), (x + 18, y))
+        # 奥の壁・柱・配管。
+        for x in (17, 294):
+            pygame.draw.rect(room, (13, 15, 20), (x, 20, 9, 139))
+            pygame.draw.rect(room, (76, 43, 35), (x + 2, 20, 2, 137))
+            for y in (30, 76, 126):
+                pygame.draw.rect(room, (109, 67, 43), (x, y, 8, 2))
+        for x in (4, 310):
+            pygame.draw.rect(room, (15, 29, 38), (x, 55, 6, 82))
+            pygame.draw.line(room, (59, 69, 67), (x, 55), (x, 137))
+        # 左右の壁に古い額と椅子。
+        for x in (28, 274):
+            pygame.draw.rect(room, (83, 53, 38), (x, 48, 16, 29))
+            pygame.draw.rect(room, (149, 113, 67), (x + 1, 49, 14, 27), 1)
+            pygame.draw.rect(room, (43, 35, 30), (x + 3, 51, 10, 23))
+            for y in (54, 60, 66):
+                pygame.draw.rect(room, (103, 75, 44), (x + 5, y, 6, 2))
+            pygame.draw.rect(room, (10, 16, 23), (x, 117, 15, 20))
+            pygame.draw.rect(room, (39, 46, 52), (x + 1, 117, 12, 2))
+            pygame.draw.rect(room, (51, 36, 31), (x - 1, 136, 19, 3))
+            for dx in (0, 13):
+                pygame.draw.rect(room, (12, 13, 16), (x + dx, 139, 2, 9))
+        # 奥行きのある床。
+        pygame.draw.polygon(room, (46, 31, 29), ((0, 149), (320, 149), (320, 180), (0, 180)))
+        for x in range(-180, 501, 37):
+            pygame.draw.line(room, (17, 20, 24), (160 + (x - 160) // 3, 149), (x, 180), 1)
+        for y in (151, 156, 164, 176):
+            pygame.draw.line(room, (87, 51, 36), (0, y), (320, y))
+            pygame.draw.line(room, (20, 21, 25), (0, y + 1), (320, y + 1))
+        # ランプの光は背景のみ。カードの文字コントラストは一定にする。
+        glow = pygame.Surface((320, 180), pygame.SRCALPHA)
+        for radius in range(36, 3, -3):
+            pygame.draw.circle(glow, (243, 147, 54, 2 + (36 - radius) // 3), (160, 28), radius)
+        room.blit(glow, (0, 0))
+        pygame.draw.line(room, (11, 13, 17), (160, 17), (160, 24), 2)
+        pygame.draw.polygon(room, (108, 66, 36), ((151, 28), (156, 24), (164, 24), (169, 28)))
+        pygame.draw.rect(room, (255, 210, 119), (152, 29, 16, 2))
+        pygame.draw.rect(room, (255, 239, 174), (156, 29, 8, 2))
+        return pygame.transform.scale(room, (1280, 720))
+
+    def mascot_icon(self, surface, name, center, scale):
+        patterns = {
+            "Gobbler": (".##.....##.", "####...####", ".#########.", "..#######..", "..#.#.#.#..", "..#######..", "...##.##...", "..#######..", ".#########.", "..#######..", "..##...##.."),
+            "Hurley": (".....##....", "...######..", "..########.", "###.#.####.", ".##########", "..########.", "...######..", "....####...", "...##..##..", "..##....##.", "..........."),
+            "Dangle": (".....##....", "....####...", "..########.", "..#.#.####.", "..#########", "...######..", ".#########.", "..#######..", "...#####...", "...##.##...", "..###.###.."),
+            "Mum": ("..##...##..", "..##...##..", "..##...##..", "..#######..", "..#.#.#.#..", "..#######..", "...#####...", "..#######..", ".#########.", "..#######..", "..##...##.."),
+        }
+        colors = dict(zip(patterns, self.COLORS))
+        pattern = patterns.get(name, ("....###....", "...#####...", "..#######..", ".#########.", "..#######..", "...#####...", "....###...."))
+        color = colors.get(name, (190, 182, 164))
+        ox, oy = center[0] - 11 * scale // 2, center[1] - len(pattern) * scale // 2
+        for row, line in enumerate(pattern):
+            for col, pixel in enumerate(line):
+                if pixel == "#":
+                    pygame.draw.rect(surface, (7, 11, 17), (ox + col * scale + 3, oy + row * scale + 4, scale, scale))
+        for row, line in enumerate(pattern):
+            for col, pixel in enumerate(line):
+                if pixel == "#":
+                    tint = tuple(min(255, c + 24) for c in color) if col < 4 else color
+                    pygame.draw.rect(surface, tint, (ox + col * scale, oy + row * scale, scale, scale))
 
     def text(self, surface, value, pos, size=20, color=(235, 233, 224), max_width=None):
         value = str(value)
@@ -212,18 +285,18 @@ class DisplaySetupRoot:
         surface.blit(font.render(value, True, color), pos)
 
     def draw(self, surface, state):
-        surface.fill((18, 24, 30))
-        # 素材なしでも読める描画。背景はラフの暗い部屋を意識した色調。
-        for y in range(0, 720, 48):
-            pygame.draw.line(surface, (24, 31, 37), (0, y), (1280, y))
-        pygame.draw.rect(surface, (213, 170, 94), (40, 34, 5, 91))
-        self.text(surface, "HOT STREAK  /  SETUP", (64, 30), 16, (213, 170, 94))
-        self.text(surface, "場のカード（公開）", (60, 53), 44)
-        count = f"参加者 {state.player_count} 人  /  公開 {len(state.cards)} 枚" if state.player_count else "公開カードを取得しています"
-        self.text(surface, count, (64, 111), 20, (170, 180, 188))
-        self.text(surface, "マスコットと効果を確認して、マ券選びの参考にしてください。", (64, 147), 20)
+        surface.blit(self.background, (0, 0))
+        pygame.draw.rect(surface, (9, 12, 17), (20, 16, 1240, 65))
+        pygame.draw.rect(surface, (202, 190, 161), (20, 16, 1240, 65), 2)
+        self.text(surface, "場のカード（公開）", (43, 25), 32)
+        self.text(surface, "HOT STREAK", (1020, 39), 16, (200, 165, 108))
+        pygame.draw.rect(surface, (12, 15, 20), (160, 125, 960, 64))
+        self.text(surface, "参加人数に応じて、場に出るカードの枚数が変わります。", (203, 130), 24)
+        count = f"参加者 {state.player_count} 人  ／  公開カード {len(state.cards)} 枚" if state.player_count else "公開カードを取得しています"
+        self.text(surface, count, (453, 162), 20, (223, 191, 134))
         self.renderFaceUpGrid(surface, state.cards)
-        pygame.draw.line(surface, (66, 73, 78), (48, 637), (1232, 637))
+        pygame.draw.rect(surface, (10, 13, 19), (160, 650, 960, 51))
+        pygame.draw.rect(surface, (124, 99, 67), (160, 650, 960, 51), 2)
         if state.error:
             footer = state.error
         elif state.advanced:
@@ -234,22 +307,30 @@ class DisplaySetupRoot:
             footer = "ENTER  →  マ券ドラフトへ"
         else:
             footer = "カードを準備しています…"
-        self.text(surface, footer, (64, 660), 24,
-                  (244, 151, 128) if state.error else (235, 214, 169), 1152)
+        self.text(surface, footer, (184, 661), 24,
+                  (244, 151, 128) if state.error else (235, 214, 169), 910)
 
     def renderFaceUpGrid(self, surface, cards):
+        compact = len(cards) > 10
+        height, gap = (132, 12) if compact else (194, 18)
+        colors = dict(zip(("Gobbler", "Hurley", "Dangle", "Mum"), self.COLORS))
         for index, card in enumerate(cards):
-            x, y = 64 + index % 5 * 234, 201 + index // 5 * 141
-            rect = pygame.Rect(x, y, 216, 125)
-            pygame.draw.rect(surface, (34, 42, 49), rect, border_radius=8)
-            pygame.draw.rect(surface, (83, 89, 93), rect, width=1, border_radius=8)
-            # 色は装飾。マスコット名とlaneも表示して色だけに依存しない。
-            mascot_colors = dict(zip(("Gobbler", "Hurley", "Dangle", "Mum"), self.COLORS))
-            color = mascot_colors.get(card.mascot, (185, 190, 199))
-            pygame.draw.rect(surface, color, (x, y + 10, 4, 104))
-            self.text(surface, card.mascot, (x + 15, y + 12), 24, color, 184)
-            self.text(surface, card.effect, (x + 15, y + 49), 20, max_width=184)
-            self.text(surface, f"LANE {card.lane}", (x + 15, y + 94), 16, (158, 169, 180), 184)
+            x, y = 170 + index % 5 * 192, 207 + index // 5 * (height + gap)
+            width = 172
+            color = colors.get(card.mascot, (190, 182, 164))
+            pygame.draw.rect(surface, (6, 8, 13), (x + 6, y + 7, width, height))
+            pygame.draw.rect(surface, (173, 144, 99), (x, y, width, height))
+            pygame.draw.rect(surface, (38, 31, 28), (x + 3, y + 3, width - 6, height - 6))
+            pygame.draw.rect(surface, (218, 195, 150), (x + 6, y + 6, width - 12, height - 12), 1)
+            pygame.draw.rect(surface, (13, 20, 28), (x + 9, y + 9, width - 18, height - 18))
+            for dx, dy in ((5, 5), (width - 15, 5), (5, height - 15), (width - 15, height - 15)):
+                pygame.draw.rect(surface, color, (x + dx, y + dy, 10, 10), 2)
+            icon_y = y + (34 if compact else 67)
+            self.mascot_icon(surface, card.mascot, (x + width // 2, icon_y), 3 if compact else 6)
+            label_y = y + (57 if compact else 111)
+            self.text(surface, card.mascot, (x + 16, label_y), 20, color, width - 32)
+            self.text(surface, card.effect, (x + 16, label_y + 25), 16 if compact else 20, max_width=width - 32)
+            self.text(surface, f"LANE {card.lane}", (x + 16, y + height - 25), 16, (159, 160, 154), width - 32)
 
 
 def demo_state(players):
