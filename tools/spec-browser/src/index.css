@@ -300,6 +300,12 @@ body.pane-resizing .react-flow {
   margin-bottom: 0.55rem;
 }
 
+.outline-feature.checked .outline-feature-row {
+  background: #16353a;
+  border-radius: 6px;
+  padding: 0.15rem 0.25rem 0.15rem 0.1rem;
+}
+
 .outline-feature-row {
   display: flex;
   align-items: flex-start;

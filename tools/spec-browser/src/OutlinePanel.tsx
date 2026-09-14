@@ -85,7 +85,14 @@ export function OutlinePanel({
       >
         <ul className="outline-tree">
           {features.map((f) => (
-            <li key={f.id} className="outline-feature">
+            <li
+              key={f.id}
+              className={
+                selectedFeatures.has(f.id)
+                  ? 'outline-feature checked'
+                  : 'outline-feature'
+              }
+            >
               <div className="outline-feature-row">
                 <input
                   type="checkbox"
@@ -96,7 +103,7 @@ export function OutlinePanel({
                 <button
                   type="button"
                   className={
-                    selectedNodeId === f.nodeId
+                    selectedNodeId === f.nodeId || selectedFeatures.has(f.id)
                       ? 'outline-link active'
                       : 'outline-link'
                   }

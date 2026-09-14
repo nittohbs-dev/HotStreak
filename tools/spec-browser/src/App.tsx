@@ -579,9 +579,9 @@ function CanvasApp() {
   )
 
   const desktopColumns = [
-    outlineOpen ? `${outlineWidth}px` : '0fr',
-    '1fr',
-    inspectorOpen ? `${inspectorWidth}px` : '0fr',
+    ...(outlineOpen ? [`${outlineWidth}px`] : []),
+    'minmax(0, 1fr)',
+    ...(inspectorOpen ? [`${inspectorWidth}px`] : []),
   ].join(' ')
 
   return (
