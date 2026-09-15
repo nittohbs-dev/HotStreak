@@ -50,6 +50,30 @@ AI が勝手な判断で崩さないための固定ルール。手順の詳細�
 - 合併前の Issue 作成・実装開始は拒否する。
 - PG は Issue 番号なしでは実装を始めない。無い場合は SE フェーズへ戻す。
 
+## GitHub — PR と Issue の紐付け
+
+| PR 種別 | Issue との関係 |
+|---------|----------------|
+| 設計PR（SE） | この時点では Issue 未作成。**キーワードで Issue を閉じない。** 本文に「Issue: 合併後に SE が Epic / Sub を作成」と書く。 |
+| 実装PR（PG） | 対象の **Sub-Issue 1 件** を PR で閉じる。本文に `Closes #<sub-issue番号>`（または `Fixes #<同番号>`）を **必ず** 含める。Epic は `Issue: #<epic> / Sub: #<sub>` のように番号で参照する。 |
+
+- PR 本文の `Issue:` 行と `Closes`/`Fixes` の番号は、作業中の Issue と一致させる。推測で番号を書かない。
+- 1 実装PR = 1 Sub-Issue = 1 `Closes`（複数 Issue を1 PR で閉じない）。
+
+## GitHub — レビュー依頼
+
+- **PR 作者が `burokku-xp` 以外**（Cloud Agent・他コントリビュータ等）のとき、**設計PR・実装PR** 作成後にレビュアー **`burokku-xp`**（プロジェクトオーナー）へのレビュー依頼を **必ず** 出す。
+- **作者が `burokku-xp` 本人**の PR では、自分自身への Reviewer リクエストは不要（GitHub でも不可）。オーナーが別途レビューを求めるときだけ従う。
+- 依頼は PR 本文だけに「レビューお願いします」と書いて終わりにしない。GitHub 上で Reviewer としてリクエストする（`gh pr edit` / GitHub MCP 等）。
+- オーナー以外を勝手にレビュアーに追加しない（明示指示があるときだけ）。
+
+## develop の同期（ブランチを切る前）
+
+- `design/*` / `feat/*` を **`develop` から切る直前** に、エージェントが **`git fetch origin develop`** を実行する（ユーザーに頼まなくてよい）。
+- ローカル `develop` を基点にする場合: `git checkout develop` → `git pull origin develop`（または fetch 後に fast-forward できる状態にする）→ そこから `git checkout -b …`。
+- **`develop` / `main` 上では編集しない** 拘束は変わらない。fetch / pull は同期のためだけ。
+- スナップショット等でリモートより古い可能性があるときも、**毎回** ブランチ作成前に fetch する。
+
 ## 実装PR（必須）
 
 - Issue が指す設計書と実装を突き合わせる。
