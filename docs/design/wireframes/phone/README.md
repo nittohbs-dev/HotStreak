@@ -2,7 +2,8 @@
 
 | ファイル | 内容 |
 |----------|------|
-| [DESIGN.md](./DESIGN.md) | 画面設計（横断・SCR-phone-*・正規フロー寄せ） |
+| [DESIGN.md](./DESIGN.md) | ビジュアル基準（色・字・部品） |
+| [screens.md](./screens.md) | 画面レイアウト草案（SCR-phone-*） |
 | [hotstreak-wireframes.html](./hotstreak-wireframes.html) | 見た目ラフ一覧（ブラウザで開く） |
 | [screen-01-title.html](./screen-01-title.html) | タイトル画面単体ラフ |
 
@@ -17,4 +18,4 @@
 | 4b. 全員状況 | race（モーダル） | 他プレイヤーのマ券一覧 |
 | 5. 結果発表 | payout | 配当・所持金 |
 
-画面の横断ビューは [DESIGN.md](./DESIGN.md)。REQ 正本は `hotstreak/features/*/screens.md`。ルールは [`../../hotstreak/00-project/overview.md`](../../hotstreak/00-project/overview.md)。
+見た目は [DESIGN.md](./DESIGN.md)、レイアウト草案は [screens.md](./screens.md)。REQ 正本は `hotstreak/features/*/screens.md`。ルールは [`../../hotstreak/00-project/overview.md`](../../hotstreak/00-project/overview.md)。

@@ -1,442 +1,180 @@
-# 画面設計: スマホ（横断）
-
-見た目ラフ: [hotstreak-wireframes.html](./hotstreak-wireframes.html) / [screen-01-title.html](./screen-01-title.html)  
-ルール・流れ: [`../../hotstreak/00-project/overview.md`](../../hotstreak/00-project/overview.md)
-
-## このファイルの位置づけ
-
-| 層 | パス | 役割 |
-|----|------|------|
-| 正本（機能・REQ・API） | `docs/design/hotstreak/features/<機能ID>/screens.md` | spec-browser・実装 Issue が参照 |
-| 横断ビュー（本ファイル） | `docs/design/wireframes/phone/DESIGN.md` | スマホ側 SCR を一覧・遷移で見る |
-| 旧草案 | [screens.md](./screens.md) | **廃止**（本ファイルへ統合済み） |
-
-**矛盾時は機能別 `screens.md` を優先する。** 本ファイルは `tools/design/build_wireframe_design_md.py` で再生成できる。
-
-進行: **時間遷移なし**。次フェーズは **全員揃い** または **ラズパイ Enter**。
-
-## ユースケースと画面の対応
-
-| UC-ID | 必要な画面 |
-|-------|------------|
-| UC-lobby-001 | SCR-phone-001 |
-| UC-lobby-002 | SCR-phone-001 |
-| UC-lobby-005 | SCR-phone-001, SCR-display-001 |
-| UC-setup-003 | （Phone 専用 SCR なし・待機） |
-| UC-betting-001 | SCR-phone-002 |
-| UC-betting-002 | SCR-phone-002 |
-| UC-betting-003 | SCR-phone-002 |
-| UC-betting-005 | SCR-phone-002, SCR-display-003 |
-| UC-seed-001 | SCR-phone-003 |
-| UC-race-004 | SCR-phone-004 |
-| UC-race-005 | SCR-phone-004b |
-| UC-payout-002 | SCR-phone-005 |
-
-## 画面一覧
-
-| SCR-ID | 名前 | ルート | 主な操作 | 呼ぶAPI |
-|--------|------|--------|----------|---------|
-| SCR-phone-001 | ロビー（参加） | `/join/{sessionId}` | 名前入力・確定 | API-LOBBY-003, 004 |
-| SCR-phone-002 | マ券ドラフト | `/play/{sessionId}/betting` | 札選択・裏返し・確定・ダブル指定 | API-BETTING-001〜003 |
-| SCR-phone-003 | カード仕込み | `/play/{sessionId}/seed` | 手札1枚選択・確定 | API-SEED-001, 002 |
-| SCR-phone-004 | レース観戦 | `/play/{sessionId}/race` | 全員状況ボタン | API-RACE-001 |
-| SCR-phone-004b | 全員状況 | （モーダル） | 閉じる | API-RACE-001 |
-| SCR-phone-005 | 配当 | `/play/{sessionId}/payout` | なし（閲覧） | API-PAYOUT-001 |
-
-
-## 画面遷移（スマホ）
-
-```mermaid
-flowchart LR
-  p001[SCR-phone-001] -->|全員名前_or_Enter| wait[公開カード待機]
-  wait -->|setup.advanced| p002[SCR-phone-002]
-  p002 -->|全員2枚_or_Enter| p003[SCR-phone-003]
-  p003 -->|全員仕込み_or_Enter| p004[SCR-phone-004]
-  p004 -->|race.finished| p005[SCR-phone-005]
-  p004 -.->|ボタン| p004b[SCR-phone-004b]
-  p005 -->|Enter レース1-2| p002
-  p005 -->|Enter レース3| p001
-```
-
-## 実装ソース（Pygame / Web）
-
-| SCR-ID | パス | 状態 |
-|--------|------|------|
-| SCR-phone-001 | （未配置） | 未実装 |
-| （待機） | Phone シェル | setup-cards 中は専用 SCR なし |
-| SCR-phone-002 | （未配置） | 未実装 |
-| SCR-phone-003 | （未配置） | 未実装 |
-| SCR-phone-004 / 004b | （未配置） | 未実装 |
-| SCR-phone-005 | （未配置） | 未実装 |
-
-## 対応マトリクス
-
-| SCR-ID | 画面 | 関連REQ | 呼ぶAPI | 主コンポーネント | 遷移先 |
-|--------|------|---------|---------|------------------|--------|
-| SCR-phone-001 | ロビー（参加） | REQ-lobby-002, 003, 004 | API-LOBBY-003, 004 | CMP-lobby-010, 011, 012 | SCR-phone-002 |
-| SCR-phone-002 | マ券ドラフト | REQ-betting-001〜005 | API-BETTING-001〜003 | CMP-betting-010〜014 | SCR-phone-003 |
-| SCR-phone-003 | カード仕込み | REQ-seed-001, 003 | API-SEED-001, 002 | CMP-seed-010〜013 | SCR-phone-004 |
-| SCR-phone-004 | レース観戦 | REQ-race-005 | API-RACE-001 | CMP-race-010〜013 | SCR-phone-005 |
-| SCR-phone-004b | 全員状況 | REQ-race-006 | API-RACE-001 | CMP-race-014 | 閉じると 004 |
-| SCR-phone-005 | 配当 | REQ-payout-001〜005 | API-PAYOUT-001 | CMP-payout-010〜013 | 002 または 001 |
-
+---
+version: alpha
+name: HotStreak Phone UI
+description: スマホ操作画面のビジュアル基準（google-labs design.md 形式）。画面フロー・REQ は features/*/screens.md と wireframes/phone/screens.md。
+colors:
+  ink: "#1a1a1a"
+  muted: "#6f6f6b"
+  line: "#d6d6d2"
+  paper: "#ffffff"
+  fill: "#f4f4f2"
+  accent: "#2f6fb0"
+  accentBg: "#e8f0f8"
+  success: "#2e6b45"
+  successBg: "#e7f1ea"
+  risk: "#9a4a2f"
+  riskBg: "#f7ebe5"
+  highlight: "#f6efe2"
+  canvas: "#e9e9e5"
+typography:
+  body:
+    fontFamily: "Hiragino Kaku Gothic ProN, Noto Sans JP, Yu Gothic, system-ui, sans-serif"
+    fontSize: 14px
+    fontWeight: 400
+    lineHeight: 1.6
+  title:
+    fontFamily: "{typography.body.fontFamily}"
+    fontSize: 20px
+    fontWeight: 600
+    lineHeight: 1.3
+  section:
+    fontFamily: "{typography.body.fontFamily}"
+    fontSize: 16px
+    fontWeight: 600
+    lineHeight: 1.35
+  caption:
+    fontFamily: "{typography.body.fontFamily}"
+    fontSize: 12px
+    fontWeight: 400
+    lineHeight: 1.5
+  label:
+    fontFamily: "{typography.body.fontFamily}"
+    fontSize: 11px
+    fontWeight: 400
+    lineHeight: 1.4
+rounded:
+  sm: 4px
+  md: 8px
+  lg: 10px
+  phone: 14px
+spacing:
+  xs: 6px
+  sm: 10px
+  md: 14px
+  lg: 18px
+  phonePadding: 18px
+components:
+  phoneShell:
+    backgroundColor: "{colors.paper}"
+    textColor: "{colors.ink}"
+    rounded: "{rounded.phone}"
+    padding: "{spacing.phonePadding}"
+  panel:
+    backgroundColor: "{colors.fill}"
+    rounded: "{rounded.md}"
+    padding: 14px
+  row:
+    backgroundColor: "{colors.paper}"
+    textColor: "{colors.ink}"
+    rounded: "{rounded.md}"
+    padding: "10px 12px"
+  rowSelected:
+    backgroundColor: "{colors.paper}"
+    textColor: "{colors.ink}"
+    rounded: "{rounded.md}"
+    padding: "9px 11px"
+  primaryButton:
+    backgroundColor: "{colors.paper}"
+    textColor: "{colors.ink}"
+    rounded: "{rounded.md}"
+    padding: 11px
+  accentBar:
+    backgroundColor: "{colors.accentBg}"
+    textColor: "{colors.accent}"
+    rounded: "{rounded.md}"
+    padding: "9px 11px"
+  moneyBlock:
+    backgroundColor: "{colors.successBg}"
+    textColor: "{colors.success}"
+    rounded: "{rounded.md}"
+    padding: 13px
+  tagSafe:
+    backgroundColor: "{colors.fill}"
+    textColor: "{colors.muted}"
+    rounded: 6px
+    padding: "5px 11px"
+  tagRisky:
+    backgroundColor: "{colors.riskBg}"
+    textColor: "{colors.risk}"
+    rounded: 6px
+    padding: "5px 11px"
+  sideBetEvent:
+    backgroundColor: "{colors.highlight}"
+    rounded: "{rounded.md}"
+    padding: 11px
 ---
 
-## SCR-phone-001: ロビー（参加）
-
-### 目的
-
-QR 参加後に名前を確定し、参加者一覧を共有する。セットアップ完了は **全員の名前確定**、または **ラズパイ Enter**。
-
-### レイアウト
+# HotStreak — Phone visual system
 
-| エリア | 要素 | 動作 |
-|--------|------|------|
-| ヘッダー | タイトル「ホットストリーク」、案内文 | 表示のみ |
-| 入力 | プレイヤー名フィールド | テキスト入力 |
-| サマリー | 参加者人数 | 全端末同期で更新 |
-| リスト | 参加者行（自分／他者・入力済／入力中） | 名前確定で反映 |
-| フッター | 「この名前で決定」、Enter／全員待ち案内 | 確定ボタンでリスト更新 |
-
-### ワイヤー（ASCII）
-
-```
-+---------------------------+
-| ホットストリーク          |
-| QRを読み取って参加        |
-|                           |
-| プレイヤー名              |
-| [ ヤマダ|               ] |
-|                           |
-|     参加者  4 人          |
-| ヤマダ（自分）    入力済  |
-| サトウ            入力済  |
-| プレイヤー3       入力中  |
-| プレイヤー4       入力中  |
-|                           |
-| [ この名前で決定 ]        |
-| 全員入力後、または        |
-| ラズパイ Enter で次へ     |
-+---------------------------+
-```
-
-### 状態
-
-| 状態 | 見た目・振る舞い |
-|------|------------------|
-| 未入力 | 確定不可または空名拒否 |
-| 入力中 | カーソル表示 |
-| 自分確定済 | 自分行が入力済、他端末に配信 |
-| 待機 | 全員揃い待ち、または Enter 待ち |
-| 受付終了 | lobby.advanced 受信後、次画面へ |
-
-### 操作と結果
-
-| 操作 | 条件 | 結果 |
-|------|------|------|
-| 名前確定 | 非空 | API-LOBBY-004 呼び出し・参加者リスト更新・配信 |
-| 全員名前確定 | 参加者全員 nameReady | setup-cards へ（lobby.advanced） |
-| ラズパイ Enter | 司会進行 | 同上（未確定はプレースホルダ名） |
-
----
-
-## SCR-display-001: 参加受付
-
-### 目的
-
-QR を大きく示し、参加者数とアイコン／名前一覧を更新する。
-
-### レイアウト
-
-| エリア | 要素 | 動作 |
-|--------|------|------|
-| 左 | QR コード | 参加用 joinUrl |
-| 右 | 人数 n/8、参加者リスト | 参加・名前確定のたびに同期更新 |
-
-### ワイヤー（ASCII）
-
-```
-+------------------------------------------+
-| 参加受付                                  |
-| +--------+   参加者  6 / 8               |
-| |  QR    |   [熊]くま  [魚]さかな ...     |
-| |        |   ---- 空き枠 ----             |
-| +--------+                                |
-+------------------------------------------+
-```
-
-### 状態
-
-| 状態 | 見た目・振る舞い |
-|------|------------------|
-| 受付中 | QR 有効・リスト増加 |
-| 全員揃い | 進行可能（Enter または自動遷移の案内） |
-| 締め | Enter 後は受付停止・SCR-display-002 へ |
-
-### 操作と結果
-
-| 操作 | 条件 | 結果 |
-|------|------|------|
-| （会場）ラズパイ Enter | 参加者 3 人以上 | API-LOBBY-005・setup-cards へ |
-| 全員名前確定 | 参加者全員 | 同上（揃いでも可） |
-
----
+## Overview
 
-## SCR-phone-002: マ券ドラフト
+スマホは **明るい紙面 UI**（会場の暗いディスプレイと対になる）。プレイヤーが片手で操作する前提で、コントラストは読みやすさ優先。見た目の参考実装は [hotstreak-wireframes.html](./hotstreak-wireframes.html)。画面の役割・遷移・API は設計書（`docs/design/hotstreak/features/*/screens.md`）を正本とし、本ファイルは **色・字・余白・部品の見え方だけ** を固定する。
 
-### 目的
+トーン: 落ち着いた卓上ゲーム向けのユーティリティ UI。派手なグラデーションやダークモード全面は使わない。
 
-スネークドラフトでマ券またはサイドベットを2枚取得し、各取得直後にセーフ／リスキーを選ぶ。第3レースでは2枚のうち1枚を配当ダブルに指定する。
+## Colors
 
-### レイアウト
+| 役割 | トークン | 用途 |
+|------|----------|------|
+| 本文 | `ink` | 見出し・本文・主ボタン枠 |
+| 補助 | `muted` | 説明・ラベル・スタンプ |
+| 区切り | `line` | 枠線・区切り線 |
+| 面 | `paper` | 画面カード・入力背景 |
+| 薄い面 | `fill` | パネル・タグ（セーフ） |
+| 操作強調 | `accent` / `accentBg` | 手番バー・選択枠・リンク風テキスト |
+| 所持金・成功 | `success` / `successBg` | 配当・所持金ブロック |
+| リスキー | `risk` / `riskBg` | リスキー札・ダブル指定 |
+| お題 | `highlight` | サイドベットお題・リードセル |
+| 一覧背景 | `canvas` | ワイヤー一覧の外周（本番アプリは通常 `paper` 全面） |
 
-| エリア | 要素 | 動作 |
-|--------|------|------|
-| 手番バー | 「あなたの番」、周回・何人目 | 手番時のみ操作可 |
-| メタ | レース n/3 | 表示 |
-| リスト | 取得可能な札（配当・残り枚数・セーフ／リスキー） | タップで選択・裏返し |
-| 所持 | 自分が取った札（最大2・空き枠） | 表示 |
-| 第3追加 | ダブルにする札の指定 | 2枚目取得後 |
-| フッター | この札に投票する | 手番で確定 |
+セーフ／リスキーは **色で意味を分ける**（`tagSafe` / `tagRisky`）。リスキーは茶系、セーフはグレー面。
 
-### ワイヤー（ASCII）
-
-```
-+---------------------------+
-| あなたの番です  2周目 3/4 |
-| レース 1/3                |
-|                           |
-| > マ券A [セーフ]          |
-|   タップで裏返す→リスキー |
-|   残り 2枚                |
-|   サイド YES/NO  (お題)   |
-|                           |
-| 所持中のマ券              |
-| [マ券B リスキー] [ 空き ] |
-|                           |
-| [ この札に投票する ]      |
-+---------------------------+
-```
-
-### 状態
-
-| 状態 | 見た目・振る舞い |
-|------|------------------|
-| 他者の番 | 操作不可、手番待ち |
-| 自分の番 | 選択・裏返し・確定可 |
-| 在庫0 | 該当札を無効表示 |
-| 第3・ダブル未指定 | 2枚目後に指定を促す |
+## Typography
 
-### 操作と結果
+- 日本語ゴシック系のみ。欧文は同スタックにフォールバック。
+- 画面タイトル `title`、セクション `section`、本文 `body`、補足 `caption`、ラベル `label` の5段階で足りる。それ以上のサイズ階層は増やさない。
+- 金額の強調は `moneyBlock` 内で大きめ（ワイヤーでは 24px 相当）— トークン外の例外はこのブロックだけ。
 
-| 操作 | 条件 | 結果 |
-|------|------|------|
-| 札を裏返す | 自分の番・選択中 | セーフ⇔リスキー |
-| 投票確定 | 自分の番・在庫あり | API-BETTING-002・次手番 |
-| ダブル指定 | 第3・所持2枚 | API-BETTING-003 |
+## Layout
 
-金額表示は `features/payout/README.md` 観測確定表を参照（OPEN-betting-005／OPEN-payout-002）。
+- **想定幅**: モバイル 360〜390px 相当。ワイヤーは 340px の「電話枠」で検証している。
+- **余白**: 画面内 `phonePadding`、ブロック間 `md`、行間 `xs`。
+- **リスト**: `row` を縦積み。選択中は 2px の `accent` 枠（`rowSelected`）。
+- **手札・カード**: 3列グリッド（`gap: 8px`）。選択カードは `accent` 枠 2px。
+- **下部固定**: 主操作は `primaryButton` を画面下寄せ（ワイヤー `margin-top: 14px`）。
 
----
+## Elevation & Depth
 
-## SCR-display-003: マ券ドラフト共有
-
-### 目的
-
-サイドベットお題と、ドラフト中の残り札／手番を会場に見せる。
-
-### レイアウト
+フラット中心。影は使わず、**1px の `line` 枠**と背景色の差で階層を出す。モーダル（全員状況）は背面を暗くする程度で、ドロップシャドウは任意・控えめ。
 
-| エリア | 要素 | 動作 |
-|--------|------|------|
-| お題 | 今レースのサイドベット文面 | 同期 |
-| リスト | 残りマ券の概要 | 同期 |
-| 手番 | 今誰の番か | 強調 |
-| フッター | Enter 案内 | Enter → advance |
+## Shapes
 
-### ワイヤー（ASCII）
+- 角丸は `md`（8px）を標準。電話外枠のみ `phone`（14px）。
+- アバターは正円（30px）。チップ・バッジは `sm`（4px）。
 
-```
-+------------------------------------------+
-| マ券ドラフト中                            |
-| サイドベット: 「（お題文面）」            |
-| 手番: （プレイヤー名）                    |
-| 残りマ券: （色ごと残枚）                  |
-| ラズパイ Enter で仕込みへ可               |
-+------------------------------------------+
-```
+## Components
 
-### 操作と結果
+| 部品 | 見え方 | 状態 |
+|------|--------|------|
+| `phoneShell` | 白面・細枠 | — |
+| `panel` | 灰面のまとまり | — |
+| `row` / `rowSelected` | リスト行 | 選択で accent 枠 |
+| `primaryButton` | 白地・黒枠・全幅 | 押下は opacity のみで可 |
+| `accentBar` | 手番・進行案内 | — |
+| `moneyBlock` | 緑系の配当強調 | — |
+| `sideBetEvent` | お題用の温かいベージュ面 | — |
+| `tagSafe` / `tagRisky` | マ券の裏表ラベル | 文言は **セーフ／リスキー** |
 
-| 操作 | 条件 | 結果 |
-|------|------|------|
-| （会場）ラズパイ Enter | 全員2枚＋第3は double 済み | API-BETTING-004・card-seed へ |
+## Do's and Don'ts
 
----
+**Do**
 
-## SCR-phone-003: カード仕込み
+- ラベルは規約どおり **マ券**（馬券表記は使わない）。
+- フェーズ案内は「全員揃い／Enter」文言。カウントダウン UI は置かない。
+- タップ領域は行・ボタンとも縦 44px 以上を目安にする。
 
-### 目的
+**Don't**
 
-手札3枚から1枚をレーシングデッキへ仕込む。制限時間による強制遷移はしない。
-
-### レイアウト
-
-| エリア | 要素 | 動作 |
-|--------|------|------|
-| メタ | レース n/3、手札枚数、仕込み進捗 | 表示 |
-| 手札 | 最大3枚（効果テキスト） | 1枚選択 |
-| 状況 | 各プレイヤーの仕込み済／未 | 同期 |
-| フッター | このカードを仕込む、Enter／全員待ち | 確定 |
-
-### ワイヤー（ASCII）
-
-```
-+---------------------------+
-| カードを1枚仕込む         |
-| レース 2/3 ・ 手札3枚     |
-| 仕込み 2 / 4 人           |
-|                           |
-| [カードA] [カードC] [E]   |
-|                           |
-| 仕込み状況                |
-| ヤマダ（自分）  選択中    |
-| サトウ          済        |
-|                           |
-| [ このカードを仕込む ]    |
-| 全員済、または Enter で次 |
-+---------------------------+
-```
-
-### 操作と結果
-
-| 操作 | 条件 | 結果 |
-|------|------|------|
-| カード選択 | 未確定 | ハイライト |
-| 仕込み確定 | 1枚選択済 | API-SEED-002 |
-| 全員完了 | 全員済 | race へ |
-| Enter | 司会 | 全員 seeded |
-
----
-
-## SCR-display-004: 仕込み〜準備完了
-
-### 目的
-
-仕込み待ち、束の確定（公開＋仕込み）、まもなく開始を示す。
-
-### レイアウト
-
-| エリア | 要素 | 動作 |
-|--------|------|------|
-| 仕込み中 | 「スマホで1枚仕込んでください」 | 進捗 n/人数 |
-| 束確定 | 裏向きカードの集合イメージ | 枚数（標準18） |
-| 準備完了 | 「まもなく開始」 | 遷移直前 |
-
-### ワイヤー（ASCII）
-
-```
-+------------------------------------------+
-| カード仕込み中  3 / 4 人済                |
-| レース用カード束  18 枚                   |
-| [?][?][?][?][?] ...                       |
-| ラズパイ Enter でレースへ可               |
-+------------------------------------------+
-```
-
----
-
-## SCR-phone-004: レース観戦
-
-### 目的
-
-Display を追いながら自分のマ券・所持金・プレイヤー順位を常時表示する。
-
-### レイアウト
-
-| エリア | 要素 | 動作 |
-|--------|------|------|
-| 上部 | サイドベットお題 | 固定表示 |
-| 中央 | マスコット簡易順位 | 同期 |
-| 下部 | 自分のマ券・所持金・順位 | 同期 |
-| アクション | 全員の状況 | 004b |
-
-### 操作と結果
-
-| 操作 | 条件 | 結果 |
-|------|------|------|
-| 全員の状況 | レース中 | SCR-phone-004b |
-| （自動） | race.finished | SCR-phone-005 |
-
----
-
----
-
-## SCR-phone-004b: 全員状況
-
-### 目的
-
-他プレイヤーの購入マ券（表裏）を一覧参照する。
-
-### 操作と結果
-
-| 操作 | 条件 | 結果 |
-|------|------|------|
-| 閉じる | 表示中 | SCR-phone-004 に戻る |
-
----
-
-## SCR-phone-005: 配当
-
-### 目的
-
-着順と自分の払戻・全員の所持金順位を見せる。次へは Enter。
-
-### レイアウト
-
-| エリア | 要素 | 動作 |
-|--------|------|------|
-| タイトル | レース n 結果 | 表示 |
-| 着順 | マスコット1〜4位 | 表示 |
-| 自分 | 獲得金額・内訳（ダブル明示） | 表示 |
-| 順位 | プレイヤー別所持金 | 自分強調 |
-| フッター | Enter 案内 | 表示 |
-
-### ワイヤー（ASCII）
-
-```
-+---------------------------+
-| レース1 結果              |
-| 着順  [1][2][3][4]        |
-| あなたの獲得金額          |
-| （内訳）                  |
-| プレイヤー順位            |
-| ラズパイ Enter で次へ     |
-+---------------------------+
-```
-
-金額表示は README 観測確定表を参照。
-
----
-
-## SCR-display-006: 着順・結果
-
-### 目的
-
-表彰・着順を大きく見せる。個人払戻の詳細は Phone。
-
-### レイアウト
-
-| エリア | 要素 | 動作 |
-|--------|------|------|
-| タイトル | RACE n RESULT | 表示 |
-| 順位 | 1〜4位マスコット | 表示 |
-| フッター | Enter 案内 | Enter → advance |
-
-### 操作と結果
-
-| 操作 | 条件 | 結果 |
-|------|------|------|
-| Enter | 配当表示中 | 次 betting、または lobby（レース3） |
-
----
+- 紫グラデ・汎用 SaaS 風パレット（本トークン外の色を増やさない）。
+- ディスプレイ用の暗い部屋ビジュアルをスマホ全面に流用しない。
+- 画面仕様（SCR・API・遷移）を本ファイルに書かない — それは `screens.md` / 機能設計の役割。

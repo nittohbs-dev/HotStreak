@@ -38,8 +38,10 @@
 | パス | 内容 |
 |------|------|
 | [`../../wireframes/README.md`](../../wireframes/README.md) | 索引・二画面対応表（正規フロー順） |
-| [`../../wireframes/phone/DESIGN.md`](../../wireframes/phone/DESIGN.md) | スマホ画面設計（横断・SCR-phone-*） |
-| [`../../wireframes/display/DESIGN.md`](../../wireframes/display/DESIGN.md) | ディスプレイ画面設計（横断・SCR-display-*） |
+| [`../../wireframes/phone/DESIGN.md`](../../wireframes/phone/DESIGN.md) | スマホ **ビジュアル基準**（design.md 形式） |
+| [`../../wireframes/display/DESIGN.md`](../../wireframes/display/DESIGN.md) | ディスプレイ **ビジュアル基準**（design.md 形式） |
+| [`../../wireframes/phone/screens.md`](../../wireframes/phone/screens.md) | スマホ画面レイアウト草案（SCR-phone-*） |
+| [`../../wireframes/display/screens.md`](../../wireframes/display/screens.md) | ディスプレイ画面レイアウト草案（SCR-display-*） |
 | [`../../wireframes/phone/`](../../wireframes/phone/) | スマホ側 HTML ラフ（旧順・旧語あり） |
 | [`../../wireframes/display/`](../../wireframes/display/) | ディスプレイ側 PNG ラフ |
 

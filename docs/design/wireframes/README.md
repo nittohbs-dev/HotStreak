@@ -1,15 +1,15 @@
 # ワイヤーフレーム・画面設計（ラフ）
 
-見た目の正本は HTML / PNG。ルール・流れ・用語の正本は [`../hotstreak/00-project/overview.md`](../hotstreak/00-project/overview.md)。
+見た目の正本は HTML / PNG と **DESIGN.md**（ビジュアル基準）。ルール・流れ・用語の正本は [`../hotstreak/00-project/overview.md`](../hotstreak/00-project/overview.md)。
 
 | パス | 内容 |
 |------|------|
-| [phone/DESIGN.md](./phone/DESIGN.md) | スマホ画面設計（横断・SCR-phone-*） |
-| [display/DESIGN.md](./display/DESIGN.md) | ディスプレイ画面設計（横断・SCR-display-*） |
+| [phone/DESIGN.md](./phone/DESIGN.md) | スマホの色・字・部品（[design.md](https://github.com/google-labs-code/design.md) 形式） |
+| [display/DESIGN.md](./display/DESIGN.md) | ディスプレイの色・字・部品（同上） |
+| [phone/screens.md](./phone/screens.md) | スマホ画面設計（SCR-phone-*・レイアウト草案） |
+| [display/screens.md](./display/screens.md) | ディスプレイ画面設計（SCR-display-*・レイアウト草案） |
 | [phone/](./phone/) | スマホ側ラフ（HTML） |
 | [display/](./display/) | ディスプレイ側ラフ（PNG） |
-
-機能別の REQ / API 正本は `hotstreak/features/<機能ID>/screens.md`。横断 `DESIGN.md` は `tools/design/build_wireframe_design_md.py` で再生成する。
 
 ## 正規フローと二画面対応
 
@@ -29,4 +29,4 @@
 - [display/試合開始前設計.png](./display/試合開始前設計.png) は開始前後のビジュアル参考。順序の定義は overview の正規フロー
 - [display/ゲーム進行画面-ディスプレイ側.png](./display/ゲーム進行画面-ディスプレイ側.png) の「コース崩壊」はルール上の**コース短縮**として読む
 
-横断画面設計は `phone/DESIGN.md` と `display/DESIGN.md`。仕様の正本は `hotstreak/features/<id>/screens.md`（spec-browser・Issue が参照）。
+機能別の REQ 紐付けは `hotstreak/features/<id>/screens.md`（spec-browser・Issue の正本）。`wireframes/*/screens.md` はレイアウト草案。
