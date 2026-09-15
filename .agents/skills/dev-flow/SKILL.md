@@ -13,6 +13,14 @@ description: Enforces HotStreak SE/PG development flow with develop as integrati
 2. `develop` または `main` なら **ファイル操作をしない**。作業ブランチへ移ってから続ける。
 3. 役割を決める。設計・設計PR・Issue 作成 → SE。Issue 番号付きの実装・実装PR → PG。曖昧なら確認する。
 
+### develop からブランチを切る直前（毎回・自動）
+
+拘束: [rules/dev-flow.md](../../rules/dev-flow.md) の「develop の同期」。
+
+1. `git fetch origin develop`
+2. 新規ブランチの起点がローカル `develop` なら: `git checkout develop` → `git pull origin develop`
+3. その後 `git checkout -b design/...` または `git checkout -b feat/...`（既存ブランチなら fetch だけして続行可）
+
 ## フェーズ一覧
 
 | Phase | 条件 | 役割 | ブランチ |
@@ -31,18 +39,22 @@ description: Enforces HotStreak SE/PG development flow with develop as integrati
 
 ### やること
 
-1. `develop` から `design/<feature-id>` を切る（既存ならチェックアウト）。
+1. **develop 同期**（上記「ブランチを切る直前」）のあと、`develop` から `design/<feature-id>` を切る（既存なら fetch 後チェックアウト）。
 2. 設計書の作成・更新はスキル **`design-doc`** に従う（テンプレ・表ヘッダ・ID 固定）。外部スキルは使わない。
 3. `docs/design/` に設計書を書く・更新する。実装コードは触らない。
 4. コミットは台帳どおり。例: `docs: <feature-id> の設計を追加する`
 5. ユーザーが設計を承認したら、base **`develop`** の設計PRを作る。
-6. `main` 向けには出さない。
+6. PR 作成後、レビュアー **`burokku-xp`** をリクエストする。Issue は未作成のため `Closes` は書かない（拘束: rules の「PR と Issue の紐付け」）。
+7. `main` 向けには出さない。
 
 ### 設計PR本文（最低限）
 
 ```markdown
 ## 概要
 <機能の要約>
+
+## Issue
+- 合併後に SE が Epic / Sub-Issue を作成（本 PR では Closes なし）
 
 ## 設計書
 - パス: `docs/design/...`
@@ -109,7 +121,7 @@ description: Enforces HotStreak SE/PG development flow with develop as integrati
 ### やること
 
 1. Issue から REQ-ID・feature-id・設計書パス・受け入れ条件を読む。
-2. `develop` から `feat/<feature-id>-<req-id>` を切る（REQ が1つだけの機能なら `feat/<feature-id>` 可）。
+2. **develop 同期**のあと、`develop` から `feat/<feature-id>-<req-id>` を切る（REQ が1つだけの機能なら `feat/<feature-id>` 可）。
 3. Issue が指す設計書だけを根拠に実装する。`docs/design/` は原則編集しない。
 4. 軽微な仕様調整は **ユーザーが明示したときだけ**、同じ feat PR 内で設計書も直す。REQ 追加・API パス変更などは別の設計PRが必要と報告して止める。
 5. コミットは台帳どおり。例: `add: REQ-xxx のログインAPIを実装する`。本文またはメッセージに REQ-ID / feature-id を含める。
@@ -127,21 +139,26 @@ description: Enforces HotStreak SE/PG development flow with develop as integrati
 ### やること
 
 1. base **`develop`** で実装PRを開く（`main` 禁止）。
-2. Issue が指す設計書とブランチ上の実装を突き合わせる。
-3. **設計書との差分** を PR 本文に必ず書く。
+2. PR 本文に **`Closes #<Sub-Issue番号>`** を入れ、Epic / Sub を `Issue: #…` で明記する（1 PR = 1 Sub-Issue）。
+3. PR 作成後、レビュアー **`burokku-xp`** をリクエストする。
+4. Issue が指す設計書とブランチ上の実装を突き合わせる。
+5. **設計書との差分** を PR 本文に必ず書く。
    - 差分がある → 箇所を列挙し、理由をその feat ブランチの **コミット履歴**（`git log` / `git show` のメッセージと差分）から読む。推測で理由を作らない。
    - 履歴に理由が無い → コミットメッセージを直すか、PR に「理由がコミット履歴から読み取れない」と明記する。
    - 差分が無い → 「設計書との差分なし」と書く。
-4. レビュー指摘への対応も同じ feat ブランチで行う。
-5. E2E や追加テストが必要なら、設計書のテスト章と Issue 範囲に従って同じフローで進める（別スキルへ逃がさない。詳細手順が肥大化したら `.agents/skills/` に新スキルを足す）。
+6. レビュー指摘への対応も同じ feat ブランチで行う。
+7. E2E や追加テストが必要なら、設計書のテスト章と Issue 範囲に従って同じフローで進める（別スキルへ逃がさない。詳細手順が肥大化したら `.agents/skills/` に新スキルを足す）。
 
 ### 実装PR本文テンプレート
 
 ```markdown
 ## 概要
-- Issue: #<n>
+- Epic: #<epic>
+- Sub-Issue: #<sub>（本 PR で Closes する番号）
 - REQ-ID: <id>
 - 設計書: `docs/design/...`
+
+Closes #<sub>
 
 ## 変更内容
 - <実装の要点>
