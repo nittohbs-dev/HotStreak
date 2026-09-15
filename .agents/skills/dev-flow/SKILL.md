@@ -44,7 +44,7 @@ description: Enforces HotStreak SE/PG development flow with develop as integrati
 3. `docs/design/` に設計書を書く・更新する。実装コードは触らない。
 4. コミットは台帳どおり。例: `docs: <feature-id> の設計を追加する`
 5. ユーザーが設計を承認したら、base **`develop`** の設計PRを作る。
-6. PR 作成後、レビュアー **`burokku-xp`** をリクエストする。Issue は未作成のため `Closes` は書かない（拘束: rules の「PR と Issue の紐付け」）。
+6. PR 作成後、**作者がオーナー以外なら** レビュアー **`burokku-xp`** をリクエストする。Issue は未作成のため `Closes` は書かない（拘束: rules の「PR と Issue の紐付け」）。
 7. `main` 向けには出さない。
 
 ### 設計PR本文（最低限）
@@ -140,7 +140,7 @@ description: Enforces HotStreak SE/PG development flow with develop as integrati
 
 1. base **`develop`** で実装PRを開く（`main` 禁止）。
 2. PR 本文に **`Closes #<Sub-Issue番号>`** を入れ、Epic / Sub を `Issue: #…` で明記する（1 PR = 1 Sub-Issue）。
-3. PR 作成後、レビュアー **`burokku-xp`** をリクエストする。
+3. PR 作成後、**作者がオーナー以外なら** レビュアー **`burokku-xp`** をリクエストする。
 4. Issue が指す設計書とブランチ上の実装を突き合わせる。
 5. **設計書との差分** を PR 本文に必ず書く。
    - 差分がある → 箇所を列挙し、理由をその feat ブランチの **コミット履歴**（`git log` / `git show` のメッセージと差分）から読む。推測で理由を作らない。

@@ -13,7 +13,7 @@
 
 ### 開発フロー（SE / PG）
 
-拘束の正本: [rules/dev-flow.md](rules/dev-flow.md)（設計書正本・ブランチ・Issue・PR 紐付け・レビュー依頼 `burokku-xp`・ブランチ前 `develop` fetch・`develop` 直編集禁止）。手順はスキル `dev-flow`。
+拘束の正本: [rules/dev-flow.md](rules/dev-flow.md)（設計書正本・ブランチ・Issue・PR 紐付け・オーナー以外の PR はレビュー依頼 `burokku-xp`・ブランチ前 `develop` fetch・`develop` 直編集禁止）。手順はスキル `dev-flow`。
 
 ### 設計書の形
 
