@@ -2,7 +2,7 @@
 
 | ファイル | 内容 |
 |----------|------|
-| [screens.md](./screens.md) | 画面設計MD（SCR-phone-*・正規フロー寄せ） |
+| [DESIGN.md](./DESIGN.md) | 画面設計（横断・SCR-phone-*・正規フロー寄せ） |
 | [hotstreak-wireframes.html](./hotstreak-wireframes.html) | 見た目ラフ一覧（ブラウザで開く） |
 | [screen-01-title.html](./screen-01-title.html) | タイトル画面単体ラフ |
 
@@ -17,4 +17,4 @@
 | 4b. 全員状況 | race（モーダル） | 他プレイヤーのマ券一覧 |
 | 5. 結果発表 | payout | 配当・所持金 |
 
-画面の正（MD）は [screens.md](./screens.md)。ルールは [`../../hotstreak/00-project/overview.md`](../../hotstreak/00-project/overview.md)。
+画面の横断ビューは [DESIGN.md](./DESIGN.md)。REQ 正本は `hotstreak/features/*/screens.md`。ルールは [`../../hotstreak/00-project/overview.md`](../../hotstreak/00-project/overview.md)。

@@ -92,6 +92,17 @@ indexer は推測で辺を増やさない。
 - 共通クラス: `00-project/classes.md` 掲載
 - 設計プロジェクト: `docs/design/<projectId>/manifest.yaml` 単位。ノード ID は `{projectId}:…` 接頭辞
 
+## ワイヤー横断 DESIGN.md（phone / display）
+
+| パス | 役割 |
+|------|------|
+| `docs/design/wireframes/phone/DESIGN.md` | スマホ側 SCR の横断一覧・遷移・各 SCR 節 |
+| `docs/design/wireframes/display/DESIGN.md` | ディスプレイ側 SCR の横断一覧・遷移・各 SCR 節 |
+
+- **正本**は引き続き `docs/design/hotstreak/features/<id>/screens.md`（REQ / API / spec-browser）。
+- 横断 `DESIGN.md` は手で直さず、`tools/design/build_wireframe_design_md.py` で機能別 `screens.md` から再生成する。
+- 実装ソースの対応表はスクリプト内の `PHONE_FLOW` / `DISPLAY_FLOW` を更新してから再生成する。
+
 ## 書いてよいこと / 書いてはいけないこと
 
 **書く:** 要約表、Mermaid、追跡ID、責務の自然言語、**概念的な JSON 入出力**、メソッドの引数/戻り値（自然言語または JSON 風）

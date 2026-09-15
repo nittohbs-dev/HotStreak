@@ -123,6 +123,6 @@ flowchart TD
 | 進行PNGのコース崩壊 | コース短縮（リシャッフル）として解釈 |
 | QR・ラズパイ Enter | デジタル固有として残す |
 
-ラフの索引と画面設計MD: [`docs/design/wireframes/README.md`](../../wireframes/README.md)（[phone/screens.md](../../wireframes/phone/screens.md) / [display/screens.md](../../wireframes/display/screens.md)）
+ラフの索引と画面設計: [`docs/design/wireframes/README.md`](../../wireframes/README.md)（[phone/DESIGN.md](../../wireframes/phone/DESIGN.md) / [display/DESIGN.md](../../wireframes/display/DESIGN.md)）
 
 説明書（HTML草案）: [`manual.html`](../manual.html)（ブラウザで開く）
