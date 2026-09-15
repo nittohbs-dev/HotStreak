@@ -2,7 +2,8 @@
 
 | ファイル | 内容 |
 |----------|------|
-| [screens.md](./screens.md) | 画面設計MD（SCR-display-*・正規フロー寄せ） |
+| [DESIGN.md](./DESIGN.md) | ビジュアル基準（色・字・部品） |
+| [screens.md](./screens.md) | 画面レイアウト草案（SCR-display-*） |
 | [試合開始前設計.png](./試合開始前設計.png) | 参加〜準備のストーリーボード（ラフ） |
 | [ゲーム進行画面-ディスプレイ側.png](./ゲーム進行画面-ディスプレイ側.png) | レース進行のストーリーボード（ラフ） |
 
@@ -30,4 +31,4 @@
 
 操作（マ券・仕込み）はスマホ。ディスプレイは観戦・共有情報に徹する。
 
-画面の正（MD）は [screens.md](./screens.md)。
+見た目は [DESIGN.md](./DESIGN.md)、レイアウト草案は [screens.md](./screens.md)。REQ 正本は `hotstreak/features/*/screens.md`。

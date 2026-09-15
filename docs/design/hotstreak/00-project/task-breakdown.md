@@ -4,7 +4,7 @@
 ディスプレイとスマホは 1 Issue に混ぜない。
 
 正本の機能一覧・実装順: [feature-map.md](./feature-map.md)  
-画面ラフ: [phone/screens.md](../../wireframes/phone/screens.md) / [display/screens.md](../../wireframes/display/screens.md)
+画面ラフ: [phone/screens.md](../../wireframes/phone/screens.md) / [display/screens.md](../../wireframes/display/screens.md)（ビジュアル: [phone/DESIGN.md](../../wireframes/phone/DESIGN.md) / [display/DESIGN.md](../../wireframes/display/DESIGN.md)）
 
 ## ラベル
 
@@ -157,8 +157,8 @@ flowchart TD
 - 画面: <SCR-ID または「画面なし・サーバのみ」>
 
 ## ワイヤー（参考）
-- ディスプレイ: `docs/design/wireframes/display/screens.md`
-- スマホ: `docs/design/wireframes/phone/screens.md`
+- ディスプレイ: `docs/design/wireframes/display/screens.md`（色・字は `display/DESIGN.md`）
+- スマホ: `docs/design/wireframes/phone/screens.md`（色・字は `phone/DESIGN.md`）
 
 ## 着手条件
 - [ ] 当該機能の設計 Sub が完了している

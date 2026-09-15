@@ -92,6 +92,18 @@ indexer は推測で辺を増やさない。
 - 共通クラス: `00-project/classes.md` 掲載
 - 設計プロジェクト: `docs/design/<projectId>/manifest.yaml` 単位。ノード ID は `{projectId}:…` 接頭辞
 
+## ワイヤー DESIGN.md（ビジュアル基準のみ）
+
+[google-labs design.md](https://github.com/google-labs-code/design.md) 形式。YAML トークン + Overview / Colors / Typography … の **見た目の正本**。
+
+| パス | 対象 |
+|------|------|
+| `docs/design/wireframes/phone/DESIGN.md` | スマホ UI |
+| `docs/design/wireframes/display/DESIGN.md` | 会場ディスプレイ UI |
+
+- 画面フロー・SCR・REQ・API は `features/<id>/screens.md` と `wireframes/*/screens.md`。**DESIGN.md に載せない。**
+- AI 実装時は `@DESIGN.md`（または該当側のパス）を読み、トークン外の色・フォントを増やさない。
+
 ## 書いてよいこと / 書いてはいけないこと
 
 **書く:** 要約表、Mermaid、追跡ID、責務の自然言語、**概念的な JSON 入出力**、メソッドの引数/戻り値（自然言語または JSON 風）
