@@ -75,7 +75,7 @@ class DisplayBettingScreen:
             elif self.state.double_wait:
                 self.notice = "スマホでダブルにする1枚を指定してください。"
             else:
-                self.notice = "まだドラフト中です。全員の選択完了をお待ちください。"
+                self.notice = ""
 
 
 class DisplayBettingRoot(DisplaySetupRoot):
@@ -137,7 +137,6 @@ class DisplayBettingRoot(DisplaySetupRoot):
             if not amount:
                 self.text(surface, "在庫なし", (x + 16, y + 98), 20, color)
 
-        self.panel(surface, pygame.Rect(72, 628, 1136, 48))
         if screen.notice:
             footer = screen.notice
         elif state.ready:
@@ -145,8 +144,10 @@ class DisplayBettingRoot(DisplaySetupRoot):
         elif state.double_wait:
             footer = "第3レース：スマホでダブルにする1枚を選んでください。"
         else:
-            footer = f"{state.players[state.current_player].name} さんが選択中です。スマホでマ券を選んでください。"
-        self.text(surface, footer, (92, 638), 24, (223, 191, 134), 1090)
+            footer = ""
+        if footer:
+            self.panel(surface, pygame.Rect(72, 628, 1136, 48))
+            self.text(surface, footer, (92, 638), 24, (223, 191, 134), 1090)
         self.text(surface, f"MOCK  |  ← → 表示例切替：{state.label}  |  ESC 終了", (76, 689), 20, (200, 184, 144))
 
 
