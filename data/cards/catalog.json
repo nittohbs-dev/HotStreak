@@ -1,0 +1,982 @@
+{
+  "image": "assets/images/cards/cards_atlas.png",
+  "icons_image": "assets/images/characters/card_mascots.png",
+  "cell_size": [
+    240,
+    336
+  ],
+  "icons": {
+    "blue": [
+      0,
+      0,
+      128,
+      128
+    ],
+    "orange": [
+      128,
+      0,
+      128,
+      128
+    ],
+    "salmon": [
+      256,
+      0,
+      128,
+      128
+    ],
+    "yellow": [
+      384,
+      0,
+      128,
+      128
+    ]
+  },
+  "cards": [
+    {
+      "id": "blue_swerve_1",
+      "kind": "race",
+      "color": "blue",
+      "effect": "swerve_1",
+      "label": "移動後に左へ",
+      "quantity": 1,
+      "note": "",
+      "rect": [
+        0,
+        0,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "blue_swerve_2",
+      "kind": "race",
+      "color": "blue",
+      "effect": "swerve_2",
+      "label": "移動後に左へ",
+      "quantity": 1,
+      "note": "",
+      "rect": [
+        240,
+        0,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "blue_swerve_3",
+      "kind": "race",
+      "color": "blue",
+      "effect": "swerve_3",
+      "label": "移動後に左へ",
+      "quantity": 1,
+      "note": "",
+      "rect": [
+        480,
+        0,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "blue_move_2",
+      "kind": "race",
+      "color": "blue",
+      "effect": "move_2",
+      "label": "移動",
+      "quantity": 1,
+      "note": "",
+      "rect": [
+        720,
+        0,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "blue_move_minus_2",
+      "kind": "race",
+      "color": "blue",
+      "effect": "move_minus_2",
+      "label": "移動",
+      "quantity": 1,
+      "note": "",
+      "rect": [
+        960,
+        0,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "blue_move_3",
+      "kind": "race",
+      "color": "blue",
+      "effect": "move_3",
+      "label": "移動",
+      "quantity": 1,
+      "note": "",
+      "rect": [
+        1200,
+        0,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "blue_recover_1",
+      "kind": "race",
+      "color": "blue",
+      "effect": "recover_1",
+      "label": "復帰して移動",
+      "quantity": 1,
+      "note": "",
+      "rect": [
+        1440,
+        0,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "blue_recover_2",
+      "kind": "race",
+      "color": "blue",
+      "effect": "recover_2",
+      "label": "復帰して移動",
+      "quantity": 1,
+      "note": "",
+      "rect": [
+        1680,
+        0,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "blue_turn",
+      "kind": "race",
+      "color": "blue",
+      "effect": "turn",
+      "label": "方向転換",
+      "quantity": 1,
+      "note": "",
+      "rect": [
+        0,
+        336,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "blue_fall",
+      "kind": "race",
+      "color": "blue",
+      "effect": "fall",
+      "label": "転倒",
+      "quantity": 1,
+      "note": "",
+      "rect": [
+        240,
+        336,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "blue_star",
+      "kind": "race",
+      "color": "blue",
+      "effect": "star",
+      "label": "スター",
+      "quantity": 1,
+      "note": "",
+      "rect": [
+        480,
+        336,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "orange_swerve_1",
+      "kind": "race",
+      "color": "orange",
+      "effect": "swerve_1",
+      "label": "移動後に右へ",
+      "quantity": 1,
+      "note": "",
+      "rect": [
+        720,
+        336,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "orange_swerve_2",
+      "kind": "race",
+      "color": "orange",
+      "effect": "swerve_2",
+      "label": "移動後に右へ",
+      "quantity": 1,
+      "note": "",
+      "rect": [
+        960,
+        336,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "orange_swerve_3",
+      "kind": "race",
+      "color": "orange",
+      "effect": "swerve_3",
+      "label": "移動後に右へ",
+      "quantity": 1,
+      "note": "",
+      "rect": [
+        1200,
+        336,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "orange_move_2",
+      "kind": "race",
+      "color": "orange",
+      "effect": "move_2",
+      "label": "移動",
+      "quantity": 1,
+      "note": "",
+      "rect": [
+        1440,
+        336,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "orange_move_minus_2",
+      "kind": "race",
+      "color": "orange",
+      "effect": "move_minus_2",
+      "label": "移動",
+      "quantity": 1,
+      "note": "",
+      "rect": [
+        1680,
+        336,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "orange_move_3",
+      "kind": "race",
+      "color": "orange",
+      "effect": "move_3",
+      "label": "移動",
+      "quantity": 1,
+      "note": "",
+      "rect": [
+        0,
+        672,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "orange_recover_1",
+      "kind": "race",
+      "color": "orange",
+      "effect": "recover_1",
+      "label": "復帰して移動",
+      "quantity": 1,
+      "note": "",
+      "rect": [
+        240,
+        672,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "orange_recover_2",
+      "kind": "race",
+      "color": "orange",
+      "effect": "recover_2",
+      "label": "復帰して移動",
+      "quantity": 1,
+      "note": "",
+      "rect": [
+        480,
+        672,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "orange_turn",
+      "kind": "race",
+      "color": "orange",
+      "effect": "turn",
+      "label": "方向転換",
+      "quantity": 1,
+      "note": "",
+      "rect": [
+        720,
+        672,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "orange_fall",
+      "kind": "race",
+      "color": "orange",
+      "effect": "fall",
+      "label": "転倒",
+      "quantity": 1,
+      "note": "",
+      "rect": [
+        960,
+        672,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "orange_star",
+      "kind": "race",
+      "color": "orange",
+      "effect": "star",
+      "label": "スター",
+      "quantity": 1,
+      "note": "",
+      "rect": [
+        1200,
+        672,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "salmon_swerve_1",
+      "kind": "race",
+      "color": "salmon",
+      "effect": "swerve_1",
+      "label": "移動後に右へ",
+      "quantity": 1,
+      "note": "",
+      "rect": [
+        1440,
+        672,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "salmon_swerve_2",
+      "kind": "race",
+      "color": "salmon",
+      "effect": "swerve_2",
+      "label": "移動後に右へ",
+      "quantity": 1,
+      "note": "",
+      "rect": [
+        1680,
+        672,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "salmon_swerve_3",
+      "kind": "race",
+      "color": "salmon",
+      "effect": "swerve_3",
+      "label": "移動後に右へ",
+      "quantity": 1,
+      "note": "",
+      "rect": [
+        0,
+        1008,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "salmon_move_2",
+      "kind": "race",
+      "color": "salmon",
+      "effect": "move_2",
+      "label": "移動",
+      "quantity": 1,
+      "note": "",
+      "rect": [
+        240,
+        1008,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "salmon_move_minus_2",
+      "kind": "race",
+      "color": "salmon",
+      "effect": "move_minus_2",
+      "label": "移動",
+      "quantity": 1,
+      "note": "",
+      "rect": [
+        480,
+        1008,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "salmon_move_3",
+      "kind": "race",
+      "color": "salmon",
+      "effect": "move_3",
+      "label": "移動",
+      "quantity": 1,
+      "note": "",
+      "rect": [
+        720,
+        1008,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "salmon_recover_1",
+      "kind": "race",
+      "color": "salmon",
+      "effect": "recover_1",
+      "label": "復帰して移動",
+      "quantity": 1,
+      "note": "",
+      "rect": [
+        960,
+        1008,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "salmon_recover_2",
+      "kind": "race",
+      "color": "salmon",
+      "effect": "recover_2",
+      "label": "復帰して移動",
+      "quantity": 1,
+      "note": "",
+      "rect": [
+        1200,
+        1008,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "salmon_turn",
+      "kind": "race",
+      "color": "salmon",
+      "effect": "turn",
+      "label": "方向転換",
+      "quantity": 1,
+      "note": "",
+      "rect": [
+        1440,
+        1008,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "salmon_fall",
+      "kind": "race",
+      "color": "salmon",
+      "effect": "fall",
+      "label": "転倒",
+      "quantity": 1,
+      "note": "",
+      "rect": [
+        1680,
+        1008,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "salmon_star",
+      "kind": "race",
+      "color": "salmon",
+      "effect": "star",
+      "label": "スター",
+      "quantity": 1,
+      "note": "",
+      "rect": [
+        0,
+        1344,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "yellow_swerve_1",
+      "kind": "race",
+      "color": "yellow",
+      "effect": "swerve_1",
+      "label": "移動後に左へ",
+      "quantity": 1,
+      "note": "",
+      "rect": [
+        240,
+        1344,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "yellow_swerve_2",
+      "kind": "race",
+      "color": "yellow",
+      "effect": "swerve_2",
+      "label": "移動後に左へ",
+      "quantity": 1,
+      "note": "",
+      "rect": [
+        480,
+        1344,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "yellow_swerve_3",
+      "kind": "race",
+      "color": "yellow",
+      "effect": "swerve_3",
+      "label": "移動後に左へ",
+      "quantity": 1,
+      "note": "",
+      "rect": [
+        720,
+        1344,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "yellow_move_2",
+      "kind": "race",
+      "color": "yellow",
+      "effect": "move_2",
+      "label": "移動",
+      "quantity": 1,
+      "note": "",
+      "rect": [
+        960,
+        1344,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "yellow_move_minus_2",
+      "kind": "race",
+      "color": "yellow",
+      "effect": "move_minus_2",
+      "label": "移動",
+      "quantity": 1,
+      "note": "",
+      "rect": [
+        1200,
+        1344,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "yellow_move_3",
+      "kind": "race",
+      "color": "yellow",
+      "effect": "move_3",
+      "label": "移動",
+      "quantity": 1,
+      "note": "",
+      "rect": [
+        1440,
+        1344,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "yellow_recover_1",
+      "kind": "race",
+      "color": "yellow",
+      "effect": "recover_1",
+      "label": "復帰して移動",
+      "quantity": 1,
+      "note": "",
+      "rect": [
+        1680,
+        1344,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "yellow_recover_2",
+      "kind": "race",
+      "color": "yellow",
+      "effect": "recover_2",
+      "label": "復帰して移動",
+      "quantity": 1,
+      "note": "",
+      "rect": [
+        0,
+        1680,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "yellow_turn",
+      "kind": "race",
+      "color": "yellow",
+      "effect": "turn",
+      "label": "方向転換",
+      "quantity": 1,
+      "note": "",
+      "rect": [
+        240,
+        1680,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "yellow_fall",
+      "kind": "race",
+      "color": "yellow",
+      "effect": "fall",
+      "label": "転倒",
+      "quantity": 1,
+      "note": "",
+      "rect": [
+        480,
+        1680,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "yellow_star",
+      "kind": "race",
+      "color": "yellow",
+      "effect": "star",
+      "label": "スター",
+      "quantity": 1,
+      "note": "",
+      "rect": [
+        720,
+        1680,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "green_move_1",
+      "kind": "race",
+      "color": "green",
+      "effect": "move_1",
+      "label": "全員移動",
+      "quantity": 2,
+      "note": "衝突なし・ゴール不可",
+      "rect": [
+        960,
+        1680,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "green_move_2",
+      "kind": "race",
+      "color": "green",
+      "effect": "move_2",
+      "label": "全員移動",
+      "quantity": 2,
+      "note": "衝突なし・ゴール不可",
+      "rect": [
+        1200,
+        1680,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "green_move_3",
+      "kind": "race",
+      "color": "green",
+      "effect": "move_3",
+      "label": "全員移動",
+      "quantity": 2,
+      "note": "衝突なし・ゴール不可",
+      "rect": [
+        1440,
+        1680,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "green_move_minus_2",
+      "kind": "race",
+      "color": "green",
+      "effect": "move_minus_2",
+      "label": "全員移動",
+      "quantity": 1,
+      "note": "衝突なし・ゴール不可",
+      "rect": [
+        1680,
+        1680,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "green_recover_2",
+      "kind": "race",
+      "color": "green",
+      "effect": "recover_2",
+      "label": "全員復帰して移動",
+      "quantity": 1,
+      "note": "衝突なし・ゴール不可",
+      "rect": [
+        0,
+        2016,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "green_recover_3",
+      "kind": "race",
+      "color": "green",
+      "effect": "recover_3",
+      "label": "全員復帰して移動",
+      "quantity": 1,
+      "note": "衝突なし・ゴール不可",
+      "rect": [
+        240,
+        2016,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "event_knockout",
+      "kind": "event",
+      "color": "black",
+      "effect": "knockout",
+      "label": "マスコットはノックアウトされる？",
+      "quantity": 1,
+      "note": "転倒中に再び転倒して失格",
+      "rect": [
+        480,
+        2016,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "event_out_of_bounds",
+      "kind": "event",
+      "color": "black",
+      "effect": "out_of_bounds",
+      "label": "マスコットはコース外に出る？",
+      "quantity": 1,
+      "note": "後方・側面・短縮部分を含む",
+      "rect": [
+        720,
+        2016,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "event_disqualified",
+      "kind": "event",
+      "color": "black",
+      "effect": "disqualified",
+      "label": "1体以上が失格する？",
+      "quantity": 1,
+      "note": "",
+      "rect": [
+        960,
+        2016,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "event_same_space",
+      "kind": "event",
+      "color": "black",
+      "effect": "same_space",
+      "label": "2体が同時に同じマスに止まる？",
+      "quantity": 1,
+      "note": "その瞬間の失格は含めない",
+      "rect": [
+        1200,
+        2016,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "event_fallen_two",
+      "kind": "event",
+      "color": "black",
+      "effect": "fallen_two",
+      "label": "2体以上が同時に転倒する？",
+      "quantity": 1,
+      "note": "",
+      "rect": [
+        1440,
+        2016,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "event_crawl_final",
+      "kind": "event",
+      "color": "black",
+      "effect": "crawl_final",
+      "label": "最終区間でマスコットが這う？",
+      "quantity": 1,
+      "note": "最後の実線からゴールまで・出入りを含む",
+      "rect": [
+        1680,
+        2016,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "event_finish_two",
+      "kind": "event",
+      "color": "black",
+      "effect": "finish_two",
+      "label": "2体以上が同時にゴール直前に並ぶ？",
+      "quantity": 1,
+      "note": "ゴール直前のマス",
+      "rect": [
+        0,
+        2352,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "event_empty_final",
+      "kind": "event",
+      "color": "black",
+      "effect": "empty_final",
+      "label": "1位が決まる時、最終区間は空？",
+      "quantity": 1,
+      "note": "最後の実線からゴールまで",
+      "rect": [
+        240,
+        2352,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "event_gobbler_bottom",
+      "kind": "event",
+      "color": "black",
+      "effect": "gobbler_bottom",
+      "label": "GOBBLERは下位2位に入る？",
+      "quantity": 1,
+      "note": "最下位または下から2番目",
+      "rect": [
+        480,
+        2352,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "event_hurley_bottom",
+      "kind": "event",
+      "color": "black",
+      "effect": "hurley_bottom",
+      "label": "HURLEYは下位2位に入る？",
+      "quantity": 1,
+      "note": "最下位または下から2番目",
+      "rect": [
+        720,
+        2352,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "event_mum_bottom",
+      "kind": "event",
+      "color": "black",
+      "effect": "mum_bottom",
+      "label": "MUMは下位2位に入る？",
+      "quantity": 1,
+      "note": "最下位または下から2番目",
+      "rect": [
+        960,
+        2352,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "event_dangle_bottom",
+      "kind": "event",
+      "color": "black",
+      "effect": "dangle_bottom",
+      "label": "DANGLEは下位2位に入る？",
+      "quantity": 1,
+      "note": "最下位または下から2番目",
+      "rect": [
+        1200,
+        2352,
+        240,
+        336
+      ]
+    },
+    {
+      "id": "card_back",
+      "kind": "back",
+      "color": "black",
+      "effect": "back",
+      "label": "共通裏面（モック用オリジナル）",
+      "quantity": 0,
+      "note": "",
+      "rect": [
+        1440,
+        2352,
+        240,
+        336
+      ]
+    }
+  ],
+  "mascot_name_mapping": null
+}
