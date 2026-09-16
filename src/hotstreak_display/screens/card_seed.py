@@ -57,18 +57,11 @@ class DisplaySeedRoot(DisplaySetupRoot):
         pygame.draw.rect(surface, (124, 99, 67), rect, 2)
 
     def card_back(self, surface, x, y, muted=False):
-        frame = (108, 94, 74) if muted else (173, 144, 99)
-        pygame.draw.rect(surface, (6, 8, 13), (x + 5, y + 5, 100, 135))
-        pygame.draw.rect(surface, frame, (x, y, 100, 135))
-        pygame.draw.rect(surface, (13, 20, 28), (x + 4, y + 4, 92, 127))
-        pygame.draw.rect(surface, frame, (x + 8, y + 8, 84, 119), 1)
-        # 裏面の装飾だけを描き、手札や仕込んだカードの内容は出さない。
-        for dy in range(15, 123, 8):
-            for dx in range(15, 88, 8):
-                pygame.draw.rect(surface, (32, 40, 48), (x + dx, y + dy, 2, 2))
-        pygame.draw.polygon(surface, frame, ((x + 50, y + 29), (x + 79, y + 67), (x + 50, y + 105), (x + 21, y + 67)), 2)
-        pygame.draw.rect(surface, (13, 20, 28), (x + 34, y + 47, 33, 42))
-        self.text(surface, "?", (x + 39, y + 48), 32, frame)
+        image = self.card_assets.card("card_back", (100, 140))
+        if muted:
+            image = image.copy()
+            image.fill((155, 155, 155), special_flags=pygame.BLEND_RGB_MULT)
+        surface.blit(image, (x, y))
 
     def draw(self, surface, screen):
         state = screen.state
