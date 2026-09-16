@@ -41,10 +41,7 @@ class DisplaySeedScreen:
     def handle_event(self, event):
         if event.type != pygame.KEYDOWN:
             return
-        if event.key in (pygame.K_LEFT, pygame.K_RIGHT):
-            self.index = (self.index + (1 if event.key == pygame.K_RIGHT else -1)) % len(self.states)
-            self.confirmed = False
-        elif event.key in (pygame.K_RETURN, pygame.K_KP_ENTER) and self.state.ready:
+        if event.key in (pygame.K_RETURN, pygame.K_KP_ENTER) and self.state.ready:
             self.confirmed = True
 
 
@@ -97,7 +94,6 @@ class DisplaySeedRoot(DisplaySetupRoot):
             self.text(surface, footer, (300 if screen.confirmed else 456, 472), 20)
         elif complete:
             self.text(surface, "公開カードと仕込みカードが揃いました", (358, 626), 24, (223, 191, 134))
-        self.text(surface, f"MOCK  |  ← → 表示例切替：{state.label}  |  ESC 終了", (76, 687), 20, (200, 184, 144))
 
 
 def main():
@@ -123,7 +119,7 @@ def main():
         running = True
         while running:
             for event in pygame.event.get():
-                if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
+                if event.type == pygame.QUIT:
                     running = False
                 else:
                     screen.handle_event(event)

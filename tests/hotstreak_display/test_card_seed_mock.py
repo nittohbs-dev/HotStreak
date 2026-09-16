@@ -18,15 +18,17 @@ class SeedMockTests(unittest.TestCase):
             self.assertFalse(screen.confirmed)
             self.assertEqual(screen.index, index)
 
-    def test_ready_ack_and_switch_clear_confirmation(self):
+    def test_ready_ack_is_not_changed_by_arrow_keys(self):
         screen = card_seed.DisplaySeedScreen()
         screen.index = 3
         screen.handle_event(card_seed.pygame.event.Event(card_seed.pygame.KEYDOWN, key=card_seed.pygame.K_RETURN))
         self.assertTrue(screen.confirmed)
         screen.handle_event(card_seed.pygame.event.Event(card_seed.pygame.KEYDOWN, key=card_seed.pygame.K_RIGHT))
-        self.assertEqual(screen.index, 0)
-        self.assertFalse(screen.confirmed)
-        self.assertEqual(screen.state.completed, 0)
+        self.assertEqual(screen.index, 3)
+        self.assertTrue(screen.confirmed)
+        screen.handle_event(card_seed.pygame.event.Event(card_seed.pygame.KEYDOWN, key=card_seed.pygame.K_LEFT))
+        self.assertEqual(screen.index, 3)
+        self.assertTrue(screen.confirmed)
 
     def test_all_states_render_without_private_cards(self):
         card_seed.pygame.font.init()

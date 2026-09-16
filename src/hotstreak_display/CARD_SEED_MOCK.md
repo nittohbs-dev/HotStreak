@@ -8,8 +8,8 @@ python -m pip install -r src/hotstreak_display/requirements.txt
 python src/hotstreak_display/screens/card_seed.py --windowed
 ```
 
-- `--windowed` なしで全画面、Escで終了。
-- 左右キーで固定表示例「仕込み待ち／仕込み中／カード束確定／準備完了」を切り替え。
+- `--windowed` なしで全画面。Escでの終了は無効。ウィンドウの閉じる操作で終了。
+- 矢印キーでの切り替えは無効。固定表示例は起動時の `--state 0` ～ `--state 3` で指定。
 - 準備完了の見本でEnterを押すと、レースへの進行確認メッセージを表示。レース画面は未実装で、そのまま留まります。
 - 仕込み中のEnterは何も変更しません。タイマーで勝手に進みません。
 - `--state 0`〜`--state 3`で表示例指定、`--screenshot output.png`でPNG保存。
