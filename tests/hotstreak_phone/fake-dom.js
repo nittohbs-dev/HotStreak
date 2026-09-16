@@ -3,7 +3,6 @@ const IDS = [
   "turn-status",
   "turn-detail",
   "race-meta",
-  "side-prompt",
   "ticket-list",
   "held-tickets",
   "double-picker",

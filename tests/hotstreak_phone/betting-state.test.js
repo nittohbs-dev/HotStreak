@@ -55,12 +55,11 @@ function ready(overrides) {
   return state;
 }
 
-test("state を受けるとお題・レース・手番が反映される", () => {
+test("state を受けるとレース・周回・手番が反映される", () => {
   const state = ready();
   assert.equal(state.raceIndex, 1);
   assert.equal(state.round, 1);
   assert.equal(state.turnIndex, 3);
-  assert.equal(state.prompt.text, "コースアウトはある？");
   assert.equal(state.currentPlayerName, "ヤマダ");
   assert.equal(state.isMyTurn, true);
   assert.equal(state.error, "");
@@ -174,7 +173,6 @@ test("壊れた payload では状態を進めない", () => {
     payload({ stock: [ticket({ tier: "unknown" })] }),
     payload({ stock: [ticket(), ticket()] }),
     payload({ picksByPlayer: { [ME]: [pick({ face: "normal" })] } }),
-    payload({ prompt: null }),
     payload({ picksByPlayer: null }),
     "not-json",
   ];

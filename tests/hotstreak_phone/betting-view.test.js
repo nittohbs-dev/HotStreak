@@ -51,14 +51,30 @@ function stateOf(overrides) {
   return state;
 }
 
-test("自分の番では手番バー・周回・レース・お題を表示する", () => {
+test("自分の番では手番バー・周回・レースを表示する", () => {
   const { view, nodes } = setup();
   view.render(stateOf());
   assert.equal(nodes["turn-status"].textContent, "あなたの番です");
   assert.equal(nodes["turn-status"].dataset.mode, "mine");
   assert.equal(nodes["turn-detail"].textContent, "2周目 3/4");
   assert.equal(nodes["race-meta"].textContent, "レース 1/3");
-  assert.equal(nodes["side-prompt"].textContent, "コースアウトはある？");
+});
+
+test("お題は表示しない（Display 側で見せる）", () => {
+  const { view, nodes } = setup();
+  view.render(stateOf());
+  const rendered = [nodes["turn-status"], nodes["turn-detail"], nodes["race-meta"], nodes["ticket-list"]];
+  for (const node of rendered) {
+    assert.doesNotMatch(node.text, /コースアウト/);
+  }
+});
+
+test("サイド券には種別を出して横並びにできるようにする", () => {
+  const { view, nodes } = setup();
+  view.render(stateOf());
+  const [bear, yes] = nodes["ticket-list"].children;
+  assert.equal(bear.dataset.kind, "mascot");
+  assert.equal(yes.dataset.kind, "side");
 });
 
 test("他者の番は名前を出し、操作できない案内を表示する", () => {

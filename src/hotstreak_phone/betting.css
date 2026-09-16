@@ -14,9 +14,15 @@
   box-sizing: border-box;
 }
 
+html,
 body {
+  height: 100%;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
   margin: 0;
-  padding: 0 0 6.5rem;
   background: var(--bg);
   color: var(--text);
   font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, system-ui, sans-serif;
@@ -77,12 +83,9 @@ body {
   font-size: 0.9rem;
 }
 
-.side-prompt {
-  margin: 0.6rem 0 0;
-  padding: 0.5rem 0.75rem;
-  border-left: 3px solid var(--accent);
-  background: var(--panel);
-  font-size: 0.95rem;
+main {
+  flex: 1;
+  overflow-y: auto;
 }
 
 .panel {
@@ -103,8 +106,18 @@ body {
   list-style: none;
 }
 
+/* サイド券は2列、マスコット券は全幅。 */
+.ticket-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+}
+
+.ticket[data-kind="mascot"] {
+  grid-column: 1 / -1;
+}
+
 .ticket {
-  margin-bottom: 0.6rem;
   padding: 0.75rem;
   border: 1px solid var(--line);
   border-radius: 0.6rem;
@@ -178,8 +191,8 @@ body {
   flex-wrap: wrap;
   align-items: center;
   gap: 0.35rem;
-  min-height: 3.5rem;
-  padding: 0.6rem;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.6rem;
   border: 1px solid var(--line);
   border-radius: 0.6rem;
   background: var(--panel);
@@ -219,17 +232,17 @@ body {
 }
 
 .foot {
-  position: fixed;
-  right: 0;
-  bottom: 0;
-  left: 0;
   padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom));
   border-top: 1px solid var(--line);
-  background: rgba(23, 21, 18, 0.96);
+  background: var(--bg);
+}
+
+.foot .panel-title {
+  margin-bottom: 0.4rem;
 }
 
 .notice {
-  margin: 0 0 0.5rem;
+  margin: 0.5rem 0;
   min-height: 1.2rem;
   color: var(--muted);
   font-size: 0.85rem;
@@ -259,13 +272,6 @@ body {
 @media (min-width: 540px) {
   body {
     margin: 0 auto;
-    max-width: 480px;
-  }
-
-  .foot {
-    right: auto;
-    left: auto;
-    width: 100%;
     max-width: 480px;
   }
 }

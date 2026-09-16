@@ -69,11 +69,6 @@
     };
   }
 
-  function parsePrompt(raw) {
-    if (!isObject(raw) || !isText(raw.text)) throw new TypeError("prompt");
-    return { promptId: isText(raw.promptId) ? raw.promptId : "", text: raw.text };
-  }
-
   class BettingScreenState {
     constructor(myPlayerId) {
       this.myPlayerId = myPlayerId || "";
@@ -86,7 +81,6 @@
       this.turnIndex = 0;
       this.turnTotal = 0;
       this.currentPlayerId = null;
-      this.prompt = null;
       this.stock = [];
       this.players = [];
       this.myPicks = [];
@@ -218,7 +212,6 @@
           turnIndex: isCount(payload.turnIndex) ? payload.turnIndex : 0,
           turnTotal: isCount(payload.turnTotal) ? payload.turnTotal : players.length,
           currentPlayerId: currentPlayerId === undefined ? null : currentPlayerId,
-          prompt: parsePrompt(payload.prompt),
           stock,
           players,
           myPicks,

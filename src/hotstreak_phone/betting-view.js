@@ -20,7 +20,6 @@
         turn: document.getElementById("turn-status"),
         turnDetail: document.getElementById("turn-detail"),
         race: document.getElementById("race-meta"),
-        prompt: document.getElementById("side-prompt"),
         list: document.getElementById("ticket-list"),
         held: document.getElementById("held-tickets"),
         double: document.getElementById("double-picker"),
@@ -62,9 +61,9 @@
       this.nodes.turnDetail.textContent = detail.join(" ");
     }
 
+    /* お題はスマホに出さない（Display SCR-display-003 で表示する）。 */
     renderMeta(state) {
       this.nodes.race.textContent = state.raceIndex ? `レース ${state.raceIndex}/3` : "";
-      this.nodes.prompt.textContent = state.prompt ? state.prompt.text : "";
     }
 
     /* CMP-betting-012 */
@@ -79,6 +78,8 @@
         const row = el("li", "ticket");
         row.dataset.selected = String(selected);
         row.dataset.soldOut = String(soldOut);
+        // サイド券（YES / NO）を2列に並べるため種別を出す。
+        row.dataset.kind = ticket.ticketKind;
 
         const head = el("div", "ticket-head");
         head.append(el("span", "ticket-label", ticket.label));
