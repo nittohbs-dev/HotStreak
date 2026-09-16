@@ -8,12 +8,19 @@ import json
 from pathlib import Path
 from queue import Empty, Queue
 import threading
+import sys
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote, urlsplit, urlunsplit
 from urllib.request import Request, urlopen
 
 import pygame
 import websocket
+
+if __package__:
+    from ..card_assets import CardAssets, COLOR_LABELS
+else:
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    from card_assets import CardAssets, COLOR_LABELS
 
 
 @dataclass(frozen=True)
@@ -203,6 +210,7 @@ class DisplaySetupRoot:
         for font in self.fonts.values():
             font.set_bold(True)
         self.background = self.make_room()
+        self.card_assets = CardAssets()
 
     @staticmethod
     def make_room():
@@ -256,6 +264,10 @@ class DisplaySetupRoot:
         return pygame.transform.scale(room, (1280, 720))
 
     def mascot_icon(self, surface, name, center, scale):
+        sprite = self.card_assets.icon(name, (scale * 16, scale * 16))
+        if sprite is not None:
+            surface.blit(sprite, sprite.get_rect(center=center))
+            return
         patterns = {
             "Gobbler": (".##.....##.", "####...####", ".#########.", "..#######..", "..#.#.#.#..", "..#######..", "...##.##...", "..#######..", ".#########.", "..#######..", "..##...##.."),
             "Hurley": (".....##....", "...######..", "..########.", "###.#.####.", ".##########", "..########.", "...######..", "....####...", "...##..##..", "..##....##.", "..........."),
@@ -311,36 +323,28 @@ class DisplaySetupRoot:
                   (244, 151, 128) if state.error else (235, 214, 169), 910)
 
     def renderFaceUpGrid(self, surface, cards):
-        compact = len(cards) > 10
-        height, gap = (132, 12) if compact else (194, 18)
-        colors = dict(zip(("Gobbler", "Hurley", "Dangle", "Mum"), self.COLORS))
+        columns = 8 if len(cards) > 10 else 5
+        width = 132 if columns == 8 else 150
+        height = round(width * 336 / 240)
+        step = 145 if columns == 8 else 192
+        start = (1280 - (columns - 1) * step - width) // 2
         for index, card in enumerate(cards):
-            x, y = 170 + index % 5 * 192, 207 + index // 5 * (height + gap)
-            width = 172
-            color = colors.get(card.mascot, (190, 182, 164))
-            pygame.draw.rect(surface, (6, 8, 13), (x + 6, y + 7, width, height))
-            pygame.draw.rect(surface, (173, 144, 99), (x, y, width, height))
-            pygame.draw.rect(surface, (38, 31, 28), (x + 3, y + 3, width - 6, height - 6))
-            pygame.draw.rect(surface, (218, 195, 150), (x + 6, y + 6, width - 12, height - 12), 1)
-            pygame.draw.rect(surface, (13, 20, 28), (x + 9, y + 9, width - 18, height - 18))
-            for dx, dy in ((5, 5), (width - 15, 5), (5, height - 15), (width - 15, height - 15)):
-                pygame.draw.rect(surface, color, (x + dx, y + dy, 10, 10), 2)
-            icon_y = y + (34 if compact else 67)
-            self.mascot_icon(surface, card.mascot, (x + width // 2, icon_y), 3 if compact else 6)
-            label_y = y + (57 if compact else 111)
-            self.text(surface, card.mascot, (x + 16, label_y), 20, color, width - 32)
-            self.text(surface, card.effect, (x + 16, label_y + 25), 16 if compact else 20, max_width=width - 32)
-            self.text(surface, f"LANE {card.lane}", (x + 16, y + height - 25), 16, (159, 160, 154), width - 32)
+            x, y = start + index % columns * step, 207 + index // columns * (height + 12)
+            asset_id = card.card_id if card.card_id in self.card_assets.cards else "card_back"
+            surface.blit(self.card_assets.card(asset_id, (width, height)), (x, y))
+            if asset_id == "card_back":
+                self.text(surface, card.effect, (x + 8, y + height // 2), 16, max_width=width - 16)
 
 
 def demo_state(players):
     """画面確認用の架空データ。抽選・配布ルールの実装ではない。"""
-    names = ("Gobbler", "Hurley", "Dangle", "Mum")
-    effects = ("前へ 2マス", "方向転換", "前へ 1マス", "転倒")
+    colors = ("blue", "orange", "salmon", "yellow", "green")
+    assets = CardAssets()
+    choices = [f"{color}_{effect}" for effect in ("move_2", "move_3", "recover_2") for color in colors]
     return {"phase": "setup-cards", "playerCount": players, "dealt": True,
-            "faceUpCards": [{"cardId": f"demo-{i}", "mascot": names[i % 4],
-                             "effectLabel": effects[i % 4], "lane": i % 4 + 1}
-                            for i in range(18 - players)]}
+            "faceUpCards": [{"cardId": key, "mascot": COLOR_LABELS[assets.cards[key]["color"]],
+                             "effectLabel": assets.cards[key]["label"], "lane": i % 4 + 1}
+                            for i, key in enumerate(choices[:18 - players])]}
 
 
 def main():
