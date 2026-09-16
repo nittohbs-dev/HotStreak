@@ -15,7 +15,7 @@ COLORS = {"blue": ((29, 57, 128), (219, 235, 166)),
           "salmon": ((241, 191, 132), (161, 44, 48)),
           "yellow": ((244, 206, 46), (86, 36, 40)),
           "green": ((44, 104, 65), (220, 238, 191))}
-LABELS = {"blue": "青", "orange": "オレンジ", "salmon": "サーモン", "yellow": "黄", "green": "緑"}
+LABELS = {"blue": "ダングル", "orange": "ゴブラー", "salmon": "ハーレー", "yellow": "マム", "green": "緑"}
 EFFECTS = [("swerve_1", "1", "移動後に{dir}へ"), ("swerve_2", "2", "移動後に{dir}へ"),
            ("swerve_3", "3", "移動後に{dir}へ"), ("move_2", "2", "移動"),
            ("move_minus_2", "−2", "移動"), ("move_3", "3", "移動"),
@@ -30,10 +30,10 @@ EVENTS = [
     ("crawl_final", "最終区間でマスコットが這う？", "最後の実線からゴールまで・出入りを含む"),
     ("finish_two", "2体以上が同時にゴール直前に並ぶ？", "ゴール直前のマス"),
     ("empty_final", "1位が決まる時、最終区間は空？", "最後の実線からゴールまで"),
-    ("gobbler_bottom", "GOBBLERは下位2位に入る？", "最下位または下から2番目"),
-    ("hurley_bottom", "HURLEYは下位2位に入る？", "最下位または下から2番目"),
-    ("mum_bottom", "MUMは下位2位に入る？", "最下位または下から2番目"),
-    ("dangle_bottom", "DANGLEは下位2位に入る？", "最下位または下から2番目"),
+    ("gobbler_bottom", "ゴブラーは下位2位に入る？", "最下位または下から2番目"),
+    ("hurley_bottom", "ハーレーは下位2位に入る？", "最下位または下から2番目"),
+    ("mum_bottom", "マムは下位2位に入る？", "最下位または下から2番目"),
+    ("dangle_bottom", "ダングルは下位2位に入る？", "最下位または下から2番目"),
 ]
 
 
@@ -130,7 +130,7 @@ def build():
     DATA.mkdir(parents=True, exist_ok=True)
     pygame.image.save(sheet, OUT / "cards_atlas.png")
     catalog = dict(image="assets/images/cards/cards_atlas.png", icons_image="assets/images/characters/card_mascots.png",
-                   cell_size=[W,H], icons=rects, cards=entries, mascot_name_mapping=None)
+                   cell_size=[W,H], icons=rects, cards=entries, mascot_name_mapping={color: LABELS[color] for color in ("blue", "orange", "yellow", "salmon")})
     (DATA / "catalog.json").write_text(json.dumps(catalog, ensure_ascii=False, indent=2)+"\n", encoding="utf-8")
     print(f"Generated {len(entries)} images / {sum(e['quantity'] for e in entries)} physical cards")
 
