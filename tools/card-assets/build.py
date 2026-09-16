@@ -42,7 +42,7 @@ def build():
     font_path = pygame.font.match_font("yugothic,meiryo,notosanscjk,ipagothic")
     if not font_path:
         raise RuntimeError("日本語フォントが必要です")
-    fonts = {size: pygame.font.Font(font_path, size) for size in (16, 20, 24, 32, 52)}
+    fonts = {size: pygame.font.Font(font_path, size) for size in (16, 20, 22, 24, 28, 32, 52, 64)}
     for font in fonts.values():
         font.set_bold(True)
     def text(surf, words, y, size, color, width=208):
@@ -55,7 +55,7 @@ def build():
                 line += char
         lines.append(line)
         for line in lines:
-            img = fonts[size].render(line, False, color)
+            img = fonts[size].render(line, True, color)
             surf.blit(img, ((W - img.get_width()) // 2, y))
             y += size + 6
         return y
@@ -83,23 +83,24 @@ def build():
             pygame.draw.rect(surf, ink, (x, 16, 4, 3))
             pygame.draw.rect(surf, ink, (x, H-19, 4, 3))
         if kind == "race":
-            text(surf, number, 25, 52, ink)
-            text(surf, label, 88, 20, ink)
-            pygame.draw.rect(surf, (13, 20, 28), (18, 128, 204, 133))
+            text(surf, number, 22, 64, ink)
+            text(surf, label, 97, 32, ink)
+            pygame.draw.rect(surf, (13, 20, 28), (18, 174, 204, 90))
             if color == "green":
                 for i in range(4):
-                    sprite = pygame.transform.scale(icons.subsurface((i*128, 0, 128, 128)), (64, 64))
-                    surf.blit(sprite, (56 + i%2*64, 130+i//2*64))
-                text(surf, "衝突なし・ゴール不可", 280, 16, ink)
+                    sprite = pygame.transform.scale(icons.subsurface((i*128, 0, 128, 128)), (44, 44))
+                    surf.blit(sprite, (76 + i%2*44, 175+i//2*44))
+                text(surf, "衝突なし", 267, 22, ink)
+                text(surf, "ゴール不可", 293, 22, ink)
             else:
-                surf.blit(icons.subsurface(rects[color]), (56, 130))
-                text(surf, LABELS[color], 280, 24, ink)
+                surf.blit(pygame.transform.scale(icons.subsurface(rects[color]), (88, 88)), (76, 175))
+                text(surf, LABELS[color], 280, 32, ink)
         elif kind == "event":
             text(surf, "SIDE BET", 30, 20, (223, 191, 134))
             pygame.draw.line(surf, (223, 191, 134), (32, 70), (208, 70), 2)
-            end = text(surf, label, 102, 24, ink)
+            end = text(surf, label, 81, 28, ink)
             if note:
-                text(surf, note, max(234, end + 16), 16, (189, 192, 193))
+                text(surf, note, max(216, end + 4), 20, (210, 212, 213))
         else:
             for y in range(32, H-28, 10):
                 for x in range(26, W-24, 10):
