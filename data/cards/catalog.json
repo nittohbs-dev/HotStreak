@@ -907,7 +907,7 @@
       "kind": "event",
       "color": "black",
       "effect": "gobbler_bottom",
-      "label": "GOBBLERは下位2位に入る？",
+      "label": "ゴブラーは下位2位に入る？",
       "quantity": 1,
       "note": "最下位または下から2番目",
       "rect": [
@@ -922,7 +922,7 @@
       "kind": "event",
       "color": "black",
       "effect": "hurley_bottom",
-      "label": "HURLEYは下位2位に入る？",
+      "label": "ハーレーは下位2位に入る？",
       "quantity": 1,
       "note": "最下位または下から2番目",
       "rect": [
@@ -937,7 +937,7 @@
       "kind": "event",
       "color": "black",
       "effect": "mum_bottom",
-      "label": "MUMは下位2位に入る？",
+      "label": "マムは下位2位に入る？",
       "quantity": 1,
       "note": "最下位または下から2番目",
       "rect": [
@@ -952,7 +952,7 @@
       "kind": "event",
       "color": "black",
       "effect": "dangle_bottom",
-      "label": "DANGLEは下位2位に入る？",
+      "label": "ダングルは下位2位に入る？",
       "quantity": 1,
       "note": "最下位または下から2番目",
       "rect": [
@@ -978,5 +978,10 @@
       ]
     }
   ],
-  "mascot_name_mapping": null
+  "mascot_name_mapping": {
+    "blue": "ダングル",
+    "orange": "ゴブラー",
+    "yellow": "マム",
+    "salmon": "ハーレー"
+  }
 }
