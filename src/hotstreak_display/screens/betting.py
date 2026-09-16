@@ -9,9 +9,9 @@ from pathlib import Path
 import pygame
 
 if __package__:
-    from .setup_cards import DisplaySetupRoot, DisplaySetupCardsScreen, demo_state
+    from .setup_cards import DisplaySetupRoot, DisplaySetupCardsScreen, demo_state, CardAssets, COLOR_LABELS
 else:
-    from setup_cards import DisplaySetupRoot, DisplaySetupCardsScreen, demo_state
+    from setup_cards import DisplaySetupRoot, DisplaySetupCardsScreen, demo_state, CardAssets, COLOR_LABELS
 
 
 @dataclass(frozen=True)
@@ -34,7 +34,7 @@ class BettingPreview:
     double_wait: bool = False
 
 
-MASCOTS = ("Gobbler", "Hurley", "Dangle", "Mum")
+MASCOTS = ("blue", "orange", "salmon", "yellow")
 NAMES = ("くま", "さかな", "とり", "うさぎ", "ねこ", "いぬ")
 
 
@@ -42,7 +42,7 @@ def preview_states():
     """表示の見本。手番計算・購入・在庫更新はせず、固定状態を切り替える。"""
     def players(counts):
         return tuple(PlayerPreview(name, MASCOTS[i % 4], counts[i]) for i, name in enumerate(NAMES))
-    prompt = "レース中に、失格するマスコットはいる？"
+    prompt = CardAssets().cards["event_disqualified"]["label"]
     return (
         BettingPreview("開始前", 1, "1周目", prompt, players((0, 0, 0, 0, 0, 0)), 0, (3, 3, 3, 3, 3, 3)),
         BettingPreview("ドラフト中", 1, "2周目", prompt, players((1, 1, 1, 1, 1, 2)), 4, (0, 2, 2, 2, 2, 3)),
@@ -95,8 +95,9 @@ class DisplayBettingRoot(DisplaySetupRoot):
         self.text(surface, "HOT STREAK", (1080, 42), 16, (200, 184, 144))
 
         self.panel(surface, pygame.Rect(72, 99, 1136, 87))
-        self.text(surface, "SIDE BET  /  今回のお題", (94, 109), 20, (223, 191, 134))
-        self.text(surface, state.prompt, (94, 141), 24, max_width=1088)
+        surface.blit(self.card_assets.card("event_disqualified", (58, 81)), (78, 102))
+        self.text(surface, "SIDE BET  /  今回のお題", (157, 109), 20, (223, 191, 134))
+        self.text(surface, state.prompt, (157, 141), 24, max_width=1020)
 
         self.panel(surface, pygame.Rect(72, 205, 476, 405))
         self.text(surface, "参加者・選択状況", (94, 220), 24)
@@ -122,13 +123,13 @@ class DisplayBettingRoot(DisplaySetupRoot):
         self.text(surface, "選択・セーフ／リスキーの指定はスマホで", (594, 257), 20, (200, 184, 144))
         for i, amount in enumerate(state.stock):
             x, y = 593 + i % 3 * 200, 298 + i // 3 * 145
-            color = self.COLORS[i] if i < 4 else (223, 191, 134)
+            color = ((94, 178, 225), (241, 124, 40), (241, 191, 132), (244, 206, 46))[i] if i < 4 else (223, 191, 134)
             if not amount:
                 color = (127, 130, 132)
             self.panel(surface, pygame.Rect(x, y, 181, 128), color)
             if i < 4:
                 self.mascot_icon(surface, MASCOTS[i], (x + 31, y + 34), 3)
-                label = MASCOTS[i]
+                label = COLOR_LABELS[MASCOTS[i]]
             else:
                 label = "YES" if i == 4 else "NO"
                 self.text(surface, "?", (x + 16, y + 12), 32, color)
