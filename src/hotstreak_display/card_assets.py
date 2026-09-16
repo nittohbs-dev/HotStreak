@@ -22,7 +22,7 @@ class CardAssets:
         key = (card_id, tuple(size))
         if key not in self.cache:
             entry = self.cards[card_id]
-            self.cache[key] = pygame.transform.scale(self.sheet.subsurface(entry["rect"]), size)
+            self.cache[key] = pygame.transform.smoothscale(self.sheet.subsurface(entry["rect"]), size)
         return self.cache[key]
 
     def icon(self, color, size):
