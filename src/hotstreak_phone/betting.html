@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>マ券ドラフト</title>
+    <link rel="stylesheet" href="betting.css" />
+  </head>
+  <body>
+    <div id="demo-bar" class="demo-bar" hidden>
+      <span class="demo-tag">デモ</span>
+      <span id="demo-scene"></span>
+      <button id="demo-next" type="button">次の場面</button>
+    </div>
+
+    <header class="head">
+      <p id="turn-status" class="turn-status"></p>
+      <p id="turn-detail" class="turn-detail"></p>
+      <p id="race-meta" class="race-meta"></p>
+    </header>
+
+    <main>
+      <section class="panel">
+        <h2 class="panel-title">取得できる札</h2>
+        <ul id="ticket-list" class="ticket-list"></ul>
+      </section>
+
+      <section id="double-picker" class="panel" hidden>
+        <h2 class="panel-title">配当ダブルにする札</h2>
+        <div id="double-slots" class="double-slots"></div>
+        <p class="hint">★を付けた札だけ配当×2（最終レースのみ）</p>
+      </section>
+    </main>
+
+    <footer class="foot">
+      <h2 class="panel-title">所持中のマ券</h2>
+      <ul id="held-tickets" class="held-list"></ul>
+      <p id="notice" class="notice"></p>
+      <button id="confirm-button" class="confirm" type="button" disabled>この札に投票する</button>
+    </footer>
+
+    <script src="ticket-payouts.js"></script>
+    <script src="betting-state.js"></script>
+    <script src="betting-connection.js"></script>
+    <script src="betting-view.js"></script>
+    <script src="betting-demo.js"></script>
+    <script src="betting-app.js"></script>
+  </body>
+</html>
