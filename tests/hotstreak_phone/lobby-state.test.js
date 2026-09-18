@@ -95,6 +95,20 @@ test("lobby.advanced は一度だけ受け付ける", () => {
   assert.equal(state.handleMessage("lobby.advanced", { phase: "betting" }), false);
 });
 
+test("進行後に届いた状態は取り込まず、エラーも出さない", () => {
+  const state = joined();
+  state.handleMessage("lobby.advanced", { phase: "setup-cards" });
+  assert.equal(
+    state.handleMessage("lobby.state", {
+      phase: "setup-cards",
+      players: [player(ME, "プレイヤー1", true), player("p_2", "サトウ", true), player("p_3", "タナカ", true)],
+    }),
+    false
+  );
+  assert.equal(state.error, "", "進行後の状態でエラー表示にしない");
+  assert.equal(state.advanced, true);
+});
+
 test("setup.advanced でマ券画面への引き渡しに入る", () => {
   const state = joined();
   state.handleMessage("lobby.advanced", { phase: "setup-cards" });

@@ -121,7 +121,8 @@
         this.playerId = payload.playerId;
         return this.applyState(payload);
       }
-      if (kind === "lobby.state") return this.applyState(payload);
+      // 進行後は lobby 以外の phase が流れてくるので、状態は取り込まない。
+      if (kind === "lobby.state") return this.advanced ? false : this.applyState(payload);
       if (kind === "lobby.advanced") {
         if (this.advanced || !isObject(payload) || payload.phase !== "setup-cards") return false;
         this.advanced = true;
