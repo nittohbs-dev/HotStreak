@@ -12,6 +12,10 @@ const IDS = [
   "demo-bar",
   "demo-scene",
   "demo-next",
+  "name-input",
+  "player-count",
+  "player-list",
+  "foot-hint",
 ];
 
 class FakeNode {
@@ -24,6 +28,12 @@ class FakeNode {
     this.listeners = {};
     this.hidden = false;
     this.disabled = false;
+    this.value = "";
+  }
+
+  type(text) {
+    this.value = text;
+    for (const handler of this.listeners.input || []) handler({ target: this });
   }
 
   append(...nodes) {

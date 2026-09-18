@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ホットストリーク 参加</title>
+    <link rel="stylesheet" href="phone.css" />
+    <link rel="stylesheet" href="lobby.css" />
+  </head>
+  <body>
+    <div id="demo-bar" class="demo-bar" hidden>
+      <span class="demo-tag">デモ</span>
+      <span id="demo-scene"></span>
+      <button id="demo-next" type="button">次の場面</button>
+    </div>
+
+    <header class="head">
+      <p class="title">ホットストリーク</p>
+      <p class="lead">QRを読み取って参加</p>
+    </header>
+
+    <main>
+      <section class="panel">
+        <h2 class="panel-title">プレイヤー名</h2>
+        <input
+          id="name-input"
+          class="name-input"
+          type="text"
+          maxlength="12"
+          autocomplete="off"
+          placeholder="ヤマダ"
+        />
+      </section>
+
+      <section class="panel">
+        <h2 id="player-count" class="panel-title"></h2>
+        <ul id="player-list" class="player-list"></ul>
+      </section>
+    </main>
+
+    <footer class="foot">
+      <p id="notice" class="notice"></p>
+      <button id="confirm-button" class="confirm" type="button" disabled>この名前で決定</button>
+      <p id="foot-hint" class="hint">全員入力後、またはラズパイ Enter で次へ進みます</p>
+    </footer>
+
+    <script src="lobby-state.js"></script>
+    <script src="lobby-connection.js"></script>
+    <script src="lobby-view.js"></script>
+    <script src="lobby-demo.js"></script>
+    <script src="lobby-app.js"></script>
+  </body>
+</html>
