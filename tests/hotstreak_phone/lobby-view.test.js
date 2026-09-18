@@ -117,6 +117,20 @@ test("進行後は確定ボタンを隠し、公開カードの準備中と案�
   assert.match(nodes.notice.textContent, /公開カードの準備中/);
 });
 
+test("自動で付いた名前を一覧と案内に出す", () => {
+  const { view, nodes } = setup();
+  const state = stateOf();
+  state.handleMessage("lobby.advanced", {
+    phase: "setup-cards",
+    players: [player(ME, "プレイヤー1", true), player("p_2", "サトウ", true), player("p_3", "タナカ", true)],
+  });
+  view.render(state);
+  assert.match(nodes["player-list"].children[0].text, /プレイヤー1/);
+  assert.equal(nodes.notice.textContent, "名前は「プレイヤー1」で決まりました。公開カードの準備中です。");
+  assert.equal(nodes.notice.dataset.error, "false");
+  assert.equal(nodes["name-input"].value, "プレイヤー1");
+});
+
 test("エラーは赤字で出す", () => {
   const { view, nodes } = setup();
   const state = stateOf();

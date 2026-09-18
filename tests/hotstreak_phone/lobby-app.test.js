@@ -46,6 +46,16 @@ test("デモで名前を入力して確定すると入力済になる", () => {
   assert.equal(nodes["name-input"].disabled, true);
 });
 
+test("デモで名前を入れずに進むと、付いた名前が画面に出る", () => {
+  const { nodes } = boot("?demo=1");
+  nodes["demo-next"].click();
+  nodes["demo-next"].click();
+  nodes["demo-next"].click();
+  assert.equal(nodes["demo-scene"].textContent, "公開カードの準備中");
+  assert.match(nodes["player-list"].children[0].text, /プレイヤー1/);
+  assert.match(nodes.notice.textContent, /名前は「プレイヤー1」で決まりました/);
+});
+
 test("デモで全員そろい、進行するとマ券画面へ移る", () => {
   const { nodes, visited } = boot("?demo=1");
   nodes["name-input"].type("ヤマダ");
@@ -53,7 +63,7 @@ test("デモで全員そろい、進行するとマ券画面へ移る", () => {
 
   nodes["demo-next"].click();
   nodes["demo-next"].click();
-  assert.equal(nodes["demo-scene"].textContent, "全員そろった");
+  assert.equal(nodes["demo-scene"].textContent, "ほかの人は全員入力済");
   assert.match(nodes.notice.textContent, /全員そろいました/);
 
   nodes["demo-next"].click();

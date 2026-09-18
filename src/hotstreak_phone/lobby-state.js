@@ -37,6 +37,7 @@
       this.draftName = "";
       this.advanced = false;
       this.handoff = false;
+      this.autoNamed = false;
     }
 
     get me() {
@@ -111,6 +112,24 @@
       return true;
     }
 
+    /* 進行後は phase が lobby でなくなるため、名簿だけ取り込む（REQ-lobby-007 の自動命名を映す）。 */
+    refreshRoster(payload) {
+      if (!isObject(payload) || !Array.isArray(payload.players)) return false;
+      let players;
+      try {
+        players = payload.players.map(parsePlayer);
+      } catch (error) {
+        return false;
+      }
+      const wasNameReady = this.isNameReady;
+      this.players = players;
+      if (this.isNameReady) {
+        this.draftName = this.me.displayName;
+        if (!wasNameReady) this.autoNamed = true;
+      }
+      return true;
+    }
+
     handleMessage(kind, payload) {
       if (this.handoff) return false;
       if (kind === "joined") {
@@ -121,13 +140,13 @@
         this.playerId = payload.playerId;
         return this.applyState(payload);
       }
-      // 進行後は lobby 以外の phase が流れてくるので、状態は取り込まない。
-      if (kind === "lobby.state") return this.advanced ? false : this.applyState(payload);
+      if (kind === "lobby.state") return this.advanced ? this.refreshRoster(payload) : this.applyState(payload);
       if (kind === "lobby.advanced") {
         if (this.advanced || !isObject(payload) || payload.phase !== "setup-cards") return false;
         this.advanced = true;
         this.pending = false;
         this.error = "";
+        this.refreshRoster(payload);
         return true;
       }
       if (kind === "setup.advanced") {

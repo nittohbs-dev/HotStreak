@@ -36,17 +36,27 @@
         ]),
     },
     {
-      name: "全員そろった",
+      // 自分の入力状況は変えない。名前を入れていれば「全員そろい」になる。
+      name: "ほかの人は全員入力済",
       make: (current) =>
         state([
-          current.players[0].nameReady ? current.players[0] : player(ME, "ヤマダ", true),
+          current.players[0],
           player("p_2", "サトウ", true),
           player("p_3", "タナカ", true),
-          player("p_4", "プレイヤー4", true),
+          player("p_4", "スズキ", true),
         ]),
     },
-    { name: "公開カードの準備中", make: () => "lobby-advanced" },
-    { name: "マ券ドラフトへ", make: () => "setup-advanced" },
+    {
+      // 未入力のまま Enter が押された場合、サーバが参加順に「プレイヤーN」を付ける（REQ-lobby-007）。
+      name: "公開カードの準備中",
+      make: (current) => ({
+        advanced: true,
+        players: current.players.map((entry, index) =>
+          entry.nameReady ? entry : player(entry.playerId, `プレイヤー${index + 1}`, true)
+        ),
+      }),
+    },
+    { name: "マ券ドラフトへ", make: () => ({ handoff: true }) },
   ];
 
   class DemoDriver {
@@ -76,11 +86,12 @@
 
     show() {
       const scene = SCENES[this.index].make(this.current);
-      if (scene === "lobby-advanced") {
-        this.onMessage("lobby.advanced", { phase: "setup-cards" });
+      if (scene.advanced) {
+        this.current = state(scene.players);
+        this.onMessage("lobby.advanced", { phase: "setup-cards", players: scene.players });
         return;
       }
-      if (scene === "setup-advanced") {
+      if (scene.handoff) {
         this.onMessage("setup.advanced", { phase: "betting" });
         return;
       }

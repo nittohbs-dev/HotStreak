@@ -95,7 +95,7 @@ test("lobby.advanced は一度だけ受け付ける", () => {
   assert.equal(state.handleMessage("lobby.advanced", { phase: "betting" }), false);
 });
 
-test("進行後に届いた状態は取り込まず、エラーも出さない", () => {
+test("進行後に届いた状態はエラーにせず、名簿だけ取り込む", () => {
   const state = joined();
   state.handleMessage("lobby.advanced", { phase: "setup-cards" });
   assert.equal(
@@ -103,10 +103,47 @@ test("進行後に届いた状態は取り込まず、エラーも出さない",
       phase: "setup-cards",
       players: [player(ME, "プレイヤー1", true), player("p_2", "サトウ", true), player("p_3", "タナカ", true)],
     }),
-    false
+    true
   );
   assert.equal(state.error, "", "進行後の状態でエラー表示にしない");
   assert.equal(state.advanced, true);
+  assert.equal(state.me.displayName, "プレイヤー1");
+  assert.equal(state.autoNamed, true);
+});
+
+test("未入力のまま進むと、サーバが付けた名前を受け取って示す", () => {
+  const state = joined();
+  assert.equal(state.isNameReady, false);
+  state.handleMessage("lobby.advanced", {
+    phase: "setup-cards",
+    players: [player(ME, "プレイヤー1", true), player("p_2", "サトウ", true), player("p_3", "タナカ", true)],
+  });
+  assert.equal(state.autoNamed, true);
+  assert.equal(state.me.displayName, "プレイヤー1");
+  assert.equal(state.draftName, "プレイヤー1", "入力欄にも確定名を映す");
+});
+
+test("自分で名前を確定していれば自動命名扱いにしない", () => {
+  const state = joined({ players: [player(ME, "ヤマダ", true), player("p_2", "サトウ", true), player("p_3", "タナカ", true)] });
+  state.handleMessage("lobby.advanced", {
+    phase: "setup-cards",
+    players: [player(ME, "ヤマダ", true), player("p_2", "サトウ", true), player("p_3", "タナカ", true)],
+  });
+  assert.equal(state.autoNamed, false);
+});
+
+test("進行時に名簿が無くても、壊れていても進行自体は成立する", () => {
+  const state = joined();
+  assert.equal(state.handleMessage("lobby.advanced", { phase: "setup-cards" }), true);
+  assert.equal(state.advanced, true);
+  assert.equal(state.autoNamed, false);
+  assert.equal(state.error, "");
+
+  const broken = joined();
+  broken.handleMessage("lobby.advanced", { phase: "setup-cards", players: [{ playerId: ME }] });
+  assert.equal(broken.advanced, true);
+  assert.equal(broken.error, "");
+  assert.equal(broken.playerCount, 3, "壊れた名簿では上書きしない");
 });
 
 test("setup.advanced でマ券画面への引き渡しに入る", () => {

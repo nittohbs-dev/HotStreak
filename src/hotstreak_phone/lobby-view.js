@@ -64,7 +64,9 @@
 
       let notice = state.error;
       if (!notice && state.handoff) notice = "マ券ドラフトへ移動します…";
-      else if (!notice && state.advanced) notice = "公開カードの準備中です。そのままお待ちください。";
+      else if (!notice && state.autoNamed && state.me) {
+        notice = `名前は「${state.me.displayName}」で決まりました。公開カードの準備中です。`;
+      } else if (!notice && state.advanced) notice = "公開カードの準備中です。そのままお待ちください。";
       else if (!notice && !state.connected) notice = "参加しています…";
       else if (!notice && state.allReady) notice = "全員そろいました。次へ進むのを待っています。";
       else if (!notice && state.isNameReady) notice = "ほかの人の入力を待っています。";

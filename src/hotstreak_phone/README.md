@@ -67,8 +67,12 @@ QR の生成・表示は Display（Issue #23）の担当です。
 ```
 
 ```json
-{"type":"lobby.advanced","payload":{"phase":"setup-cards"}}
+{"type":"lobby.advanced","payload":{"phase":"setup-cards","players":[…]}}
 ```
+
+`lobby.advanced` の `players` は、Enter 進行時にサーバが付けた `プレイヤーN` を本人に見せるために読みます。
+`api.md` の WS 節にある「ペイロード（概念）: sessionId, phase, players[]」に沿った読み方ですが、
+省略されていても進行は成立します（その場合は名前を出しません）。**Issue #22 との結合時に照合が必要です。**
 
 公開カード中は Phone 専用画面が無いため待機表示にし、`setup.advanced`（`{"phase":"betting"}`、Issue #27 が定義した封筒）を
 受けたらマ券画面へ `session` と `player` を引き渡して遷移します。
@@ -83,8 +87,9 @@ join の 409 は「満員」と「受付終了」の2種類があるため、サ
 - 未入力の人は名前を伏せて「入力中」と出します
 - 進行の判定（全員そろい）は 3 人以上そろってからです（BR-lobby-007）
 - 名前未入力のまま Enter で進んだ場合、`プレイヤーN` を付けるのはサーバの担当です（BR-lobby-005 / REQ-lobby-007）。
-  スマホは付いた名前を受け取る手段が封筒に無いため表示しません（会場の Display で確認する前提）。
-  進行後に届いた `lobby.state` は phase が `lobby` でなくなるため取り込みません
+  スマホは付いた名前を受け取って一覧に出し、「名前は『プレイヤー1』で決まりました」と本人に示します
+- 進行後の名簿は `lobby.advanced` の `players`、または進行後に届いた `lobby.state` のどちらからでも取り込みます。
+  どちらも来ない場合は名前を出さずに待機表示のままとし、エラーにはしません（phase は `lobby` でなくなるため検証し直しません）
 - 所持金はサーバから受け取っても画面には出しません（ワイヤーに無いため）
 
 ---
