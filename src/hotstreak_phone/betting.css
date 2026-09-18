@@ -1,66 +1,4 @@
-:root {
-  --bg: #171512;
-  --panel: #221f1a;
-  --line: #3a352c;
-  --text: #ebe9e0;
-  --muted: #a49c8b;
-  --safe: #6fb6a2;
-  --risky: #d98b5f;
-  --accent: #e0b25a;
-  --danger: #e2705f;
-}
-
-* {
-  box-sizing: border-box;
-}
-
-html,
-body {
-  height: 100%;
-}
-
-body {
-  display: flex;
-  flex-direction: column;
-  margin: 0;
-  background: var(--bg);
-  color: var(--text);
-  font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, system-ui, sans-serif;
-  line-height: 1.5;
-}
-
-.demo-bar {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  background: #3c3322;
-  font-size: 0.85rem;
-}
-
-.demo-tag {
-  padding: 0.1rem 0.4rem;
-  border-radius: 0.25rem;
-  background: var(--accent);
-  color: #241d0c;
-  font-weight: 700;
-}
-
-.demo-bar button {
-  margin-left: auto;
-  padding: 0.35rem 0.8rem;
-  border: 1px solid var(--accent);
-  border-radius: 0.4rem;
-  background: transparent;
-  color: var(--accent);
-  font: inherit;
-}
-
-.head {
-  padding: 1rem 1rem 0.75rem;
-  border-bottom: 1px solid var(--line);
-}
-
+/* SCR-phone-002 固有。共通の土台は phone.css。 */
 .turn-status {
   margin: 0;
   font-size: 1.35rem;
@@ -81,22 +19,6 @@ body {
   margin: 0.15rem 0 0;
   color: var(--muted);
   font-size: 0.9rem;
-}
-
-main {
-  flex: 1;
-  overflow-y: auto;
-}
-
-.panel {
-  padding: 1rem;
-}
-
-.panel-title {
-  margin: 0 0 0.5rem;
-  color: var(--muted);
-  font-size: 0.85rem;
-  font-weight: 600;
 }
 
 .ticket-list,
@@ -223,55 +145,4 @@ main {
   background: transparent;
   color: var(--accent);
   font: inherit;
-}
-
-.hint {
-  margin: 0.5rem 0 0;
-  color: var(--muted);
-  font-size: 0.8rem;
-}
-
-.foot {
-  padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom));
-  border-top: 1px solid var(--line);
-  background: var(--bg);
-}
-
-.foot .panel-title {
-  margin-bottom: 0.4rem;
-}
-
-.notice {
-  margin: 0.5rem 0;
-  min-height: 1.2rem;
-  color: var(--muted);
-  font-size: 0.85rem;
-}
-
-.notice[data-error="true"] {
-  color: var(--danger);
-}
-
-.confirm {
-  width: 100%;
-  min-height: 3.25rem;
-  border: 0;
-  border-radius: 0.6rem;
-  background: var(--accent);
-  color: #241d0c;
-  font: inherit;
-  font-size: 1.05rem;
-  font-weight: 700;
-}
-
-.confirm:disabled {
-  background: #4a443a;
-  color: var(--muted);
-}
-
-@media (min-width: 540px) {
-  body {
-    margin: 0 auto;
-    max-width: 480px;
-  }
 }

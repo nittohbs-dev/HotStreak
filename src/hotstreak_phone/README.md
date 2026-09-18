@@ -1,13 +1,103 @@
-# マ券ドラフト画面（Issue #32）
+# スマホ画面
 
-SCR-phone-002 / REQ-betting-001〜006（スマホ側）。
-スネークドラフトで札を1枚選び、セーフ／リスキーを決めて確定します。第3レースのみ所持2枚から1枚をダブル指定します。
-同期サーバ・Display 画面・ロビー・カード仕込みは含みません。
+| 画面 | ファイル | Issue | 内容 |
+|------|----------|-------|------|
+| SCR-phone-001 ロビー（参加） | `lobby.html` | #24 | 参加・名前確定・参加者一覧 |
+| SCR-phone-002 マ券ドラフト | `betting.html` | #32 | 札の取得・セーフ／リスキー・第3ダブル |
+
+同期サーバ・Display 画面・カード仕込み以降の画面は含みません。
 
 ## 技術
 
 素の HTML / CSS / JavaScript のみ。ビルド・フレームワーク・パッケージ管理は使いません。
-`architecture.md` で Phone は「未確定」のままであり、本 Issue の実装としてこの構成を選びました（設計書は変更していません）。
+`architecture.md` で Phone は「未確定」のままであり、実装としてこの構成を選びました（設計書は変更していません）。
+
+共通の色・レイアウトは `phone.css` に置き、画面固有の指定だけ `lobby.css` / `betting.css` に分けています。
+各画面は「状態（`*-state.js`）・通信（`*-connection.js`）・描画（`*-view.js`）」の三分割で、状態はブラウザ無しでテストできます。
+
+## テスト
+
+Node.js 21 以上が必要です（画面の表示自体に Node は不要）。
+
+```sh
+node --test "tests/hotstreak_phone/*.test.js"
+```
+
+状態ロジック・描画・通信エラー処理・起動配線（デモ操作を含む）を検証します。
+描画テストは最小の DOM スタブ（`tests/hotstreak_phone/fake-dom.js`）で動かすもので、実機ブラウザでの表示確認の代わりにはなりません。
+
+## 検証と設計書の扱い
+
+設計書は変更していません。
+各機能の `tests.md` は pytest と Playwright を指定していますが、pytest 対象は同期側（Issue #22 / #30）の範囲、
+Playwright の E2E は Display と同期サーバが揃わないと成立しないため、追加依存なしの `node --test` で代替しています。
+実サーバ結合と E2E は結合時の検証事項です。
+
+---
+
+# ロビー画面（Issue #24）
+
+SCR-phone-001 / REQ-lobby-002〜006（スマホ側）。QR から参加し、名前を確定して参加者一覧を同期します。
+
+## 起動
+
+```
+lobby.html?demo=1                                    # サーバ不要のデモ
+lobby.html?server=http://127.0.0.1:8000&session=SESSION_ID
+```
+
+デモは「参加直後 → ほかの人が入力 → 全員そろった → 公開カードの準備中 → マ券ドラフトへ」を順に切り替えます。
+
+設計上のルートは `/join/{sessionId}` ですが、静的配信のため当面 `session` を URL パラメータで受けます。
+QR の生成・表示は Display（Issue #23）の担当です。
+
+## 同期側との接続（Issue #22 と要照合）
+
+- 購読を張ってから `POST /api/sessions/{sessionId}/join`（API-LOBBY-003）で `playerId` を得ます
+- 名前確定は `PUT /api/sessions/{sessionId}/players/{playerId}/name`（API-LOBBY-004）、ボディは `{"displayName":"ヤマダ"}`
+- `WS /ws/sessions/{sessionId}` で `lobby.state` / `lobby.advanced` / `setup.advanced` を購読します
+- `POST /api/sessions`（API-LOBBY-001）と advance（API-LOBBY-005）は Display の操作なので送りません
+- 再接続時は join し直さず `GET /api/sessions/{sessionId}` で状態を取り直します（再参加はスコープ外のため）
+
+```json
+{"type":"lobby.state","payload":{
+  "sessionId":"sess_1","phase":"lobby",
+  "players":[{"playerId":"p_1","displayName":"ヤマダ","nameReady":true,"balance":10}]
+}}
+```
+
+```json
+{"type":"lobby.advanced","payload":{"phase":"setup-cards","players":[…]}}
+```
+
+`lobby.advanced` の `players` は、Enter 進行時にサーバが付けた `プレイヤーN` を本人に見せるために読みます。
+`api.md` の WS 節にある「ペイロード（概念）: sessionId, phase, players[]」に沿った読み方ですが、
+省略されていても進行は成立します（その場合は名前を出しません）。**Issue #22 との結合時に照合が必要です。**
+
+公開カード中は Phone 専用画面が無いため待機表示にし、`setup.advanced`（`{"phase":"betting"}`、Issue #27 が定義した封筒）を
+受けたらマ券画面へ `session` と `player` を引き渡して遷移します。
+
+エラー文言は `features/lobby/api.md` のエラー表に従います。
+join の 409 は「満員」と「受付終了」の2種類があるため、サーバが `{"message": "..."}` を返した場合はそれを優先します。
+
+## 画面の決まり
+
+- 空の名前では確定ボタンを押せません（前後の空白は取り除いて送ります）
+- 名前変更 API は設計に無いため、確定後は入力欄とボタンを閉じます
+- 未入力の人は名前を伏せて「入力中」と出します
+- 進行の判定（全員そろい）は 3 人以上そろってからです（BR-lobby-007）
+- 名前未入力のまま Enter で進んだ場合、`プレイヤーN` を付けるのはサーバの担当です（BR-lobby-005 / REQ-lobby-007）。
+  スマホは付いた名前を受け取って一覧に出し、「名前は『プレイヤー1』で決まりました」と本人に示します
+- 進行後の名簿は `lobby.advanced` の `players`、または進行後に届いた `lobby.state` のどちらからでも取り込みます。
+  どちらも来ない場合は名前を出さずに待機表示のままとし、エラーにはしません（phase は `lobby` でなくなるため検証し直しません）
+- 所持金はサーバから受け取っても画面には出しません（ワイヤーに無いため）
+
+---
+
+# マ券ドラフト画面（Issue #32）
+
+SCR-phone-002 / REQ-betting-001〜006（スマホ側）。
+スネークドラフトで札を1枚選び、セーフ／リスキーを決めて確定します。第3レースのみ所持2枚から1枚をダブル指定します。
 
 ## 起動
 
@@ -29,20 +119,9 @@ betting.html?server=http://127.0.0.1:8000&session=SESSION_ID&player=PLAYER_ID
 ```
 
 `server` の既定は `http://127.0.0.1:8000` です。
-設計上のルートは `/play/{sessionId}/betting` ですが、ロビー（Issue #24）が未実装で playerId を配る導線が無いため、
-当面は URL パラメータで受けます。ロビー実装時に正規ルートへ寄せてください。
+通常はロビー画面（`lobby.html`）が `session` と `player` を引き渡して遷移するため、手で URL を組む必要はありません。
+設計上のルートは `/play/{sessionId}/betting` ですが、静的配信のため当面は URL パラメータで受けます。
 同期サーバとは別のオリジンから開く場合、サーバ側の CORS 許可が必要です。
-
-## テスト
-
-Node.js 21 以上が必要です（画面の表示自体に Node は不要）。
-
-```sh
-node --test "tests/hotstreak_phone/*.test.js"
-```
-
-状態ロジック・描画・通信エラー処理・起動配線（デモ操作を含む）を検証します。
-描画テストは最小の DOM スタブ（`tests/hotstreak_phone/fake-dom.js`）で動かすもので、実機ブラウザでの表示確認の代わりにはなりません。
 
 ## 同期側との接続
 
@@ -100,11 +179,3 @@ PUT  /betting/double {"playerId":"p1","ticketInstanceId":"t-1"}
 - 配当額は `features/payout/README.md` の観測確定表を `ticket-payouts.js` に持ちます
   （`api.md` に「payoutFaceValue は設計状態に含めない」とあるため、サーバからは受け取りません）
 - `betting.advanced` を受けたら待機表示で止まります。次画面（SCR-phone-003）は Issue #36 の範囲です
-
-## 検証と設計書の扱い
-
-設計書は変更していません。
-`features/betting/tests.md` は pytest（TST-betting-001〜004, 006, 007）と Playwright（TST-betting-005）を指定しますが、
-前者は同期側 Issue #30 の範囲、後者は Display（Issue #31）と同期サーバが揃わないと成立しません。
-本 Issue では追加依存なしの `node --test` で、状態ロジック・描画・通信エラー処理を検証しています。
-実サーバ結合と E2E は結合時の検証事項です。

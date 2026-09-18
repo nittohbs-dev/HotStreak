@@ -1,0 +1,66 @@
+/* SCR-phone-001 固有。共通の土台は phone.css。 */
+.title {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+.name-input {
+  width: 100%;
+  min-height: 3rem;
+  padding: 0 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 0.6rem;
+  background: var(--panel);
+  color: var(--text);
+  font: inherit;
+  font-size: 1.05rem;
+}
+
+.name-input:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.name-input:disabled {
+  color: var(--muted);
+}
+
+.player-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.player {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 0.6rem;
+  background: var(--panel);
+}
+
+.player[data-self="true"] {
+  border-color: var(--accent);
+}
+
+.player-name {
+  flex: 1;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.player-self {
+  margin-left: 0.35rem;
+  color: var(--accent);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.player-status {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
