@@ -15,8 +15,8 @@ python src/hotstreak_display/screens/card_seed.py --windowed
 - `--state 0`〜`--state 3`で表示例指定、`--screenshot output.png`でPNG保存。
 - 日本語フォントが見つからない場合は `--font path/to/font.ttf` を指定。
 
-6人・18枚の固定データによるモックです。裏面だけを表示し、手札・仕込み内容は扱いません。
-仕込み途中の18枚は完成時の見込み表示です。カード抽選、仕込み処理、デッキ組成、通信、レース進行は実装しません。
-今日の指示に従い、本番APIとの接続やゲーム処理は両側のモック完成後に行います。
+6人・18枚の固定データによるモックです。裏面は `CardAssets` の `card_back` です。手札・仕込み内容は扱いません。
+仕込み途中の18枚は完成時の見込み表示（グレーアウト）です。カード抽選、仕込み処理、デッキ組成、通信、レース進行は実装しません。
+本番APIとの接続やゲーム処理は両側のモック完成後に行います。
 
 検証: `python -m unittest discover -s tests/hotstreak_display -v`

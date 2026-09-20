@@ -1,6 +1,6 @@
 # Spec Browser
 
-設計書とソースの関係をノードキャンバスで見る静的ビューア（REQ-sb-001〜005）。
+`docs/design/` とソースを突き合わせ、機能 → クラス（層）→ API → テーブルの関係をノードキャンバスで見る静的ビューアです。ゲーム本体の UI ではなく、設計把握用の開発ツールです。
 
 ## 起動
 
@@ -10,10 +10,118 @@ npm install
 npm run dev
 ```
 
-`npm run index` で `docs/design/` を読み `public/snapshot.json` を生成する。`dev` / `build` の前に自動実行される。
+`npm run index` が `docs/design/` を読み、`public/snapshot.json` を生成します。`dev` / `build` の前に自動実行されます。生成物は git 管理しません。
 
-## Pages
+| スクリプト | 内容 |
+|------------|------|
+| `npm run index` | 索引だけ再生成 |
+| `npm run dev` | 索引 → Vite 開発サーバ |
+| `npm run build` | 索引 → 型チェック → 本番ビルド |
+| `npm run preview` | `dist/` をローカル確認 |
+| `npm run lint` | oxlint |
 
-`develop` への push で `.github/workflows/spec-browser-pages.yml` が `VITE_BASE=/HotStreak/` でビルドし GitHub Pages に公開する。
+## 画面の使い方
 
-リポジトリ設定で Pages の Source を **GitHub Actions** にする。
+左がアウトライン、中央がキャンバス、右がインスペクタです。
+
+| 操作 | 動き |
+|------|------|
+| プロジェクト切替 | `docs/design/<projectId>/manifest.yaml` がある単位。表示は常に1件 |
+| 検索 | ノードの名前・ID・機能ID・層名に部分一致（大文字小文字無視） |
+| 層フィルタ | 全部 / 機能 / クラス / API / DB |
+| ギャップのみ | ソース未検出のノードだけ表示 |
+| 機能チェック | アウトラインの機能を複数選択。関連クラス・API・テーブルと、継承元クラスも残る |
+| ノード選択 | 関連辺を強調。選択は URL に残る |
+| セクションを全て閉じる | アウトライン内の折りたたみだけ閉じる。左パネル自体は開いたまま |
+| 閉じる | デスクトップでは左/右パネルをしまう。キャンバス端の「一覧」「詳細」で再表示 |
+| パネル幅 | デスクトップの境界をドラッグ（アウトライン 200–520px、インスペクタ 280–640px） |
+
+幅 768px 以下はモバイル扱いになり、左右パネルは下の「一覧」「詳細」ドロワーになります。MiniMap はデスクトップのみです。
+
+アウトラインの各セクションは初期状態で閉じています。パネルを閉じてキャンバスを広くする操作とは別です。
+
+### URL
+
+クエリで状態を共有できます。
+
+```
+/?project=hotstreak&node=hotstreak:api:API-SETUP-001
+```
+
+| パラメータ | 意味 |
+|------------|------|
+| `project` | 設計プロジェクト ID（ディレクトリ名） |
+| `node` | ノード ID。形式は `<projectId>:<kind>:<ローカルID>` |
+
+`kind` は `feature` / `class` / `api` / `table` です。不明な `project` や `node` は無視され、先頭プロジェクト・未選択に戻ります。
+
+## キャンバス配置
+
+フィルタや検索が変わると再配置し、`fitView` します。ノードはドラッグできません。
+
+左から次の列です。各列は 8 件ごとに右へ折り返します。
+
+1. 機能
+2. クラス（層ごとのサブ列。順は Domain → Service → UI → API。未知の層名は後ろ）
+3. API
+4. テーブル
+
+API ノードは見出しが `API-ID`、副題が概要、メタが HTTP メソッドです。クラスは「共通 / 固有」と層名を出します。継承辺は破線、利用辺は実線です。
+
+インスペクタでは、クラスのメソッド表・継承、API のリクエスト/レスポンス JSON、テーブルのカラムを見られます。API 以外はソース照合ヒットも出します。
+
+## 索引の入力
+
+`scripts/index.mjs` が設計 Markdown の表と見出しを読みます。ヘッダ名が一致しない表は無視されます。
+
+| 入力 | 必須ヘッダ（先頭から一致） |
+|------|----------------------------|
+| `00-project/feature-map.md` | 機能ID, 名前, ステータス, 概要 |
+| `00-project/classes.md` | CLS-ID, 名前, 層, 責務, 関連TBL |
+| 機能 `classes.md` | CLS-ID, 共通or固有, 関連TBL |
+| 機能 `layers.md` | 層, CLS-ID, 責務, 関連API |
+| 機能 `api.md` 一覧 | API-ID, メソッド, パス, 概要, 主な入力, 主な出力, 認証 |
+| 機能 `screens.md` | SCR-ID, 名前, ルート, 主な操作, 呼ぶAPI |
+| 機能 `layers.md` メソッド | `## メソッド: CLS-…` 配下の メソッド, 引数, 戻り値, 概要 |
+| `db.md` | `## テーブル: TBL-…` 配下の カラム, 型 |
+
+任意列「継承元」は先頭トークンが `CLS-` なら継承辺になります。
+
+`api.md` の本文は、`## API-SETUP-001` の直後に `### リクエスト` / `### レスポンス` と fenced JSON（言語タグ `json` は任意）を置きます。見出し名が違うブロックは取り込みません。
+
+関連API セルは `API-X-001`、`API-X-001, 002`、`API-X-001〜003` を展開します。
+
+設計プロジェクトは `docs/design/<id>/manifest.yaml` があるディレクトリだけです。無い場合は空スナップショット（プレースホルダ1件）を書きます。
+
+## ギャップ判定
+
+ソース走査はリポジトリ直下の `frontend/` `backend/` `src/` だけです。対象拡張子は `.java` `.ts` `.tsx` `.js` `.jsx` `.kt` `.sql` です。`.py` は見ません。`node_modules` `dist` `build` `target` `.git` と `spec-browser` 自身は除外します。
+
+| 対象 | ヒット条件 | ギャップに数える条件 |
+|------|------------|----------------------|
+| 機能 | ソースに `REQ-…` または機能ID | 要件があるのにヒットゼロ |
+| クラス | ソースに `CLS-…` またはクラス名 | ヒットゼロ |
+| テーブル | ソースに `TBL-…`、または `@Table` と ID 末尾 | ヒットゼロ |
+| API | 走査しない（ノードの実装フラグは常に未検出） | ギャップ数に含めない |
+
+ヘッダの「ギャップ N」は上記の件数です。Python の Display 実装に追跡 ID があっても、現状の走査対象外なのでギャップは減りません。Phone の `.js` は `src/` 配下なので走査対象です。
+
+## GitHub Pages
+
+`develop` への push で `.github/workflows/spec-browser-pages.yml` が動きます。`tools/spec-browser/**` または `docs/design/**` の変更が対象です。手動実行（`workflow_dispatch`）もできます。
+
+ビルドは Node 22、`VITE_BASE=/HotStreak/` です。リポジトリ設定の Pages Source を **GitHub Actions** にしてください。公開サイトはライブ再索引しません。設計を直したら `develop` に入れて再デプロイします。
+
+## トラブルシュート
+
+| 症状 | 確認すること |
+|------|----------------|
+| 「snapshot.json HTTP 404」 | `npm run index` が失敗していないか。`public/snapshot.json` があるか |
+| キャンバスが空／プレースホルダだけ | `docs/design/<id>/manifest.yaml` があるか |
+| 表や API が出ない | 表ヘッダの列名・順序。`## API-…` と `### リクエスト` / `### レスポンス` |
+| ギャップが減らない | 走査対象の言語・ディレクトリか。API ノードはそもそも未走査。`.py` は対象外 |
+| Pages でアセット 404 | `VITE_BASE=/HotStreak/` と Pages Source が Actions か |
+| 左パネルを閉じたらキャンバスが潰れる | 現行はパネル閉じとセクション閉じを分けている。古いキャッシュなら再ビルド |
+| 長い API-ID が重なる | ノードは折り返し表示。それでも重なる場合はフィルタで件数を減らす |
+
+設計の正本は [`docs/design/spec-browser/`](../../docs/design/spec-browser/) です。この README は起動・運用と実装上の制約だけを書きます。
