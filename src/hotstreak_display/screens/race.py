@@ -102,16 +102,14 @@ class View(DisplaySeedRoot):
         self.text(surface,"RACE 1 / 3",(32,28),32,(244,252,255))
         finishers=model.finished_entries
         if finishers:
-            self.ocean_panel(surface,pygame.Rect(24,78,28+192*len(finishers),108))
+            self.ocean_panel(surface,pygame.Rect(24,78,28+192*len(finishers),91))
             self.text(surface,"確定した着順",(40,87),16,(181,222,242))
             for slot,(place,who,status) in enumerate(finishers):
                 x=40+slot*192
-                self.text(surface,str(place), (x,120),24,(255,231,115))
+                self.text(surface,f"{place}位", (x,120),20,(255,231,115))
                 icon=pygame.transform.smoothscale(sprite(COLORS[who]),(44,46))
-                surface.blit(icon,(x+21,111))
-                self.text(surface,NAMES[who],(x+69,117),20,(244,252,255))
-                self.text(surface,"失格" if status=='dq' else "ゴール",(x+69,149),16,
-                          (255,155,139) if status=='dq' else (181,222,242))
+                surface.blit(icon,(x+37,111))
+                self.text(surface,NAMES[who],(x+85,124),20,(244,252,255))
         self.ocean_panel(surface,pygame.Rect(865,20,389,153))
         surface.blit(self.card_assets.card(model.card_id,(87,122)),(881,35))
         if model.card_id != 'card_back' and not model.card_id.startswith('green'):
