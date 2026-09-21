@@ -42,7 +42,7 @@
 
 ## 受け入れ条件
 
-- [ ] REQ-race-001: 開始時に3枚バーンし GO 演出後にめくりを開始する
+- [ ] REQ-race-001: 開始時に3枚バーンし GO 演出後にEnter待ちに入る
 - [ ] REQ-race-002: めくったカードの効果をマスコット位置に反映する
 - [ ] REQ-race-003: 山切れでリシャッフル＋コース短縮を行う
 - [ ] REQ-race-004: 3体ゴールまたは失格で着順確定し payout へ遷移する
@@ -56,9 +56,9 @@
 | OPEN-race-001 | 設計書には効果の**種別名＋要約のみ**。詳細解決の正は英語ルールブック。全文転載しない。要約は `manual.html` §6 をデジタル説明の正とする | [`overview.md`](../../00-project/overview.md) スコープ外「ルール全文の転載」、同「英語ルールブックを構造の正」、[`manual.html`](../../manual.html) §6 効果表 |
 | OPEN-race-003 | DQ は manual 要約どおり: 転倒中の再転倒／衝突、コース外、短縮で埋まる、など | `manual.html` §6「失格（DQ）」行 |
 | OPEN-race-004 | コース短縮は**奥が消える／左から折りたたみ**（次の solid white line まで）。埋まった位置のマスコットは失格。山切れのたびに発生しうる | [rulebook](https://gamers-hq.de/media/pdf/dc/37/cf/Hot_Streak_rulebook_2nd_printing.pdf) RESHUFFLING「fold it over to the next solid white line… stragglers under the mat are disqualified」。display/screens.md |
-| OPEN-race-005 | 進行は**サーバ主導の自動進行**。Display 演出完了 ack（API-RACE-002）は設けない | `display/screens.md` SCR-display-005「（なし）\| 自動進行」 |
+| OPEN-race-005 | **会場DisplayのEnter 1回で1枚めくる**。効果解決はサーバ担当。通信契約は未定 | 2026-09-21ユーザー指示 |
 | OPEN-race-006 | レース中に起きた事実を race 終了時に確定し、`race.finished` で sideBetOutcome 等を載せ **payout が精算**する | overview フロー race→payout、`manual.html` §6（事象）→§⑥配当 |
-| OPEN-race-002 | **デジタル正本: 4レーン × START〜GOAL 間 12マス**。★マーカーはスタートから 3・6・9 列目。ワイヤー上のコース短縮は 3マス単位（12の1/4） | 数え方: [`ゲーム進行画面-ディスプレイ側.png`](../../../wireframes/display/ゲーム進行画面-ディスプレイ側.png) 画面1・4で START〜GOAL の緑マス列を列挙（12列）。物理盤は Misut Meeple が「14 rows × 4 lanes」と記述（https://misutmeeple.com/en/2026/02/review-hot-streak/）— **物理14との差分あり。本デジタル設計はワイヤー12を採用** |
+| OPEN-race-002 | **デジタル正本: 4レーン × START〜GOAL 間 12マス**。2026-09-21ユーザー指示によりスタートは従来の最初の★位置（0始まり列2）、従来スタート（列0）を★へ変更。その他の★は列5・8。ワイヤー上のコース短縮は 3マス単位（12の1/4） | 数え方: [`ゲーム進行画面-ディスプレイ側.png`](../../../wireframes/display/ゲーム進行画面-ディスプレイ側.png) 画面1・4で START〜GOAL の緑マス列を列挙（12列）。物理盤は Misut Meeple が「14 rows × 4 lanes」と記述（https://misutmeeple.com/en/2026/02/review-hot-streak/）— **物理14との差分あり。本デジタル設計はワイヤー12を採用** |
 
 ## OPEN（確認待ち）
 
