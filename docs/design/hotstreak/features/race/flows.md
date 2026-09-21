@@ -12,7 +12,9 @@ sequenceDiagram
   Sync->>Sync: startRace バーン
   Sync-->>Display: WS race.state fx=burn
   Sync-->>Phone: WS race.state
-  loop めくり
+  loop Enterごとに1枚
+    Note over Display: Enter押下（長押し・処理中は無視）
+    Display->>Sync: 1枚めくり要求（通信契約は未定）
     Sync->>Sync: resolveNextCard
     Sync-->>Display: WS race.state
     Sync-->>Phone: WS race.state
@@ -30,10 +32,11 @@ sequenceDiagram
 
 | 状態 | イベント | 次の状態 |
 |------|----------|----------|
-| starting | burn+GO | resolving |
-| resolving | card resolved | resolving |
+| starting | burn+GO | waiting |
+| waiting | Display Enter | resolving |
+| resolving | card resolved | waiting |
 | resolving | deck empty | shortening |
-| shortening | done | resolving |
+| shortening | done | waiting |
 | resolving | 3 finished | finished |
 | finished | — | payout |
 

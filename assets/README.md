@@ -39,6 +39,8 @@ ASSETS = Path(__file__).resolve().parent.parent / "assets"
 board_image = ASSETS / "images" / "board" / "main.png"
 ```
 
+カード絵の読み方と再生成は [`images/cards/README.md`](images/cards/README.md)。定義 JSON は `data/cards/catalog.json` です。
+
 ## 置かないもの
 
 - カード定義 JSON などのゲームデータ（`data/` や `src/` 側へ）

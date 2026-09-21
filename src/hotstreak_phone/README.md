@@ -6,6 +6,7 @@
 | SCR-phone-002 マ券ドラフト | `betting.html` | #32 | 札の取得・セーフ／リスキー・第3ダブル |
 
 同期サーバ・Display 画面・カード仕込み以降の画面は含みません。
+マ券画面の会場側見た目確認は [`../hotstreak_display/BETTING_MOCK.md`](../hotstreak_display/BETTING_MOCK.md) です。
 
 ## 技術
 
@@ -98,6 +99,17 @@ join の 409 は「満員」と「受付終了」の2種類があるため、サ
 
 SCR-phone-002 / REQ-betting-001〜006（スマホ側）。
 スネークドラフトで札を1枚選び、セーフ／リスキーを決めて確定します。第3レースのみ所持2枚から1枚をダブル指定します。
+同期サーバ・ロビー・カード仕込みは含みません。会場側の見た目確認は [`../hotstreak_display/BETTING_MOCK.md`](../hotstreak_display/BETTING_MOCK.md) です。
+
+| ファイル | 役割 |
+|----------|------|
+| `betting.html` / `betting.css` | 画面骨格 |
+| `betting-state.js` | 手番・選択・確定可否 |
+| `betting-view.js` | DOM 描画 |
+| `betting-connection.js` | GET / WS / POST / PUT |
+| `betting-demo.js` | サーバ無しの場面切替 |
+| `betting-app.js` | URL パラメータと起動配線 |
+| `ticket-payouts.js` | 配当額の表示専用（精算しない） |
 
 ## 起動
 
@@ -109,8 +121,8 @@ SCR-phone-002 / REQ-betting-001〜006（スマホ側）。
 betting.html?demo=1
 ```
 
-「次の場面」ボタンで、他の人の番 → 自分の番 → 所持1枚・在庫0あり → 第3レースのダブル指定 → 切断 → 仕込みへ進行、の順に切り替わります。
-デモは架空データであり、実サーバとの接続やゲームルールの検証を代替しません。
+「次の場面」ボタンで、他の人の番 → 自分の番・所持0 → 自分の番・所持1枚・在庫0あり → 第3レース・ダブル指定 → 切断 → 仕込みへ進行、の順に切り替わります。
+デモは架空データであり、実サーバとの接続やゲームルールの検証を代替しません。デモ中の投票・ダブル指定は手元の状態だけを進め、サーバへは送りません。
 
 ### 実サーバへの接続
 
@@ -179,3 +191,13 @@ PUT  /betting/double {"playerId":"p1","ticketInstanceId":"t-1"}
 - 配当額は `features/payout/README.md` の観測確定表を `ticket-payouts.js` に持ちます
   （`api.md` に「payoutFaceValue は設計状態に含めない」とあるため、サーバからは受け取りません）
 - `betting.advanced` を受けたら待機表示で止まります。次画面（SCR-phone-003）は Issue #36 の範囲です
+
+## よくあるつまずき
+
+| 症状 | 確認すること |
+|------|----------------|
+| `session と player を URL に付けて` | 実接続は `?session=…&player=…`。お試しは `?demo=1` |
+| `server は http(s)://…` | スキームは http/https |
+| 他オリジンから開くと通信できない | 同期サーバ側の CORS 許可が必要 |
+| 投票できない | 自分の番・切断していない・在庫が残っていること |
+| サイドのお題が出ない | スマホには出さない。会場 Display 側の表示 |
