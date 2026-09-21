@@ -17,6 +17,12 @@ class EffectsMixin:
         self.pending=None; self.targets=[]; self.old_fallen=self.fallen[:]
         self.tie_ranks={}; self.manual=False
 
+    @property
+    def finished_entries(self):
+        return [(self.tie_ranks.get(who,rank+1),who,self.status[who])
+                for rank,who in enumerate(self.standings)
+                if who is not None and self.status[who] in ('goal','dq')]
+
     def scenario(self):
         index=(self.scenario_index+1)%5
         self.set_state('running'); self.scenario_index=index; self.manual=True; self.picker=True

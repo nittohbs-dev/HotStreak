@@ -95,6 +95,14 @@ class EffectsTest(unittest.TestCase):
         self.assertEqual(self.m.status[:2],['dq','dq'])
         self.assertEqual(self.m.tie_ranks,{0:4,1:4})
 
+    def test_live_standings_show_dq_from_bottom(self):
+        self.m.place(3,'dq')
+        self.assertEqual(self.m.finished_entries,[(4,3,'dq')])
+        self.m.place(1,'dq')
+        self.assertEqual(self.m.finished_entries,[(3,1,'dq'),(4,3,'dq')])
+        self.m.place(0,'goal')
+        self.assertEqual(self.m.finished_entries,[(1,0,'goal'),(3,1,'dq'),(4,3,'dq')])
+
     def test_all_catalog_effects_execute(self):
         for card in self.m.catalog:
             with self.subTest(card=card['id']):
