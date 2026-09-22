@@ -16,6 +16,11 @@ const IDS = [
   "player-count",
   "player-list",
   "foot-hint",
+  "seed-meta",
+  "seed-progress",
+  "hand-list",
+  "seeded-slot",
+  "status-list",
 ];
 
 class FakeNode {
@@ -29,6 +34,16 @@ class FakeNode {
     this.hidden = false;
     this.disabled = false;
     this.value = "";
+    this.style = {};
+  }
+
+  findByTag(tag) {
+    if (this.tag === tag) return this;
+    for (const child of this.children) {
+      const hit = child.findByTag(tag);
+      if (hit) return hit;
+    }
+    return null;
   }
 
   type(text) {

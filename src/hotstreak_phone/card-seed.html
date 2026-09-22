@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>カード仕込み</title>
+    <link rel="stylesheet" href="phone.css" />
+    <link rel="stylesheet" href="card-seed.css" />
+  </head>
+  <body>
+    <div id="demo-bar" class="demo-bar" hidden>
+      <span class="demo-tag">モック</span>
+      <span id="demo-scene"></span>
+      <button id="demo-next" type="button">次の場面</button>
+    </div>
+
+    <header class="head">
+      <p class="title">カードを1枚仕込む</p>
+      <p id="seed-meta" class="seed-meta"></p>
+      <p id="seed-progress" class="seed-meta"></p>
+    </header>
+
+    <main>
+      <section class="panel">
+        <h2 class="panel-title">手札</h2>
+        <ul id="hand-list" class="hand-list"></ul>
+        <div id="seeded-slot" class="seeded-slot" hidden></div>
+      </section>
+
+      <section class="panel">
+        <h2 class="panel-title">仕込み状況</h2>
+        <ul id="status-list" class="seed-player-list"></ul>
+      </section>
+    </main>
+
+    <footer class="foot">
+      <p id="notice" class="notice"></p>
+      <button id="confirm-button" class="confirm" type="button" disabled>このカードを仕込む</button>
+      <p id="foot-hint" class="hint">全員が仕込み完了、またはEnterで次へ進みます</p>
+    </footer>
+
+    <script src="card-sprite.js"></script>
+    <script src="card-seed-state.js"></script>
+    <script src="card-seed-view.js"></script>
+    <script src="card-seed-mock.js"></script>
+    <script src="card-seed-app.js"></script>
+  </body>
+</html>

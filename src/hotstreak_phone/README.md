@@ -4,8 +4,9 @@
 |------|----------|-------|------|
 | SCR-phone-001 ロビー（参加） | `lobby.html` | #24 | 参加・名前確定・参加者一覧 |
 | SCR-phone-002 マ券ドラフト | `betting.html` | #32 | 札の取得・セーフ／リスキー・第3ダブル |
+| SCR-phone-003 カード仕込み | `card-seed.html` | #36 | 手札1枚の仕込み（**モックのみ・通信なし**） |
 
-同期サーバ・Display 画面・カード仕込み以降の画面は含みません。
+同期サーバ・Display 画面・レース観戦以降の画面は含みません。
 マ券画面の会場側見た目確認は [`../hotstreak_display/BETTING_MOCK.md`](../hotstreak_display/BETTING_MOCK.md) です。
 
 ## 技術
@@ -13,8 +14,12 @@
 素の HTML / CSS / JavaScript のみ。ビルド・フレームワーク・パッケージ管理は使いません。
 `architecture.md` で Phone は「未確定」のままであり、実装としてこの構成を選びました（設計書は変更していません）。
 
-共通の色・レイアウトは `phone.css` に置き、画面固有の指定だけ `lobby.css` / `betting.css` に分けています。
+共通の色・レイアウトは `phone.css` に置き、画面固有の指定だけ `lobby.css` / `betting.css` / `card-seed.css` に分けています。
 各画面は「状態（`*-state.js`）・通信（`*-connection.js`）・描画（`*-view.js`）」の三分割で、状態はブラウザ無しでテストできます。
+
+通信の有無は画面によって違います。ロビーとマ券は通信アダプタ付き、カード仕込みは**モックのみ**です。
+Display 側が betting 以降モックで作られており（[`../hotstreak_display/CARD_SEED_MOCK.md`](../hotstreak_display/CARD_SEED_MOCK.md)）、
+「本番APIとの接続は両側のモック完成後」という方針に合わせています。
 
 ## テスト
 
@@ -201,3 +206,65 @@ PUT  /betting/double {"playerId":"p1","ticketInstanceId":"t-1"}
 | 他オリジンから開くと通信できない | 同期サーバ側の CORS 許可が必要 |
 | 投票できない | 自分の番・切断していない・在庫が残っていること |
 | サイドのお題が出ない | スマホには出さない。会場 Display 側の表示 |
+
+---
+
+# カード仕込み画面（Issue #36）
+
+SCR-phone-003 / REQ-seed-001, 003, 004（スマホ側）。手札から1枚を選んでレーシングデッキへ仕込みます。
+**モックのみで、通信は実装していません。** 会場側は [`../hotstreak_display/CARD_SEED_MOCK.md`](../hotstreak_display/CARD_SEED_MOCK.md) です。
+
+| ファイル | 役割 |
+|----------|------|
+| `card-seed.html` / `card-seed.css` | 画面骨格 |
+| `card-seed-state.js` | 選択・確定可否・進捗の数え方 |
+| `card-seed-view.js` | DOM 描画 |
+| `card-seed-mock.js` | 固定データと場面切替 |
+| `card-seed-app.js` | 起動配線 |
+| `card-sprite.js` | atlas からカード絵を切り出す（他画面からも使える） |
+
+## 起動
+
+`card-seed.html` をブラウザで開きます。モック専用なので URL パラメータは要りません（`file://` で動きます）。
+
+「次の場面」で 手札3枚・自分は未仕込み → 自分以外は全員仕込み済み → 全員仕込み済み → レースへ進行、と切り替わります。
+どの場面でも手札のタップと確定は動き、確定すると手札が1枚減って自分が「済」になります。
+固定データであり、実サーバとの接続やゲームルールの検証を代替しません。
+
+## カード素材
+
+Display と同じ `assets/images/cards/cards_atlas.png` から1枚分を切り出して表示します
+（`src/hotstreak_display/card_assets.py` と同じ素材）。素材が読めない場合は絵を隠し、効果ラベルだけで内容が分かるようにしています。
+
+手札に使うカード定義（`cardId` / `label` / `color` / `rect`）は `data/cards/catalog.json` からの**転記**で、
+`card-seed-mock.js` に置いています。`file://` で開く都合上 JSON を読み込めないためです。
+通信を入れる際は、サーバから受け取るカード情報に置き換えてください。
+
+## 同期側との接続（未実装・Issue #34 と要照合）
+
+通信は書いていませんが、**受け取る形だけ `features/card-seed/api.md` の `seed.state` に合わせて**あります。
+モックもこの形でデータを流すため、後から通信へ差し替えられます。
+
+```json
+{"type":"seed.state","payload":{
+  "phase":"card-seed","raceIndex":2,"deckCountExpected":18,
+  "hand":[{"cardId":"blue_move_3","label":"移動","color":"blue","rect":[1200,0,240,336]}],
+  "progress":[{"playerId":"p_1","displayName":"ヤマダ","seeded":false}]
+}}
+```
+
+```json
+{"type":"seed.advanced","payload":{"phase":"race"}}
+```
+
+仕込みの送信は `POST /api/sessions/{sessionId}/seed`（API-SEED-002、`{"handCardId":"…"}`）を想定しています。
+`hand` の中身は本人のみ、`progress` には他人の手札を含めません（BR-seed-004）。
+
+## 画面の決まり
+
+- 手札から1枚選ぶまで確定ボタンは押せません
+- 確定後は選び直しも再確定もできません（BR-seed-005）。手札から1枚減り、裏向きの「仕込み済み」を出します
+- 仕込んだカードの中身は出しません（BR-seed-004）。裏面は catalog の `card_back` です
+- 自分の行は、未確定で選択中なら「選択中」、それ以外は「済／未」を出します
+- 全員そろったら、レース用カード束の見込み枚数（標準18）を案内します
+- `seed.advanced` を受けたら待機表示で止まります。次画面（SCR-phone-004）は Issue #38 の範囲です
