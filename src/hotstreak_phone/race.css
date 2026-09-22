@@ -1,0 +1,206 @@
+/* SCR-phone-004 / 004b 固有。共通の土台は phone.css。 */
+.title {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+.race-meta {
+  margin: 0.15rem 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.side-prompt {
+  margin: 0.6rem 0 0;
+  padding: 0.5rem 0.75rem;
+  border-left: 3px solid var(--accent);
+  background: var(--panel);
+  font-size: 0.95rem;
+}
+
+.mascot-list,
+.bet-list,
+.sheet-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mascot {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.4rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--line);
+  border-left-width: 4px;
+  border-radius: 0.6rem;
+  background: var(--panel);
+}
+
+.mascot[data-color="blue"] {
+  border-left-color: #5b8bd6;
+}
+
+.mascot[data-color="orange"] {
+  border-left-color: #d98b5f;
+}
+
+.mascot[data-color="yellow"] {
+  border-left-color: #e0b25a;
+}
+
+.mascot[data-color="salmon"] {
+  border-left-color: #d97f86;
+}
+
+.mascot[data-out="true"] {
+  opacity: 0.5;
+}
+
+.mascot-rank {
+  min-width: 2.5rem;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.mascot-name {
+  flex: 1;
+  font-weight: 700;
+}
+
+.mascot-note {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.bet-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.bet-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 0.6rem;
+  background: var(--panel);
+}
+
+.bet-empty {
+  color: var(--muted);
+  border-style: dashed;
+}
+
+.bet-label {
+  font-weight: 700;
+}
+
+.face {
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.face-safe {
+  background: rgba(111, 182, 162, 0.18);
+  color: var(--safe);
+}
+
+.face-risky {
+  background: rgba(217, 139, 95, 0.18);
+  color: var(--risky);
+}
+
+.double-mark {
+  color: var(--accent);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.self-summary {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.25rem 0.75rem;
+  margin: 0.75rem 0 0;
+}
+
+.self-summary dt {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.self-summary dd {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+/* SCR-phone-004b: 観戦画面に重ねる小画面 */
+.sheet {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  background: rgba(10, 9, 8, 0.7);
+}
+
+.sheet-panel {
+  width: 100%;
+  max-height: 80%;
+  overflow-y: auto;
+  padding: 1rem;
+  border-radius: 1rem 1rem 0 0;
+  background: var(--bg);
+  border-top: 1px solid var(--line);
+}
+
+.sheet-head {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.sheet-title {
+  flex: 1;
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.sheet-close {
+  min-width: 2.5rem;
+  min-height: 2.5rem;
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 1.1rem;
+}
+
+.sheet-player {
+  margin-bottom: 0.75rem;
+}
+
+.sheet-player-name {
+  margin: 0 0 0.35rem;
+  font-weight: 700;
+}
+
+.sheet-player-self {
+  margin-left: 0.35rem;
+  color: var(--accent);
+  font-size: 0.8rem;
+}
+
+@media (min-width: 540px) {
+  .sheet-panel {
+    margin: 0 auto;
+    max-width: 480px;
+  }
+}
