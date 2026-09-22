@@ -5,8 +5,9 @@
 | SCR-phone-001 ロビー（参加） | `lobby.html` | #24 | 参加・名前確定・参加者一覧 |
 | SCR-phone-002 マ券ドラフト | `betting.html` | #32 | 札の取得・セーフ／リスキー・第3ダブル |
 | SCR-phone-003 カード仕込み | `card-seed.html` | #36 | 手札1枚の仕込み（**モックのみ・通信なし**） |
+| SCR-phone-004 レース観戦 | `race.html` | #38 | 自分の札・所持金・順位、全員状況（**モックのみ・通信なし**） |
 
-同期サーバ・Display 画面・レース観戦以降の画面は含みません。
+同期サーバ・Display 画面・配当画面は含みません。
 マ券画面の会場側見た目確認は [`../hotstreak_display/BETTING_MOCK.md`](../hotstreak_display/BETTING_MOCK.md) です。
 
 ## 技術
@@ -14,10 +15,10 @@
 素の HTML / CSS / JavaScript のみ。ビルド・フレームワーク・パッケージ管理は使いません。
 `architecture.md` で Phone は「未確定」のままであり、実装としてこの構成を選びました（設計書は変更していません）。
 
-共通の色・レイアウトは `phone.css` に置き、画面固有の指定だけ `lobby.css` / `betting.css` / `card-seed.css` に分けています。
+共通の色・レイアウトは `phone.css` に置き、画面固有の指定だけ `lobby.css` / `betting.css` / `card-seed.css` / `race.css` に分けています。
 各画面は「状態（`*-state.js`）・通信（`*-connection.js`）・描画（`*-view.js`）」の三分割で、状態はブラウザ無しでテストできます。
 
-通信の有無は画面によって違います。ロビーとマ券は通信アダプタ付き、カード仕込みは**モックのみ**です。
+通信の有無は画面によって違います。ロビーとマ券は通信アダプタ付き、カード仕込みとレース観戦は**モックのみ**です。
 Display 側が betting 以降モックで作られており（[`../hotstreak_display/CARD_SEED_MOCK.md`](../hotstreak_display/CARD_SEED_MOCK.md)）、
 「本番APIとの接続は両側のモック完成後」という方針に合わせています。
 
@@ -273,3 +274,56 @@ Display と同じ `assets/images/cards/cards_atlas.png` から1枚分を切り�
 - 自分の行は、未確定で選択中なら「選択中」、それ以外は「済／未」を出します
 - 全員そろったら、レース用カード束の見込み枚数（標準18）を案内します
 - `seed.advanced` を受けたら待機表示で止まります。次画面（SCR-phone-004）は Issue #38 の範囲です
+
+---
+
+# レース観戦画面（Issue #38）
+
+SCR-phone-004 / SCR-phone-004b / REQ-race-005, 006（スマホ側）。
+会場のレースを追いながら、自分のマ券・所持金・順位を見ます。**モックのみで、通信は実装していません。**
+会場側は [`../hotstreak_display/RACE_MOCK.md`](../hotstreak_display/RACE_MOCK.md) です。
+
+| ファイル | 役割 |
+|----------|------|
+| `race.html` / `race.css` | 画面骨格と小画面（004b） |
+| `race-state.js` | 順位の並べ替え・全員状況の開閉 |
+| `race-view.js` | DOM 描画 |
+| `race-mock.js` | 固定データと場面切替 |
+| `race-app.js` | 起動配線 |
+
+## 起動
+
+`race.html` をブラウザで開きます。モック専用なので URL パラメータは要りません（`file://` で動きます）。
+
+「次の場面」で レース序盤 → 順位が入れ替わる → ゴールと失格が出る → レース終了（配当へ）、と切り替わります。
+「全員の状況」を押すと SCR-phone-004b の小画面が重なります。固定データであり、レース演算の検証を代替しません。
+
+## 同期側との接続（未実装・Issue #44 と要照合）
+
+通信は書いていませんが、**受け取る形だけ `features/race/api.md` の `race.state` に合わせて**あります。
+
+```json
+{"type":"race.state","payload":{
+  "phase":"race","raceIndex":2,
+  "prompt":{"text":"コースアウトするマスコットはいる？"},
+  "mascots":[{"mascotId":"blue","displayName":"ダングル","color":"blue","rank":2,"finished":false,"disqualified":false}],
+  "players":[{"playerId":"p_1","displayName":"ヤマダ","balance":14,"rank":2,
+    "bets":[{"ticketInstanceId":"t-1","label":"ダングル","face":"risky","double":false}]}]
+}}
+```
+
+```json
+{"type":"race.finished","payload":{"phase":"payout"}}
+```
+
+`api.md` は `mascots[]` / `standingsPreview` / `myBets` を概念として挙げるだけなのでキー名は未指定です。
+このクライアントでは、全員の札一覧（SCR-phone-004b）も同じ `players[]` から読みます。
+マスコット名は `data/cards/catalog.json` の `mascot_name_mapping`（ダングル／ゴブラー／マム／ハーレー）に合わせています。
+
+## 画面の決まり
+
+- 順位はサーバの `rank` をそのまま並べます。着順の計算はクライアントで再現しません
+- ゴール済みは「ゴール」、失格は「失格」と添えて薄く表示します
+- お題は設計どおり上部に固定表示します（マ券画面では出しませんが、この画面では出します）
+- 所持金と順位は自分の分だけ大きく出し、他プレイヤーは「全員の状況」に入れます
+- `race.finished` を受けたら小画面を閉じ、配当への案内で止まります。次画面（SCR-phone-005）は Issue #41 の範囲です

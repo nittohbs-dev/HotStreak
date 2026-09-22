@@ -21,6 +21,15 @@ const IDS = [
   "hand-list",
   "seeded-slot",
   "status-list",
+  "side-prompt",
+  "mascot-rank",
+  "my-bets",
+  "my-balance",
+  "my-rank",
+  "sheet-button",
+  "all-players-sheet",
+  "sheet-list",
+  "sheet-close",
 ];
 
 class FakeNode {
