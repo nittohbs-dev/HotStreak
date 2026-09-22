@@ -56,6 +56,7 @@
       this.progress = [];
       this.deckCountExpected = 0;
       this.selectedCardId = null;
+      this.seededCard = null;
     }
 
     get me() {
@@ -134,7 +135,11 @@
         if (new Set(progress.map((p) => p.playerId)).size !== progress.length) throw new TypeError("duplicate player");
         const deckCountExpected = payload.deckCountExpected;
         if (!Number.isInteger(deckCountExpected) || deckCountExpected < 0) throw new TypeError("deckCount");
-        next = { raceIndex, hand, progress, deckCountExpected };
+        // 自分が仕込んだ札は本人にだけ見せる（BR-seed-004 の非公開は他プレイヤーに対するもの）。
+        const seededCard = payload.seededCard === undefined || payload.seededCard === null
+          ? null
+          : parseCard(payload.seededCard);
+        next = { raceIndex, hand, progress, deckCountExpected, seededCard };
       } catch (error) {
         this.error = MESSAGES.invalidState;
         return false;

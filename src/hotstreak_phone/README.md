@@ -249,9 +249,13 @@ Display と同じ `assets/images/cards/cards_atlas.png` から1枚分を切り�
 {"type":"seed.state","payload":{
   "phase":"card-seed","raceIndex":2,"deckCountExpected":18,
   "hand":[{"cardId":"blue_move_3","label":"移動","color":"blue","rect":[1200,0,240,336]}],
+  "seededCard":null,
   "progress":[{"playerId":"p_1","displayName":"ヤマダ","seeded":false}]
 }}
 ```
+
+`seededCard` は自分が仕込んだ札で、`hand` と同じく**本人にだけ**返す想定です（表向き表示に使います）。
+省略・`null` でも動き、その場合は裏面を出します。**Issue #34 との結合時に照合が必要です。**
 
 ```json
 {"type":"seed.advanced","payload":{"phase":"race"}}
@@ -263,8 +267,9 @@ Display と同じ `assets/images/cards/cards_atlas.png` から1枚分を切り�
 ## 画面の決まり
 
 - 手札から1枚選ぶまで確定ボタンは押せません
-- 確定後は選び直しも再確定もできません（BR-seed-005）。手札から1枚減り、裏向きの「仕込み済み」を出します
-- 仕込んだカードの中身は出しません（BR-seed-004）。裏面は catalog の `card_back` です
+- 確定後は選び直しも再確定もできません（BR-seed-005）。手札から1枚減り、「仕込み済み」の枠に移ります
+- 仕込んだカードは自分の画面では表向きで見せます。BR-seed-004 の非公開は他プレイヤーに対する要求で、
+  中身を伏せるのは Display 側（SCR-display-004 の裏向き束）です。サーバが札を返さない場合だけ裏面（catalog の `card_back`）にします
 - 自分の行は、未確定で選択中なら「選択中」、それ以外は「済／未」を出します
 - 全員そろったら、レース用カード束の見込み枚数（標準18）を案内します
 - `seed.advanced` を受けたら待機表示で止まります。次画面（SCR-phone-004）は Issue #38 の範囲です

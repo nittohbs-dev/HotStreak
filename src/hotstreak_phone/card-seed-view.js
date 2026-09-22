@@ -66,14 +66,17 @@
       }
     }
 
-    /* BR-seed-004: 仕込んだ札は裏向き。中身は出さない。 */
+    /* 自分の端末なので仕込んだ札は表向きで見せる。中身を伏せるのは Display 側（BR-seed-004）。
+       サーバが札を返さない場合だけ裏面にする。 */
     renderSeeded(state) {
       const slot = this.nodes.seededSlot;
       slot.hidden = !state.seeded;
       if (!state.seeded) return;
       slot.replaceChildren();
-      slot.append(sprite.cardArt(CARD_BACK_RECT, CARD_SCALE));
-      slot.append(el("p", "hand-label", "仕込み済み"));
+      const card = state.seededCard;
+      slot.append(sprite.cardArt(card ? card.rect : CARD_BACK_RECT, CARD_SCALE));
+      if (card) slot.append(el("p", "hand-label", card.label));
+      slot.append(el("p", "seeded-note", "仕込み済み（変更できません）"));
     }
 
     /* CMP-seed-012 */

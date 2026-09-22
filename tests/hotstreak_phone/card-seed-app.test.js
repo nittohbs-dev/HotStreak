@@ -52,6 +52,7 @@ test("選んで確定すると手札が減り、自分が済になる", () => {
   assert.equal(nodes["seed-progress"].textContent, "仕込み 2 / 4 人");
   assert.equal(statusOf(nodes, 0), "済");
   assert.equal(nodes["seeded-slot"].hidden, false);
+  assert.match(nodes["seeded-slot"].findByClass("hand-label").textContent, /方向転換/, "選んだ札が表向きで残る");
   assert.equal(nodes["confirm-button"].hidden, true);
 });
 

@@ -91,15 +91,41 @@ test("未選択のうちは確定できず、選ぶよう促す", () => {
   assert.match(nodes.notice.textContent, /1枚選んでください/);
 });
 
-test("確定後は裏面を出し、手札をタップしても選択が走らない", () => {
+test("仕込んだカードは自分の画面では表向きで見せる", () => {
+  const { view, nodes } = setup();
+  const state = stateOf({
+    hand: [card("blue_move_3", "移動"), card("yellow_star", "スター")],
+    progress: progress([ME, "p_2"]),
+    seededCard: card("orange_turn", "方向転換", [720, 672, 240, 336]),
+  });
+  view.render(state);
+  const slot = nodes["seeded-slot"];
+  assert.equal(slot.hidden, false);
+  assert.match(slot.findByClass("hand-label").textContent, /方向転換/, "中身が読める");
+  assert.match(slot.findByClass("seeded-note").textContent, /変更できません/);
+  assert.equal(slot.findByTag("img").style.left, "-302.4px", "選んだ札の絵を切り出す");
+});
+
+test("サーバが札を返さない場合だけ裏面にする", () => {
+  const { view, nodes } = setup();
+  view.render(
+    stateOf({
+      hand: [card("blue_move_3", "移動"), card("yellow_star", "スター")],
+      progress: progress([ME, "p_2"]),
+    })
+  );
+  const slot = nodes["seeded-slot"];
+  assert.equal(slot.findByClass("hand-label"), null, "中身のラベルは出さない");
+  assert.equal(slot.findByTag("img").style.left, "-604.8px", "裏面を切り出す");
+});
+
+test("確定後は手札をタップしても選択が走らない", () => {
   const { view, nodes, calls } = setup();
   const state = stateOf({
     hand: [card("blue_move_3", "移動"), card("yellow_star", "スター")],
     progress: progress([ME, "p_2"]),
   });
   view.render(state);
-  assert.equal(nodes["seeded-slot"].hidden, false);
-  assert.match(nodes["seeded-slot"].text, /仕込み済み/);
   assert.equal(nodes["hand-list"].children[0].dataset.locked, "true");
   nodes["hand-list"].children[0].click();
   assert.deepEqual(calls, []);

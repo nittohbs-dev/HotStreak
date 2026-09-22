@@ -70,6 +70,12 @@
   color: var(--accent);
 }
 
+.seeded-note {
+  margin: 0.2rem 0 0;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
 .seed-player-list {
   margin: 0;
   padding: 0;

@@ -30,21 +30,37 @@
         deckCountExpected: 18,
         hand: CARDS.slice(),
         progress: progress(["p_2"]),
+        seededCard: null,
       },
       overrides
     );
   }
 
+  function mySeeded(current) {
+    return current.progress.find((entry) => entry.playerId === ME).seeded;
+  }
+
   const SCENES = [
     { name: "手札3枚・自分は未仕込み", make: () => state() },
-    { name: "自分以外は全員仕込み済み", make: (current) => Object.assign(state(), {
-        hand: current.hand,
-        progress: progress(["p_2", "p_3", "p_4"].concat(current.progress.find((p) => p.playerId === ME).seeded ? [ME] : [])),
-      }) },
-    { name: "全員仕込み済み", make: (current) => Object.assign(state(), {
-        hand: current.hand.length === CARDS.length ? CARDS.slice(1) : current.hand,
-        progress: progress([ME, "p_2", "p_3", "p_4"]),
-      }) },
+    {
+      name: "自分以外は全員仕込み済み",
+      make: (current) =>
+        Object.assign(state(), {
+          hand: current.hand,
+          seededCard: current.seededCard,
+          progress: progress(["p_2", "p_3", "p_4"].concat(mySeeded(current) ? [ME] : [])),
+        }),
+    },
+    {
+      // 自分が未仕込みなら、先頭の手札を仕込んだ扱いにする。
+      name: "全員仕込み済み",
+      make: (current) =>
+        Object.assign(state(), {
+          hand: mySeeded(current) ? current.hand : current.hand.slice(1),
+          seededCard: mySeeded(current) ? current.seededCard : current.hand[0],
+          progress: progress([ME, "p_2", "p_3", "p_4"]),
+        }),
+    },
     { name: "レースへ進行", make: () => ({ advanced: true }) },
   ];
 
@@ -86,6 +102,7 @@
     /* 仕込むと手札から1枚抜け、自分が「済」になる（確定後の取り消しは無い）。 */
     sendSeed(body) {
       const next = JSON.parse(JSON.stringify(this.current));
+      next.seededCard = next.hand.find((card) => card.cardId === body.handCardId) || null;
       next.hand = next.hand.filter((card) => card.cardId !== body.handCardId);
       next.progress = next.progress.map((entry) =>
         entry.playerId === ME ? Object.assign({}, entry, { seeded: true }) : entry
