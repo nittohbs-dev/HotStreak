@@ -6,8 +6,9 @@
 | SCR-phone-002 マ券ドラフト | `betting.html` | #32 | 札の取得・セーフ／リスキー・第3ダブル |
 | SCR-phone-003 カード仕込み | `card-seed.html` | #36 | 手札1枚の仕込み（**モックのみ・通信なし**） |
 | SCR-phone-004 レース観戦 | `race.html` | #38 | 自分の札・所持金・順位、全員状況（**モックのみ・通信なし**） |
+| SCR-phone-005 配当 | `payout.html` | #41 | 着順・自分の払戻内訳・所持金順位（**モックのみ・通信なし**） |
 
-同期サーバ・Display 画面・配当画面は含みません。
+同期サーバ・Display 画面・精算の計算は含みません。
 マ券画面の会場側見た目確認は [`../hotstreak_display/BETTING_MOCK.md`](../hotstreak_display/BETTING_MOCK.md) です。
 
 ## 技術
@@ -15,10 +16,10 @@
 素の HTML / CSS / JavaScript のみ。ビルド・フレームワーク・パッケージ管理は使いません。
 `architecture.md` で Phone は「未確定」のままであり、実装としてこの構成を選びました（設計書は変更していません）。
 
-共通の色・レイアウトは `phone.css` に置き、画面固有の指定だけ `lobby.css` / `betting.css` / `card-seed.css` / `race.css` に分けています。
+共通の色・レイアウトは `phone.css` に置き、画面固有の指定だけ `lobby.css` / `betting.css` / `card-seed.css` / `race.css` / `payout.css` に分けています。
 各画面は「状態（`*-state.js`）・通信（`*-connection.js`）・描画（`*-view.js`）」の三分割で、状態はブラウザ無しでテストできます。
 
-通信の有無は画面によって違います。ロビーとマ券は通信アダプタ付き、カード仕込みとレース観戦は**モックのみ**です。
+通信の有無は画面によって違います。ロビーとマ券は通信アダプタ付き、カード仕込み・レース観戦・配当は**モックのみ**です。
 Display 側が betting 以降モックで作られており（[`../hotstreak_display/CARD_SEED_MOCK.md`](../hotstreak_display/CARD_SEED_MOCK.md)）、
 「本番APIとの接続は両側のモック完成後」という方針に合わせています。
 
@@ -326,4 +327,59 @@ SCR-phone-004 / SCR-phone-004b / REQ-race-005, 006（スマホ側）。
 - ゴール済みは「ゴール」、失格は「失格」と添えて薄く表示します
 - お題は設計どおり上部に固定表示します（マ券画面では出しませんが、この画面では出します）
 - 所持金と順位は自分の分だけ大きく出し、他プレイヤーは「全員の状況」に入れます
-- `race.finished` を受けたら小画面を閉じ、配当への案内で止まります。次画面（SCR-phone-005）は Issue #41 の範囲です
+- `race.finished` を受けたら小画面を閉じ、配当への案内で止まります。次画面は下記の配当画面（SCR-phone-005）です（画面間の接続は結合時）
+
+---
+
+# 配当画面（Issue #41）
+
+SCR-phone-005 / REQ-payout-005（スマホ側）。着順・自分の払戻内訳・全員の所持金順位を見ます。操作はなく、次へはラズパイ Enter です。
+**モックのみで、通信は実装していません。** 会場側は [`../hotstreak_display/PAYOUT_MOCK.md`](../hotstreak_display/PAYOUT_MOCK.md) です。
+
+| ファイル | 役割 |
+|----------|------|
+| `payout.html` / `payout.css` | 画面骨格 |
+| `payout-state.js` | 受信の検証・並べ替え・優勝判定・Enter 後の凍結 |
+| `payout-view.js` | DOM 描画（金額書式は `ticket-payouts.js` の `money()`） |
+| `payout-mock.js` | 固定データと場面切替 |
+| `payout-app.js` | 起動配線 |
+
+## 起動
+
+`payout.html` をブラウザで開きます。モック専用なので URL パラメータは要りません（`file://` で動きます）。
+
+「次の場面」で レース1結果 → レース3結果 → レース3・共同優勝 → Enter 後（ロビーへ）、と切り替わり、最後の次は最初に戻ります。
+金額は `features/payout/README.md` の観測確定額表と矛盾しない固定値で、精算の検証を代替しません。
+
+## 同期側との接続（未実装・Issue #40 と要照合）
+
+**受け取る形だけ `features/payout/api.md` の `payout.state` / `payout.advanced` に合わせて**あります。
+`api.md` は `standings` / `myBreakdown` / `balances[]` / `raceIndex` を概念として挙げるだけなので、キー名はこのクライアントで決めました。
+
+```json
+{"type":"payout.state","payload":{
+  "phase":"payout","raceIndex":3,
+  "standings":[{"mascotId":"blue","displayName":"ダングル","color":"blue","rank":1,"disqualified":false}],
+  "balances":[{"playerId":"p_1","displayName":"ヤマダ","balance":25,"delta":15,"rank":1}],
+  "myBreakdown":{"playerId":"p_1","total":15,"items":[
+    {"ticketInstanceId":"t-11","label":"ダングル","kind":"mascot","face":"safe","tier":"top","double":true,"amount":20}]},
+  "winners":["p_1","p_2"]
+}}
+```
+
+```json
+{"type":"payout.advanced","payload":{"phase":"betting"}}
+```
+
+- `myBreakdown` は受信者本人の分だけで、`playerId` が自分と違えば拒否します。マ券が無ければ省略できます
+- `amount` はダブル適用後の額、`delta` は下限 $0 を適用した後の実際の増減です（サーバの算出値をそのまま表示）
+- `winners` はレース3のみ参照します。同点最多は複数入れます（共同優勝・OPEN-payout-005）
+- `payout.advanced` の `phase` は `betting`（レース1–2）か `lobby`（レース3）です
+
+## 画面の決まり
+
+- 着順・所持金順位はサーバの `rank` をそのまま並べます。精算・順位付けはクライアントで再現しません
+- ダブル札の行は「★ダブル ×2」と枠で示し、マイナスも倍にした額を出します
+- 金額は増減に符号を付けます（`+$3` / `-$5` / `$0`）
+- 自分の行を強調し、レース3では優勝（同点なら「共同優勝」）の印を付けます
+- `payout.advanced` を受けたら行き先（マ券ドラフト／ロビー）を案内して止まります。以降の `payout.state` は無視します

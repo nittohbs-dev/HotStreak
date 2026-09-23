@@ -30,6 +30,11 @@ const IDS = [
   "all-players-sheet",
   "sheet-list",
   "sheet-close",
+  "payout-title",
+  "standing-list",
+  "my-total",
+  "breakdown-list",
+  "balance-list",
 ];
 
 class FakeNode {
