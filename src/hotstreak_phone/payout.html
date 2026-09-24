@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>配当</title>
+    <link rel="stylesheet" href="phone.css" />
+    <link rel="stylesheet" href="payout.css" />
+  </head>
+  <body>
+    <div id="demo-bar" class="demo-bar" hidden>
+      <span class="demo-tag">モック</span>
+      <span id="demo-scene"></span>
+      <button id="demo-next" type="button">次の場面</button>
+    </div>
+
+    <header class="head">
+      <p id="payout-title" class="title">配当</p>
+    </header>
+
+    <main>
+      <section class="panel">
+        <h2 class="panel-title">着順</h2>
+        <ol id="standing-list" class="standing-list"></ol>
+      </section>
+
+      <section class="panel">
+        <h2 class="panel-title">あなたの獲得金額</h2>
+        <p id="my-total" class="my-total"></p>
+        <ul id="breakdown-list" class="breakdown-list"></ul>
+      </section>
+
+      <section class="panel">
+        <h2 class="panel-title">プレイヤー順位</h2>
+        <ol id="balance-list" class="balance-list"></ol>
+      </section>
+    </main>
+
+    <footer class="foot">
+      <p id="notice" class="notice"></p>
+    </footer>
+
+    <script src="ticket-payouts.js"></script>
+    <script src="payout-state.js"></script>
+    <script src="payout-view.js"></script>
+    <script src="payout-mock.js"></script>
+    <script src="payout-app.js"></script>
+  </body>
+</html>
