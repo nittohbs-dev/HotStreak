@@ -26,7 +26,9 @@
 | 公開カード Display | Python 3.11+、日本語フォント | [`src/hotstreak_display/README.md`](src/hotstreak_display/README.md) |
 | マ券ドラフト Display（モック） | 同上 | [`src/hotstreak_display/BETTING_MOCK.md`](src/hotstreak_display/BETTING_MOCK.md) |
 | カード仕込み Display（モック） | 同上 | [`src/hotstreak_display/CARD_SEED_MOCK.md`](src/hotstreak_display/CARD_SEED_MOCK.md) |
-| マ券ドラフト Phone | ブラウザ（テストは Node.js 21+） | [`src/hotstreak_phone/README.md`](src/hotstreak_phone/README.md) |
+| レース進行 Display（モック） | 同上 | [`src/hotstreak_display/RACE_MOCK.md`](src/hotstreak_display/RACE_MOCK.md) |
+| 着順・結果 Display（モック） | 同上 | [`src/hotstreak_display/PAYOUT_MOCK.md`](src/hotstreak_display/PAYOUT_MOCK.md) |
+| Phone（ロビー〜配当） | ブラウザ（テストは Node.js 21+） | [`src/hotstreak_phone/README.md`](src/hotstreak_phone/README.md) |
 | 共通カード画像 | Display と同じ依存 | [`assets/images/cards/README.md`](assets/images/cards/README.md) |
 
 ```bash
@@ -37,8 +39,18 @@ cd tools/spec-browser && npm install && npm run dev
 python -m pip install -r src/hotstreak_display/requirements.txt
 python src/hotstreak_display/screens/setup_cards.py --demo --windowed
 
-# マ券ドラフトのスマホ画面デモ
-# ブラウザで src/hotstreak_phone/betting.html?demo=1 を開く
+# レース進行モック（Enter で1枚ずつめくる）
+python src/hotstreak_display/screens/race.py --windowed
+
+# スマホ：ロビーデモ（マ券へ遷移する）／仕込み・レース・配当は各 HTML を直接開く
+# ブラウザで src/hotstreak_phone/lobby.html?demo=1 を開く
 ```
 
-同期サーバ・ロビー・レース進行・配当精算は未実装です。Display / Phone のデモは架空データで描画だけ確認します。カード絵は `CardAssets` が `data/cards/catalog.json` から切り出します。素材の置き場は [`assets/README.md`](assets/README.md) です。
+**同期サーバと Display の参加受付（SCR-display-001）は未実装**です。精算の計算もサーバ側に無く、Phone の配当画面は固定金額を表示するだけです。
+
+画面間の接続は次だけです。それ以外は単独ランナー／単独 HTML です。
+
+- Phone: ロビー → マ券ドラフト（デモは `betting.html?demo=1`、実接続は `session` と `player` を渡す）
+- Display: 公開カードデモ → マ券モック（`betting.py --from-setup` のみ）
+
+カード絵は `CardAssets` が `data/cards/catalog.json` から切り出します。レース／結果の全身像は `assets/images/characters/racers-approved.png` です。素材の置き場は [`assets/README.md`](assets/README.md) です。
