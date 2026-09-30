@@ -50,6 +50,7 @@ def main():
     parser.add_argument('--font')
     parser.add_argument('--server', help='既に起動している会場サーバ（未指定なら同時起動）')
     parser.add_argument('--port', type=int, default=8000)
+    parser.add_argument('--bind-host', default='0.0.0.0', help='会場サーバーの待受アドレス')
     parser.add_argument('--public-host', help='スマホからアクセスする会場PCのIPアドレス')
     args = parser.parse_args()
     server = None
@@ -59,7 +60,7 @@ def main():
         from hotstreak_sync.server import build_app
         address = args.public_host or lan_address()
         public_base = f'http://{address}:{args.port}'
-        server = uvicorn.Server(uvicorn.Config(build_app(public_base), host='0.0.0.0', port=args.port, log_level='warning'))
+        server = uvicorn.Server(uvicorn.Config(build_app(public_base), host=args.bind_host, port=args.port, log_level='warning'))
         server_thread = threading.Thread(target=server.run, daemon=True)
         server_thread.start()
         deadline = time.monotonic()+8
@@ -67,7 +68,8 @@ def main():
             time.sleep(.05)
         if not server.started:
             raise RuntimeError('同期サーバを起動できません。ポートの使用状況を確認してください。')
-        args.server = f'http://127.0.0.1:{args.port}'
+        loopback = '[::1]' if ':' in args.bind_host else '127.0.0.1'
+        args.server = f'http://{loopback}:{args.port}'
         print(f'参加用サーバ: {public_base}', flush=True)
     connection = DisplayConnection(args.server)
     pygame.init()
@@ -93,6 +95,8 @@ def main():
                     context.update(payload)
                     print('参加URL: '+payload['joinUrl'], flush=True)
                 elif kind == 'state' and payload.get('revision', -1) >= state['revision']:
+                    if payload.get('revision', -1) > state['revision']:
+                        error = ''
                     state = payload
                 elif kind == 'connected':
                     connected, pending, error = True, False, ''
