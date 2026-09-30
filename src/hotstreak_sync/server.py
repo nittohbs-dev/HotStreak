@@ -5,6 +5,9 @@ from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from hotstreak_core.lobby import LobbyService
 from hotstreak_core.betting import BettingService
+from hotstreak_core.card_seed import CardSeedService
+from hotstreak_core.race_service import RaceService
+from hotstreak_core.payout_service import PayoutService
 from hotstreak_core.setup_cards import SetupCardsService
 from .runtime import create_app
 
@@ -12,7 +15,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 def build_app(public_base=None):
-    app = create_app([LobbyService(), SetupCardsService(), BettingService()], public_base=public_base)
+    app = create_app([LobbyService(), SetupCardsService(), BettingService(), CardSeedService(), RaceService(), PayoutService()], public_base=public_base)
 
     @app.get('/join/{sid}')
     async def join_page(sid: str):
