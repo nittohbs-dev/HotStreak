@@ -50,4 +50,4 @@ class LobbyView(DisplaySetupRoot):
                 self.text(surface, '入力済' if player.get('nameReady') else '入力中', (1080, y+3), 20)
             else:
                 self.text(surface, '— 空き枠 —', (603, y), 24, (115, 116, 120))
-        self.text(surface, '3〜8人で遊べます  /  全員の名前確定 または ENTERで開始', (235, 678), 20, (223, 191, 134))
+        self.text(surface, '3〜8人で遊べます  /  参加受付後、会場のENTERで開始', (285, 678), 20, (223, 191, 134))
