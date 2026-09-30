@@ -164,6 +164,10 @@
         this.selectedCardId = null;
         return true;
       }
+      if (kind === "disconnected") {
+        this.connected = false; this.pending = false; this.error = "接続が切れました。再接続しています…";
+        return true;
+      }
       if (kind === "error") {
         this.pending = false;
         this.error = isObject(payload) && isText(payload.message) ? payload.message : MESSAGES.invalidState;
