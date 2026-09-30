@@ -42,6 +42,7 @@ class GameSession:
     prompts: list = field(default_factory=list)
     breakdowns: dict = field(default_factory=dict)
     settled: set = field(default_factory=set)
+    draft_first: int = 0
     draft_start: int = 0
     transition_state: dict = field(default_factory=dict)
 

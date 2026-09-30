@@ -46,7 +46,7 @@ class PayoutService:
             session.breakdowns = {}
             session.rng.shuffle(session.prompts)
             session.prompt_index = 0
-            session.draft_start = 0
+            session.draft_first = session.draft_start = 0
             session.phase = 'lobby'
         else:
             if session.prompt_index + 1 >= len(session.prompts):
@@ -64,7 +64,7 @@ class PayoutService:
             session.prompt_index += 1
             session.engine = None
             session.breakdowns = {}
-            session.draft_start = (session.race_index-1) % len(session.players)
+            session.draft_start = (session.draft_first+session.race_index-1) % len(session.players)
             session.phase = 'betting'
         session.transition_state = {}
 

@@ -80,6 +80,9 @@ class SyncRuntime:
             backup = deepcopy(session.__dict__)
             old_phase = session.phase
             try:
+                if session.phase == "setup-cards" and body.get("firstPlayerId") is not None:
+                    first = session.player(body["firstPlayerId"])
+                    session.draft_first = session.draft_start = session.players.index(first)
                 service.advance(session)
                 self.complete_transition(session, old_phase)
             except Exception:
@@ -218,6 +221,48 @@ def create_app(services=None, public_base=None):
         if not isinstance(body, dict) or not key or len(key) > 128:
             raise RuleError('操作IDとJSONオブジェクトが必要です', 400)
         return await runtime.advance(sid, body, key)
+
+    async def player_action(sid, section, action, request):
+        session = runtime.get(sid)
+        body = await read_body(request)
+        pid = actor(session, request, body.get('playerId'))
+        key = request.headers.get('Idempotency-Key', '')
+        if not key or len(key) > 128:
+            raise RuleError('操作IDを指定してください', 400)
+        receipt_key = ('player', pid, key)
+        fingerprint = (section, action, body)
+        async with runtime.locks[sid]:
+            receipts = runtime.receipts[sid]
+            if receipt_key in receipts:
+                previous, result = receipts[receipt_key]
+                if previous != fingerprint:
+                    raise RuleError('操作IDが異なる操作に使われています')
+                return deepcopy(result)
+            service = next((s for s in services if s.section == section), None)
+            if service is None or not hasattr(service, 'act'):
+                raise RuleError('機能が見つかりません', 404)
+            backup = deepcopy(session.__dict__)
+            try:
+                service.act(session, action, body, pid)
+            except Exception:
+                session.__dict__.clear()
+                session.__dict__.update(backup)
+                raise
+            session.revision += 1
+            result = runtime.snapshot(session, pid)
+            receipts[receipt_key] = (deepcopy(fingerprint), deepcopy(result))
+            if len(receipts) > 1024:
+                receipts.pop(next(iter(receipts)))
+            runtime.publish(session, [service.event+'.state'])
+            return result
+
+    @app.post('/api/sessions/{sid}/betting/picks')
+    async def pick(sid: str, request: Request):
+        return await player_action(sid, 'betting', 'picks', request)
+
+    @app.put('/api/sessions/{sid}/betting/double')
+    async def double(sid: str, request: Request):
+        return await player_action(sid, 'betting', 'double', request)
 
     @app.websocket('/ws/sessions/{sid}')
     async def subscribe(ws: WebSocket, sid: str):
