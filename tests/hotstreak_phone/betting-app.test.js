@@ -7,7 +7,7 @@ const fakeDom = require("./fake-dom.js");
 const MODULES = {
   HotStreakTicketPayouts: "../../src/hotstreak_phone/ticket-payouts.js",
   HotStreakBettingState: "../../src/hotstreak_phone/betting-state.js",
-  HotStreakBettingConnection: "../../src/hotstreak_phone/betting-connection.js",
+  HotStreakLive: "../../src/hotstreak_phone/live-connection.js",
   HotStreakBettingDemo: "../../src/hotstreak_phone/betting-demo.js",
 };
 const APP = "../../src/hotstreak_phone/betting-app.js";
