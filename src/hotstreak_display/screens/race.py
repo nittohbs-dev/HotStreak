@@ -99,7 +99,7 @@ class View(DisplaySeedRoot):
 
     def draw(self, surface, model):
         self.sea(surface)
-        self.text(surface,"RACE 1 / 3",(32,28),32,(244,252,255))
+        self.text(surface,f"RACE {getattr(model, 'race_index', 1)} / 3",(32,28),32,(244,252,255))
         finishers=model.finished_entries
         if finishers:
             self.ocean_panel(surface,pygame.Rect(24,78,28+192*len(finishers),91))
