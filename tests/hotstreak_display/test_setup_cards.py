@@ -123,9 +123,13 @@ class ConnectionTests(unittest.TestCase):
 
             def do_POST(self):
                 requests.append(("POST", self.path))
+                # 本文を残して切断するとmacOSではRSTになり、応答読取が偶発的に失敗する。
+                self.rfile.read(int(self.headers.get("Content-Length", "0")))
+                body = b'{"phase":"betting"}'
                 self.send_response(200)
+                self.send_header("Content-Length", str(len(body)))
                 self.end_headers()
-                self.wfile.write(b'{"phase":"betting"}')
+                self.wfile.write(body)
 
         server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
         thread = threading.Thread(target=server.serve_forever, daemon=True)
