@@ -73,7 +73,8 @@ class DisplaySeedRoot(DisplaySetupRoot):
         self.text(surface, title, (130, 127), 24)
         self.text(surface, f"仕込み完了  {state.completed} / {state.total} 人", (824, 129), 24, (223, 191, 134))
         for i in range(state.total):
-            rect = pygame.Rect(132 + i * 168, 177, 150, 19)
+            step = 1012 // max(1, state.total)
+            rect = pygame.Rect(132 + i * step, 177, step - 12, 19)
             pygame.draw.rect(surface, (39, 42, 47), rect)
             if i < state.completed:
                 pygame.draw.rect(surface, (223, 191, 134), rect.inflate(-4, -4))
@@ -137,3 +138,13 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+class LiveView(DisplaySeedRoot):
+    """REQ-seed-003・004: 仕込み中身を表示せず、完了人数だけを同期する。"""
+    def draw_live(self, surface, snapshot, context):
+        from types import SimpleNamespace
+        progress = snapshot['progress']
+        state = SeedPreview('実プレイ', sum(p['seeded'] for p in progress), len(progress),
+                            snapshot['deckCountExpected'], snapshot['ready'])
+        self.draw(surface, SimpleNamespace(state=state, confirmed=False))

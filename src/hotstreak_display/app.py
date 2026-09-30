@@ -37,7 +37,9 @@ def japanese_font(explicit=None):
 def make_views(font):
     from .screens.setup_cards import LiveView as SetupView
     from .screens.betting import LiveView as BettingView
-    return {'lobby': LobbyView(font), 'setup-cards': SetupView(font), 'betting': BettingView(font)}
+    from .screens.card_seed import LiveView as SeedView
+    return {'lobby': LobbyView(font), 'setup-cards': SetupView(font), 'betting': BettingView(font),
+            'card-seed': SeedView(font)}
 
 
 def main():
