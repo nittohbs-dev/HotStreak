@@ -6,7 +6,7 @@
 |--------|------|------|------|---------|-------------|-----------------|
 | TST-lobby-001 | pytest | LobbyService | 参加・名前・$10 付与 | REQ-lobby-002, 003, 004 | — | tests/hotstreak_core/features/lobby/test_join_name.py |
 | TST-lobby-002 | pytest | LobbyService | 人数制限 | REQ-lobby-005 | — | tests/hotstreak_core/features/lobby/test_limits.py |
-| TST-lobby-003 | pytest | PhaseGate | 全員揃いで advance | REQ-lobby-006 | — | tests/hotstreak_core/features/lobby/test_advance_all_ready.py |
+| TST-lobby-003 | pytest | PhaseGate | 全員名前確定後も Enter まで待機 | REQ-lobby-006 | — | tests/hotstreak_core/test_lobby_sync.py |
 | TST-lobby-004 | pytest | LobbyService | Enter + プレースホルダ名 | REQ-lobby-007 | — | tests/hotstreak_core/features/lobby/test_advance_enter.py |
 | TST-lobby-005 | E2E | ロビー画面 | Phone 確定 → Display 一覧更新 | REQ-lobby-003 | SCR-phone-001, SCR-display-001 | tests/e2e/TST-lobby-005.spec.ts |
 
@@ -31,7 +31,7 @@
 |--------|-----|------|---------|
 | TST-lobby-001 | Service | join と name で balance=10 | REQ-lobby-004 |
 | TST-lobby-002 | Service | 9人目 join 拒否・2人で advance 拒否 | REQ-lobby-005 |
-| TST-lobby-003 | Domain | 全員 nameReady で遷移可能 | REQ-lobby-006 |
+| TST-lobby-003 | Domain | 全員 nameReady でも lobby を維持し、Enter で遷移 | REQ-lobby-006 |
 | TST-lobby-004 | Service | 未確定者にプレースホルダ名 | REQ-lobby-007 |
 | TST-lobby-006 | API | lobby 後の join は 409 | REQ-lobby-008 |
 

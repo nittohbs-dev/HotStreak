@@ -2,7 +2,7 @@ from fastapi.testclient import TestClient
 from hotstreak_sync.server import build_app
 
 
-def test_lobby_names_auth_and_automatic_deal():
+def test_lobby_names_wait_for_display_enter():
     app = build_app('http://192.168.1.10:8000')
     with TestClient(app) as display:
         created = display.post('/api/sessions', json={}).json()
@@ -16,7 +16,14 @@ def test_lobby_names_auth_and_automatic_deal():
             for i, (c, pid) in enumerate(zip(clients, ids)):
                 result = c.put(f'/api/sessions/{sid}/players/{pid}/name', json={'displayName': f'P{i}'})
                 assert result.status_code == 200
-                assert ws.receive_json()['type'] == ('lobby.state' if i < 2 else 'lobby.advanced')
+                assert ws.receive_json()['type'] == 'lobby.state'
+            current = display.get(f'/api/sessions/{sid}').json()
+            assert current['phase'] == 'lobby'
+            headers = {'X-Display-Token': created['displayToken'], 'Idempotency-Key': 'start'}
+            result = display.post(f'/api/sessions/{sid}/advance',
+                                  json={'phase': 'lobby', 'revision': current['revision']}, headers=headers)
+            assert result.status_code == 200
+            assert ws.receive_json()['type'] == 'lobby.advanced'
             assert ws.receive_json()['type'] == 'setup.state'
         state = display.get(f'/api/sessions/{sid}').json()
         assert state['phase'] == 'setup-cards' and len(state['faceUpCards']) == 15
