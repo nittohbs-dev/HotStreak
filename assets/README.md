@@ -39,7 +39,7 @@ ASSETS = Path(__file__).resolve().parent.parent / "assets"
 board_image = ASSETS / "images" / "board" / "main.png"
 ```
 
-カード絵の読み方と再生成は [`images/cards/README.md`](images/cards/README.md)。定義 JSON は `data/cards/catalog.json` です。
+カード絵の読み方と再生成は [`images/cards/README.md`](images/cards/README.md)。定義 JSON は `data/cards/catalog.json` です。レース／結果の全身像は `images/characters/racers-approved.png`（実ファイルの一覧は [`images/README.md`](images/README.md)）。
 
 ## 置かないもの
 

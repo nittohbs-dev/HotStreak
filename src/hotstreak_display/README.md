@@ -1,14 +1,18 @@
 # 会場ディスプレイ（Pygame）
 
-会場向け画面は 1280×720 論理解像度です。共通の部屋背景・日本語書体・カード絵は `DisplaySetupRoot` と `CardAssets` が持ちます。
+会場向け画面は 1280×720 論理解像度です。共通の部屋背景・日本語書体・カード絵は `DisplaySetupRoot` と `CardAssets` が持ちます。レース／結果の全身像は `race_sprites.py` が `assets/images/characters/racers-approved.png` から切り出します。
 
 | 画面 | 対象 | 通信 | 起動 |
 |------|------|------|------|
 | 公開カード | SCR-display-002 / Issue #27 | あり（`--demo` 以外） | `screens/setup_cards.py` |
 | マ券ドラフト | SCR-display-003 / Issue #31 | なし（固定見本） | [`BETTING_MOCK.md`](BETTING_MOCK.md) |
 | カード仕込み | SCR-display-004 / Issue #35 | なし（固定見本） | [`CARD_SEED_MOCK.md`](CARD_SEED_MOCK.md) |
+| レース進行 | SCR-display-005 / Issue #37 | なし（固定シナリオ） | [`RACE_MOCK.md`](RACE_MOCK.md) |
+| 着順・結果 | SCR-display-006 / Issue #42 | なし（固定見本） | [`PAYOUT_MOCK.md`](PAYOUT_MOCK.md) |
 
-抽選・手札配布・同期サーバ本体・ロビー・レース画面は含みません。カード絵は同梱の画像集から ID で切り出します。手順は [`assets/images/cards/README.md`](../../assets/images/cards/README.md)。
+抽選・手札配布・同期サーバ本体・参加受付（SCR-display-001）は含みません。カード絵は同梱の画像集から ID で切り出します。手順は [`assets/images/cards/README.md`](../../assets/images/cards/README.md)。
+
+画面間の接続は `betting.py --from-setup`（公開カードデモ → マ券モック）だけです。仕込みの Enter・レース結果の Enter は進行確認を出すだけで、次のスクリプトへは移りません。
 
 ## 共通の起動前提
 

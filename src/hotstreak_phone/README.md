@@ -9,7 +9,21 @@
 | SCR-phone-005 配当 | `payout.html` | #41 | 着順・自分の払戻内訳・所持金順位（**モックのみ・通信なし**） |
 
 同期サーバ・Display 画面・精算の計算は含みません。
-マ券画面の会場側見た目確認は [`../hotstreak_display/BETTING_MOCK.md`](../hotstreak_display/BETTING_MOCK.md) です。
+会場側の見た目確認はマ券 [`../hotstreak_display/BETTING_MOCK.md`](../hotstreak_display/BETTING_MOCK.md)、仕込み [`../hotstreak_display/CARD_SEED_MOCK.md`](../hotstreak_display/CARD_SEED_MOCK.md)、レース [`../hotstreak_display/RACE_MOCK.md`](../hotstreak_display/RACE_MOCK.md)、結果 [`../hotstreak_display/PAYOUT_MOCK.md`](../hotstreak_display/PAYOUT_MOCK.md) です。
+
+## 画面間の接続
+
+配線されているのは **ロビー → マ券ドラフト** だけです。
+
+| 遷移 | 実装 |
+|------|------|
+| ロビー → マ券 | デモは `betting.html?demo=1`。実接続は `server` / `session` / `player` を渡す |
+| マ券 → 仕込み | 未配線。`betting.advanced` 後は待機表示のまま |
+| 仕込み → レース | 未配線。`seed.advanced` 後は待機表示のまま |
+| レース → 配当 | 未配線。`race.finished` 後は案内表示のまま |
+| 配当 → マ券／ロビー | 未配線。`payout.advanced` 後は案内表示のまま |
+
+仕込み・レース・配当は通信も画面遷移もモック専用なので、確認するときは各 HTML を直接開きます。
 
 ## 技術
 
@@ -20,8 +34,7 @@
 各画面は「状態（`*-state.js`）・通信（`*-connection.js`）・描画（`*-view.js`）」の三分割で、状態はブラウザ無しでテストできます。
 
 通信の有無は画面によって違います。ロビーとマ券は通信アダプタ付き、カード仕込み・レース観戦・配当は**モックのみ**です。
-Display 側が betting 以降モックで作られており（[`../hotstreak_display/CARD_SEED_MOCK.md`](../hotstreak_display/CARD_SEED_MOCK.md)）、
-「本番APIとの接続は両側のモック完成後」という方針に合わせています。
+Display 側もマ券以降はモックです。「本番 API との接続は両側のモック完成後」という方針に合わせています。同期サーバ自体はまだありません。
 
 ## テスト
 
@@ -46,6 +59,15 @@ Playwright の E2E は Display と同期サーバが揃わないと成立しな�
 # ロビー画面（Issue #24）
 
 SCR-phone-001 / REQ-lobby-002〜006（スマホ側）。QR から参加し、名前を確定して参加者一覧を同期します。
+
+| ファイル | 役割 |
+|----------|------|
+| `lobby.html` / `lobby.css` | 画面骨格 |
+| `lobby-state.js` | 名前入力・名簿・進行後の手渡し |
+| `lobby-view.js` | DOM 描画 |
+| `lobby-connection.js` | POST join / PUT name / GET / WS |
+| `lobby-demo.js` | サーバ無しの場面切替 |
+| `lobby-app.js` | URL パラメータと起動配線 |
 
 ## 起動
 
@@ -99,6 +121,15 @@ join の 409 は「満員」と「受付終了」の2種類があるため、サ
 - 進行後の名簿は `lobby.advanced` の `players`、または進行後に届いた `lobby.state` のどちらからでも取り込みます。
   どちらも来ない場合は名前を出さずに待機表示のままとし、エラーにはしません（phase は `lobby` でなくなるため検証し直しません）
 - 所持金はサーバから受け取っても画面には出しません（ワイヤーに無いため）
+
+## よくあるつまずき
+
+| 症状 | 確認すること |
+|------|----------------|
+| `session を URL に付けて` | 実接続は `?session=…`。お試しは `?demo=1` |
+| `server は http(s)://…` | スキームは http/https |
+| 名前確定できない | 空文字・空白のみは送れない。確定後は入力欄を閉じる |
+| デモでマ券に飛ばない | 「次の場面」を最後まで進める。途中で名前を入れていれば「全員そろい」になる |
 
 ---
 
@@ -197,7 +228,7 @@ PUT  /betting/double {"playerId":"p1","ticketInstanceId":"t-1"}
 - 手番・在庫・所持はサーバの値をそのまま表示し、スネーク順の計算をクライアントで再現しません
 - 配当額は `features/payout/README.md` の観測確定表を `ticket-payouts.js` に持ちます
   （`api.md` に「payoutFaceValue は設計状態に含めない」とあるため、サーバからは受け取りません）
-- `betting.advanced` を受けたら待機表示で止まります。次画面（SCR-phone-003）は Issue #36 の範囲です
+- `betting.advanced` を受けたら待機表示で止まります。仕込み画面（`card-seed.html`）は別起動です。画面間の接続は上表を見てください
 
 ## よくあるつまずき
 
@@ -274,7 +305,7 @@ Display と同じ `assets/images/cards/cards_atlas.png` から1枚分を切り�
   中身を伏せるのは Display 側（SCR-display-004 の裏向き束）です。サーバが札を返さない場合だけ裏面（catalog の `card_back`）にします
 - 自分の行は、未確定で選択中なら「選択中」、それ以外は「済／未」を出します
 - 全員そろったら、レース用カード束の見込み枚数（標準18）を案内します
-- `seed.advanced` を受けたら待機表示で止まります。次画面（SCR-phone-004）は Issue #38 の範囲です
+- `seed.advanced` を受けたら待機表示で止まります。レース観戦（`race.html`）は別起動です
 
 ---
 
@@ -327,7 +358,7 @@ SCR-phone-004 / SCR-phone-004b / REQ-race-005, 006（スマホ側）。
 - ゴール済みは「ゴール」、失格は「失格」と添えて薄く表示します
 - お題は設計どおり上部に固定表示します（マ券画面では出しませんが、この画面では出します）
 - 所持金と順位は自分の分だけ大きく出し、他プレイヤーは「全員の状況」に入れます
-- `race.finished` を受けたら小画面を閉じ、配当への案内で止まります。次画面は下記の配当画面（SCR-phone-005）です（画面間の接続は結合時）
+- `race.finished` を受けたら小画面を閉じ、配当への案内で止まります。配当画面（`payout.html`）は別起動です。画面間の接続は結合時です
 
 ---
 
