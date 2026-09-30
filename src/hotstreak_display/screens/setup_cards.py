@@ -70,7 +70,7 @@ class DisplaySetupCardsScreen:
                 ) for c in raw_cards)
                 if len(cards) > 15 or (dealt and len(cards) != 18 - count):
                     raise ValueError("card count")
-                if len({c.card_id for c in cards}) != len(cards):
+                if len({c.get("cardInstanceId", c["cardId"]) for c in raw_cards}) != len(cards):
                     raise ValueError("duplicate card")
             except (KeyError, TypeError, ValueError):
                 self.dealt = False
@@ -415,3 +415,20 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+class LiveView(DisplaySetupRoot):
+    """REQ-setup-002・003・005・006: 会場アプリからの実スナップショット。"""
+    def __init__(self, font=None):
+        super().__init__(font)
+        self.screen = DisplaySetupCardsScreen(lambda: None, lambda _: None)
+
+    def draw_live(self, surface, snapshot, context):
+        self.screen.handle_message('setup.state', snapshot)
+        self.screen.pending = context.get('pending', False)
+        self.screen.connected = context.get('connected', False)
+        self.draw(surface, self.screen)
+        players = snapshot['players']
+        first = players[context['firstIndex'] % len(players)]
+        self.text(surface, f"マ券の先頭  ← {first['displayName']} →  （左右キーで選択）", (160, 92), 20,
+                  (223, 191, 134), 1000)
