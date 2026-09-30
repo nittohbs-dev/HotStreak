@@ -15,7 +15,7 @@
       this.playerId = options.playerId || null;
       this.onMessage = options.onMessage;
       const url = new URL(options.server || location.origin);
-      if (!["http:", "https:"].includes(url.protocol)) throw new Error("接続先URLが不正です");
+      if (!["http:", "https:"].includes(url.protocol)) throw new Error("server は http(s)://host[:port] 形式で指定してください");
       this.server = url.origin;
       this.base = `${this.server}/api/sessions/${encodeURIComponent(this.sessionId)}`;
       this.closed = false;
