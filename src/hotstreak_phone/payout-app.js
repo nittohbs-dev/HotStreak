@@ -1,6 +1,9 @@
-/* SCR-phone-005 の起動。モック専用で通信はしない（接続は両側のモック完成後）。 */
+/* SCR-phone-005: 本人の実精算と3レース終了後の受付復帰。 */
 (function () {
-  const newState = () => new HotStreakPayoutState.PayoutScreenState(HotStreakPayoutMock.MOCK_PLAYER_ID);
+  const params = new URLSearchParams(typeof location === "undefined" ? "" : location.search);
+  const live = params.has("session") && params.get("demo") !== "1";
+  const playerId = live ? params.get("player") : HotStreakPayoutMock.MOCK_PLAYER_ID;
+  const newState = () => new HotStreakPayoutState.PayoutScreenState(playerId);
   let state = newState();
   const view = new HotStreakPayoutView.PayoutView();
 
@@ -9,7 +12,11 @@
     view.render(state);
   };
 
-  const driver = new HotStreakPayoutMock.MockDriver(receive);
+  const driver = live ? new HotStreakLive.Connection({
+    phase: "payout", sessionId: params.get("session"), playerId,
+    server: params.get("server") || location.origin, onMessage: receive,
+  }) : new HotStreakPayoutMock.MockDriver(receive);
+  if (!live) {
   const label = document.getElementById("demo-scene");
   document.getElementById("demo-bar").hidden = false;
   document.getElementById("demo-next").addEventListener("click", () => {
@@ -18,7 +25,9 @@
     label.textContent = driver.next();
   });
   label.textContent = driver.sceneName;
+  }
 
   view.render(state);
   driver.start();
+  if (live) window.addEventListener("beforeunload", () => driver.close());
 })();
