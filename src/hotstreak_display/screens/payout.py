@@ -114,3 +114,38 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+class LiveView(View):
+    """REQ-payout-005・006: 確定着順と総合優勝をサーバ値から表示する。"""
+    def draw_live(self, surface, snapshot, context):
+        race = snapshot['raceIndex']
+        footer = 'ENTER  →  参加受付へ' if race == 3 else f'ENTER  →  レース {race+1} のマ券選びへ'
+        outcome = 'YES' if snapshot['sideBetOutcome'] else 'NO'
+        subtitle = f"{snapshot['prompt']['text']}  →  {outcome}  /  払戻の詳細はスマホへ"
+        self.chrome(surface, f'RACE {race} RESULT', subtitle, footer)
+        standings = sorted(snapshot['standings'], key=lambda m: m['rank'])
+        first = standings[0]
+        title = f"{first['displayName']}  WINNER" if first['rank'] == 1 else '着順が確定しました'
+        self.centered(surface, title, 640, 138, 44)
+        for slot, x, top in ((1, 224, 375), (0, 512, 322), (2, 800, 418)):
+            mascot = standings[slot]
+            size = (124, 126) if slot == 0 else (108, 110)
+            icon = pygame.transform.smoothscale(sprite(mascot['color']), size)
+            surface.blit(icon, icon.get_rect(midbottom=(x+128, top-8)))
+            self.panel(surface, pygame.Rect(x, top, 256, 584-top))
+            self.centered(surface, str(mascot['rank']), x+128, top+17, 44)
+            self.centered(surface, mascot['displayName'], x+128, top+80, 32)
+            if mascot['disqualified']:
+                self.centered(surface, '失格', x+128, top+125, 20)
+        self.panel(surface, pygame.Rect(44, 596, 1192, 39))
+        fourth = standings[3]
+        icon = pygame.transform.smoothscale(sprite(fourth['color']), (34, 35))
+        surface.blit(icon, (60, 597))
+        text = f"{fourth['rank']}位  {fourth['displayName']}" + ('  失格' if fourth['disqualified'] else '')
+        self.text(surface, text, (104, 601), 20, MUTED)
+        if race == 3:
+            winners = [p for p in snapshot['balances'] if p['playerId'] in snapshot['winners']]
+            names = '・'.join(p['displayName'] for p in winners)
+            label = '共同優勝' if len(winners) > 1 else '総合優勝'
+            self.text(surface, f'{label}  {names}', (475, 601), 20, GOLD, 735)
