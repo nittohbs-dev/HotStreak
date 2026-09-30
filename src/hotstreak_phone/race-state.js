@@ -138,6 +138,10 @@
         this.error = "";
         return true;
       }
+      if (kind === "disconnected") {
+        this.connected = false; this.error = "接続が切れました。再接続しています…";
+        return true;
+      }
       if (kind === "error") {
         this.error = isObject(payload) && isText(payload.message) ? payload.message : MESSAGES.invalidState;
         return true;
