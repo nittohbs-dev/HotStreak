@@ -21,9 +21,9 @@
 
 ```mermaid
 flowchart LR
-  SCR_phone_001[SCR-phone-001 ロビー] -->|全員名前確定_or_Enter| PhoneWait[Phone待機]
+  SCR_phone_001[SCR-phone-001 ロビー] -->|会場Enter| PhoneWait[Phone待機]
   PhoneWait -->|setup.advanced| SCR_phone_002[SCR-phone-002 マ券]
-  SCR_display_001[SCR-display-001 参加受付] -->|全員名前確定_or_Enter| SCR_display_002[SCR-display-002 公開カード]
+  SCR_display_001[SCR-display-001 参加受付] -->|会場Enter| SCR_display_002[SCR-display-002 公開カード]
 ```
 
 ※ 公開カード中は Phone 専用 SCR なし（待機）。SCR-display-002 は [setup-cards](../setup-cards/screens.md)、SCR-phone-002 は betting 設計で詳細化。
@@ -41,7 +41,7 @@ flowchart LR
 
 ### 目的
 
-QR 参加後に名前を確定し、参加者一覧を共有する。セットアップ完了は **全員の名前確定**、または **ラズパイ Enter**。
+QR 参加後に名前を確定し、参加者一覧を共有する。セットアップ完了は **ラズパイ Enter**。全員の名前確定後も受付を続ける。
 
 ### レイアウト
 
@@ -70,7 +70,7 @@ QR 参加後に名前を確定し、参加者一覧を共有する。セット�
 | プレイヤー4       入力中  |
 |                           |
 | [ この名前で決定 ]        |
-| 全員入力後、または        |
+| 全員の参加を確認後、      |
 | ラズパイ Enter で次へ     |
 +---------------------------+
 ```
@@ -90,7 +90,7 @@ QR 参加後に名前を確定し、参加者一覧を共有する。セット�
 | 操作 | 条件 | 結果 |
 |------|------|------|
 | 名前確定 | 非空 | API-LOBBY-004 呼び出し・参加者リスト更新・配信 |
-| 全員名前確定 | 参加者全員 nameReady | setup-cards へ（lobby.advanced） |
+| 全員名前確定 | 参加者全員 nameReady | Enter 待ちを表示し、受付を継続 |
 | ラズパイ Enter | 司会進行 | 同上（未確定はプレースホルダ名） |
 
 ---
@@ -125,7 +125,7 @@ QR を大きく示し、参加者数とアイコン／名前一覧を更新す�
 | 状態 | 見た目・振る舞い |
 |------|------------------|
 | 受付中 | QR 有効・リスト増加 |
-| 全員揃い | 進行可能（Enter または自動遷移の案内） |
+| 全員揃い | 進行可能（Enter 待ちの案内） |
 | 締め | Enter 後は受付停止・SCR-display-002 へ |
 
 ### 操作と結果
@@ -133,4 +133,4 @@ QR を大きく示し、参加者数とアイコン／名前一覧を更新す�
 | 操作 | 条件 | 結果 |
 |------|------|------|
 | （会場）ラズパイ Enter | 参加者 3 人以上 | API-LOBBY-005・setup-cards へ |
-| 全員名前確定 | 参加者全員 | 同上（揃いでも可） |
+| 全員名前確定 | 参加者全員 | Enter 待ちのまま受付を継続 |

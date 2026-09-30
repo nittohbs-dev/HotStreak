@@ -33,6 +33,7 @@ def test_full_three_races(count):
             assert display.post(base+'/advance', json=body, headers=headers).json() == result.json()
             return result.json()
 
+        assert advance()['phase'] == 'setup-cards'
         assert advance({'firstPlayerId': ids[1]})['phase'] == 'betting'
         for race in range(1, 4):
             assert state()['currentPlayerId'] == ids[(1+race-1) % count]
@@ -99,7 +100,8 @@ def test_player_auth_pending_steps_and_seed_privacy():
             state = display.get(base).json()
             return display.post(base+'/advance', json={'phase': state['phase'], 'revision': state['revision']},
                                 headers={'X-Display-Token': created['displayToken'], 'Idempotency-Key': str(uuid4())})
-        assert advance().status_code == 200
+        assert advance().status_code == 200  # ロビーを会場 Enter で締める。
+        assert advance().status_code == 200  # 公開カードからマ券選択へ進む。
         assert advance().status_code == 409  # 未取得を自動補完しない。
         body = {'ticketKind': 'mascot', 'ticketId': 'blue', 'face': 'safe'}
         assert display.post(base+'/betting/picks', json=body, headers={'Idempotency-Key': 'anonymous'}).status_code == 403

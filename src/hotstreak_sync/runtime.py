@@ -181,16 +181,12 @@ def create_app(services=None, public_base=None):
             backup = deepcopy(session.__dict__)
             try:
                 runtime.services['lobby'].name(session, pid, body.get('displayName'))
-                if len(session.players) >= 3 and all(p.name for p in session.players):
-                    runtime.services['lobby'].advance(session)
-                    runtime.complete_transition(session, 'lobby')
             except Exception:
                 session.__dict__.clear()
                 session.__dict__.update(backup)
                 raise
             session.revision += 1
-            events = ['lobby.state'] if session.phase == 'lobby' else ['lobby.advanced', 'setup.state']
-            runtime.publish(session, events)
+            runtime.publish(session, ['lobby.state'])
             return runtime.snapshot(session, pid)
 
     @app.exception_handler(RuleError)

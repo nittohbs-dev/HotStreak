@@ -18,17 +18,13 @@ sequenceDiagram
   Phone->>Sync: PUT name API-LOBBY-004
   Sync-->>Phone: WS lobby.state
   Sync-->>Display: WS lobby.state
-  alt 全員名前確定
-    Sync->>Sync: PhaseGate 全員揃い
-    Sync-->>Phone: WS lobby.advanced
-    Sync-->>Display: WS lobby.advanced
-  else Enter押下
-    Enter->>Display: Enter入力
-    Display->>Sync: POST advance API-LOBBY-005
-    Sync->>Sync: プレースホルダ名付与
-    Sync-->>Phone: WS lobby.advanced
-    Sync-->>Display: WS lobby.advanced
-  end
+  Sync-->>Phone: WS lobby.state
+  Sync-->>Display: WS lobby.state
+  Enter->>Display: Enter入力
+  Display->>Sync: POST advance API-LOBBY-005
+  Sync->>Sync: プレースホルダ名付与
+  Sync-->>Phone: WS lobby.advanced
+  Sync-->>Display: WS lobby.advanced
 ```
 
 ## 状態遷移
@@ -38,7 +34,7 @@ sequenceDiagram
 | waiting_join | 1人目 join | name_pending |
 | name_pending | 名前確定（一部） | name_pending |
 | name_pending | 全員 nameReady | all_ready |
-| all_ready | 自動または Enter | advanced |
+| all_ready | Enter | advanced |
 | name_pending | Enter（3人以上） | advanced |
 | advanced | — | setup-cards（別機能） |
 
