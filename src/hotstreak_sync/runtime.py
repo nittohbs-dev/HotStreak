@@ -264,6 +264,10 @@ def create_app(services=None, public_base=None):
     async def double(sid: str, request: Request):
         return await player_action(sid, 'betting', 'double', request)
 
+    @app.post('/api/sessions/{sid}/seed')
+    async def seed(sid: str, request: Request):
+        return await player_action(sid, 'seed', 'seed', request)
+
     @app.websocket('/ws/sessions/{sid}')
     async def subscribe(ws: WebSocket, sid: str):
         origin = ws.headers.get('origin')
