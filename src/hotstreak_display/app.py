@@ -39,8 +39,9 @@ def make_views(font):
     from .screens.betting import LiveView as BettingView
     from .screens.card_seed import LiveView as SeedView
     from .screens.race_live import LiveView as RaceView
+    from .screens.payout import LiveView as PayoutView
     return {'lobby': LobbyView(font), 'setup-cards': SetupView(font), 'betting': BettingView(font),
-            'card-seed': SeedView(font), 'race': RaceView(font)}
+            'card-seed': SeedView(font), 'race': RaceView(font), 'payout': PayoutView(font)}
 
 
 def main():
