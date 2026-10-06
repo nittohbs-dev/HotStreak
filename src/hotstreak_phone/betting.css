@@ -1,4 +1,110 @@
 /* SCR-phone-002 固有。共通の土台は phone.css。 */
+.head {
+  position: relative;
+}
+
+.head-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-bottom: 0.55rem;
+}
+
+.my-balance {
+  min-height: 2.5rem;
+  padding: 0.45rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 0.55rem;
+  color: var(--text);
+  font-weight: 700;
+}
+
+.field-cards-button {
+  min-height: 2.5rem;
+  padding: 0 0.75rem;
+  border: 1px solid var(--accent);
+  border-radius: 0.55rem;
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  font-weight: 700;
+}
+
+.field-cards-modal {
+  position: fixed;
+  z-index: 20;
+  inset: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: max(1rem, env(safe-area-inset-top)) 1rem 1rem;
+  background: rgba(5, 5, 5, 0.82);
+}
+
+.field-cards-sheet {
+  width: min(100%, 30rem);
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+  border: 1px solid var(--line);
+  border-radius: 0.85rem;
+  background: var(--bg);
+}
+
+.field-cards-head {
+  position: sticky;
+  z-index: 1;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--line);
+  background: var(--bg);
+}
+
+.field-cards-head h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.field-cards-close {
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 1.8rem;
+}
+
+.field-cards-list {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.6rem;
+  padding: 1rem;
+}
+
+.field-card {
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.field-card .card-art {
+  position: relative;
+  flex: 0 0 auto;
+  overflow: hidden;
+  border-radius: 0.3rem;
+  background: #2a261f;
+}
+
+.field-card .card-art-sheet {
+  position: absolute;
+  max-width: none;
+  transform-origin: top left;
+}
+
 .turn-status {
   margin: 0;
   font-size: 1.35rem;

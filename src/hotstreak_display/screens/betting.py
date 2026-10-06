@@ -95,7 +95,7 @@ class DisplayBettingRoot(DisplaySetupRoot):
         self.text(surface, "HOT STREAK", (1080, 42), 16, (200, 184, 144))
 
         self.panel(surface, pygame.Rect(72, 99, 1136, 87))
-        surface.blit(self.card_assets.card("event_disqualified", (58, 81)), (78, 102))
+        surface.blit(self.card_assets.card(getattr(screen, 'prompt_card', 'event_disqualified'), (58, 81)), (78, 102))
         self.text(surface, "SIDE BET  /  今回のお題", (157, 109), 20, (223, 191, 134))
         self.text(surface, state.prompt, (157, 141), 24, max_width=1020)
 
@@ -103,7 +103,7 @@ class DisplayBettingRoot(DisplaySetupRoot):
         self.text(surface, "参加者・選択状況", (94, 220), 24)
         self.text(surface, state.round_label, (364, 224), 20, (223, 191, 134), 164)
         for i, player in enumerate(state.players):
-            y = 266 + i * 53
+            y = 266 + i * min(53, 335 // max(1, len(state.players)))
             active = i == state.current_player
             if active:
                 pygame.draw.rect(surface, (56, 37, 28), (87, y - 2, 446, 49))
@@ -149,7 +149,8 @@ class DisplayBettingRoot(DisplaySetupRoot):
         if footer:
             self.panel(surface, pygame.Rect(72, 628, 1136, 48))
             self.text(surface, footer, (92, 638), 24, (223, 191, 134), 1090)
-        self.text(surface, f"MOCK  |  ← → 表示例切替：{state.label}  |  ESC 終了", (76, 689), 20, (200, 184, 144))
+        if not getattr(screen, 'live', False):
+            self.text(surface, f"MOCK  |  ← → 表示例切替：{state.label}  |  ESC 終了", (76, 689), 20, (200, 184, 144))
 
 
 def main():

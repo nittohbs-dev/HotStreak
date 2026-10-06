@@ -16,46 +16,23 @@
 
     <header class="head">
       <p class="title">レース進行中</p>
-      <p id="race-meta" class="race-meta"></p>
-      <p id="side-prompt" class="side-prompt" hidden></p>
+      <section id="race-event" class="race-event">
+        <p class="event-label">お題</p>
+        <p id="side-prompt" class="side-prompt"></p>
+      </section>
     </header>
 
     <main>
       <section class="panel">
-        <h2 class="panel-title">マスコットの順位</h2>
-        <ul id="mascot-rank" class="mascot-list"></ul>
-      </section>
-
-      <section class="panel">
-        <h2 class="panel-title">あなたのマ券</h2>
+        <h2 class="panel-title">購入したマ券</h2>
         <ul id="my-bets" class="bet-list"></ul>
-        <dl class="self-summary">
-          <dt>所持金</dt>
-          <dd id="my-balance"></dd>
-          <dt>順位</dt>
-          <dd id="my-rank"></dd>
-        </dl>
       </section>
     </main>
-
-    <footer class="foot">
-      <p id="notice" class="notice"></p>
-      <button id="sheet-button" class="confirm" type="button">全員の状況</button>
-    </footer>
-
-    <div id="all-players-sheet" class="sheet" hidden>
-      <div class="sheet-panel">
-        <div class="sheet-head">
-          <h2 class="sheet-title">全員の状況</h2>
-          <button id="sheet-close" class="sheet-close" type="button" aria-label="閉じる">×</button>
-        </div>
-        <ul id="sheet-list" class="sheet-list"></ul>
-      </div>
-    </div>
 
     <script src="race-state.js"></script>
     <script src="race-view.js"></script>
     <script src="race-mock.js"></script>
-    <script src="race-app.js"></script>
+    <script src="live.js"></script>
+  <script src="race-app.js"></script>
   </body>
 </html>

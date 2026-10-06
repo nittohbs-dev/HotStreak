@@ -37,22 +37,29 @@ class View(DisplaySeedRoot):
         if model.confirmed:
             footer = "進行確認の表示例  /  次画面への接続は未実装"
         self.chrome(surface,f"RACE {model.race} RESULT","着順が確定しました。払戻の詳細はスマホで確認してください",footer)
-        self.centered(surface,"ダングル  WINNER",640,138,44)
+        standings = getattr(model, 'standings', [dict(color=COLORS[i], displayName=NAMES[i], rank=i+1) for i in range(4)])
+        winner = '・'.join(entry['displayName'] for entry in standings if entry['rank'] == 1)
+        self.centered(surface,f"{winner}  WINNER" if winner else 'RACE RESULT',640,138,44)
         # 視線が中央の1位へ向かう表彰台。素材の色・名前は共通カタログに合わせる。
         for rank, index, x, top in ((2,1,224,375),(1,0,512,322),(3,2,800,418)):
+            entry = standings[index]
             size=(124,126) if rank==1 else (108,110)
-            icon=pygame.transform.smoothscale(sprite(COLORS[index]),size)
+            icon=pygame.transform.smoothscale(sprite(entry['color']),size)
             surface.blit(icon,icon.get_rect(midbottom=(x+128,top-8)))
             self.panel(surface,pygame.Rect(x,top,256,584-top))
-            self.centered(surface,str(rank),x+128,top+17,44)
-            self.centered(surface,NAMES[index],x+128,top+80,32)
+            self.centered(surface,str(entry['rank']),x+128,top+17,44)
+            self.centered(surface,entry['displayName'],x+128,top+80,32)
         self.panel(surface,pygame.Rect(44,596,1192,39))
         fourth = "失格  ハーレー" if model.state == "dq" else "4位  ハーレー"
-        fourth_icon=pygame.transform.smoothscale(sprite(COLORS[3]),(34,35))
+        if hasattr(model, 'standings'):
+            fourth = f"{standings[3]['rank']}位  {standings[3]['displayName']}"
+        fourth_icon=pygame.transform.smoothscale(sprite(standings[3]['color']),(34,35))
         surface.blit(fourth_icon,(60,597))
         self.text(surface,fourth,(104,601),20,MUTED)
         if model.race == 3:
             message = "総合優勝  くま・さかな（共同優勝）" if model.state == "tie" else "総合優勝  くま"
+            if hasattr(model, 'winners'):
+                message = '総合優勝  ' + '・'.join(model.winners)
             self.text(surface,message,(478,601),20,GOLD)
 
 DESCRIPTION = "着順・結果モック / Issue #42"

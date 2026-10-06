@@ -1,5 +1,6 @@
 /* SCR-phone-001 の起動。QR の URL は設計上 /join/{sessionId} だが、静的配信のため session を URL パラメータで受ける。 */
 (function () {
+  if (typeof HotStreakLive !== "undefined" && HotStreakLive.enabled) { HotStreakLive.start("lobby"); return; }
   const params = new URLSearchParams(location.search);
   const isDemo = params.get("demo") === "1";
   const server = params.get("server") || "http://127.0.0.1:8000";

@@ -70,7 +70,7 @@ class DisplaySetupCardsScreen:
                 ) for c in raw_cards)
                 if len(cards) > 15 or (dealt and len(cards) != 18 - count):
                     raise ValueError("card count")
-                if len({c.card_id for c in cards}) != len(cards):
+                if len({c.get("cardInstanceId", c["cardId"]) for c in raw_cards}) != len(cards):
                     raise ValueError("duplicate card")
             except (KeyError, TypeError, ValueError):
                 self.dealt = False

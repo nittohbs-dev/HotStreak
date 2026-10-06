@@ -1,5 +1,6 @@
 /* SCR-phone-004 の起動。モック専用で通信はしない（接続は両側のモック完成後）。 */
 (function () {
+  if (typeof HotStreakLive !== "undefined" && HotStreakLive.enabled) { HotStreakLive.start("race"); return; }
   const state = new HotStreakRaceState.RaceScreenState(HotStreakRaceMock.MOCK_PLAYER_ID);
 
   const receive = (kind, payload) => {

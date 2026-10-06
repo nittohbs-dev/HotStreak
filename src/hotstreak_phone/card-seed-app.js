@@ -1,5 +1,6 @@
 /* SCR-phone-003 の起動。モック専用で通信はしない（接続は両側のモック完成後）。 */
 (function () {
+  if (typeof HotStreakLive !== "undefined" && HotStreakLive.enabled) { HotStreakLive.start("card-seed"); return; }
   const playerId = HotStreakCardSeedMock.MOCK_PLAYER_ID;
   const state = new HotStreakCardSeedState.CardSeedScreenState(playerId);
 

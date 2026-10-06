@@ -1,5 +1,6 @@
 /* SCR-phone-002 の起動。URL パラメータで接続先と playerId を受ける（lobby 未実装のための暫定）。 */
 (function () {
+  if (typeof HotStreakLive !== "undefined" && HotStreakLive.enabled) { HotStreakLive.start("betting"); return; }
   const params = new URLSearchParams(location.search);
   const isDemo = params.get("demo") === "1";
   const server = params.get("server") || "http://127.0.0.1:8000";

@@ -10,8 +10,10 @@ CATALOG=Path(__file__).resolve().parents[3]/'data/cards/catalog.json'
 class EffectsMixin:
     def set_state(self,state):
         super().set_state(state)
-        self.lanes=list(range(4)); self.visual_lanes=list(range(4))
-        self.previous_lanes=list(range(4))
+        self.lanes=[2,0,3,1]; self.visual_lanes=self.lanes[:]
+        self.previous_lanes=self.lanes[:]
+        self.card_history=[]
+        self.history_flight=None
         self.picker=False; self.selection=0; self.scenario_index=-1
         self.catalog=[c for c in json.loads(CATALOG.read_text(encoding='utf-8'))['cards'] if c['kind']=='race']
         self.pending=None; self.targets=[]; self.old_fallen=self.fallen[:]
@@ -46,6 +48,9 @@ class EffectsMixin:
         self.targets=targets; self.active=targets[0] if targets else 0
         self.old_fallen=self.fallen[:]; self.previous=self.positions; self.previous_lanes=self.lanes[:]
         self.card_id=card_id; self.effect=effect or card['label']
+        if self.card_history:
+            self.history_flight=(self.card_history[-1], self.elapsed)
+        self.card_history.append(card_id)
         pos=list(self.positions); lanes=self.lanes[:]; fallen=self.fallen[:]
         outcomes={}; hits=set(); paths={}
         self.action='recover' if action.startswith('recover') else action
@@ -116,6 +121,7 @@ class EffectsMixin:
             self.removed=min(12,self.removed+3)
             outcomes={i:'dq' for i,x in enumerate(self.positions) if x<self.removed and self.status[i]=='racing'}
             self.remaining=15; self.deck_index=0; self.effect='再シャッフル・3枚バーン済み'
+            self.card_history=[]; self.history_flight=None; self.card_id='card_back'
         else:
             self.fallen,outcomes,hits=self.pending
             self.pending=None
@@ -126,6 +132,8 @@ class EffectsMixin:
             self.tie_ranks.update({i:lowest for i in dqs})
         for i,kind in outcomes.items(): self.place(i,kind)
         if self.finish_if_ready(): return
+        if self.action=='shorten':
+            self.action='idle'; self.state='start'; self.effect='3枚バーン済み'
         if self.remaining==0:
             self.action='shorten'; self.progress=0.; self.moving=True
             self.previous=self.positions; self.previous_lanes=self.lanes[:]

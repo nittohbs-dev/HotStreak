@@ -65,12 +65,14 @@ class EffectsTest(unittest.TestCase):
         self.assertEqual(self.m.status[0],'dq')
 
     def test_out_of_bounds_side_and_back(self):
+        self.m.lanes[0]=0
         self.play('blue_swerve_1'); self.assertEqual(self.m.status[0],'dq')
         self.m.positions=(4,1,7,4)
         self.play('orange_move_minus_2'); self.assertEqual(self.m.status[1],'dq')
 
     def test_goal_precedes_swerve_out(self):
         self.m.positions=(11,6,7,4)
+        self.m.lanes[0]=0
         self.play('blue_swerve_2')
         self.assertEqual(self.m.status[0],'goal'); self.assertEqual(self.m.lanes[0],0)
 

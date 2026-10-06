@@ -63,9 +63,23 @@
 
   function parsePlayer(raw) {
     if (!isObject(raw) || !isText(raw.playerId)) throw new TypeError("player");
+    if (raw.balance !== undefined && !isCount(raw.balance)) throw new TypeError("player balance");
     return {
       playerId: raw.playerId,
       displayName: isText(raw.displayName) ? raw.displayName : raw.playerId,
+      balance: raw.balance === undefined ? 0 : raw.balance,
+    };
+  }
+
+  function parsePublicCard(raw) {
+    if (!isObject(raw) || !isText(raw.cardInstanceId) || !isText(raw.cardId)) throw new TypeError("public card");
+    if (!Array.isArray(raw.rect) || raw.rect.length !== 4 || raw.rect.some((value) => !Number.isFinite(value))) {
+      throw new TypeError("public card rect");
+    }
+    return {
+      cardInstanceId: raw.cardInstanceId,
+      cardId: raw.cardId,
+      rect: raw.rect.slice(),
     };
   }
 
@@ -82,7 +96,9 @@
       this.turnTotal = 0;
       this.currentPlayerId = null;
       this.stock = [];
+      this.faceUpCards = [];
       this.players = [];
+      this.myBalance = 0;
       this.myPicks = [];
       this.myDoubleId = null;
       this.selectedTicketId = null;
@@ -197,6 +213,13 @@
         const stock = payload.stock.map(parseTicket);
         if (new Set(stock.map((t) => t.ticketId)).size !== stock.length) throw new TypeError("duplicate ticket");
         const players = payload.players.map(parsePlayer);
+        const me = players.find((player) => player.playerId === this.myPlayerId);
+        if (!me) throw new TypeError("viewer player");
+        if (payload.faceUpCards !== undefined && !Array.isArray(payload.faceUpCards)) throw new TypeError("public cards");
+        const faceUpCards = payload.faceUpCards === undefined ? [] : payload.faceUpCards.map(parsePublicCard);
+        if (new Set(faceUpCards.map((card) => card.cardInstanceId)).size !== faceUpCards.length) {
+          throw new TypeError("duplicate public card");
+        }
         const rawPicks = payload.picksByPlayer[this.myPlayerId];
         const myPicks = Array.isArray(rawPicks) ? rawPicks.map(parsePick) : [];
         if (myPicks.length > HELD_MAX) throw new TypeError("pick count");
@@ -213,7 +236,9 @@
           turnTotal: isCount(payload.turnTotal) ? payload.turnTotal : players.length,
           currentPlayerId: currentPlayerId === undefined ? null : currentPlayerId,
           stock,
+          faceUpCards,
           players,
+          myBalance: me.balance,
           myPicks,
           myDoubleId,
         };

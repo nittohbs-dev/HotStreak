@@ -1,5 +1,6 @@
 /* SCR-phone-005 の起動。モック専用で通信はしない（接続は両側のモック完成後）。 */
 (function () {
+  if (typeof HotStreakLive !== "undefined" && HotStreakLive.enabled) { HotStreakLive.start("payout"); return; }
   const newState = () => new HotStreakPayoutState.PayoutScreenState(HotStreakPayoutMock.MOCK_PLAYER_ID);
   let state = newState();
   const view = new HotStreakPayoutView.PayoutView();

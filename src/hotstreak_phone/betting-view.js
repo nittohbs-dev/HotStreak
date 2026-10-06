@@ -1,9 +1,9 @@
 /* CMP-betting-011〜014 の描画。サーバ由来の文字列は textContent でのみ入れる。 */
 (function (root, factory) {
-  const api = factory(root.HotStreakTicketPayouts);
+  const api = factory(root.HotStreakTicketPayouts, root.HotStreakCardSprite);
   if (typeof module === "object" && module.exports) module.exports = api;
   else root.HotStreakBettingView = api;
-})(typeof globalThis !== "undefined" ? globalThis : this, function (payouts) {
+})(typeof globalThis !== "undefined" ? globalThis : this, function (payouts, sprite) {
   const FACE_LABEL = { safe: "セーフ", risky: "リスキー" };
 
   function el(tag, className, text) {
@@ -26,17 +26,41 @@
         doubleSlots: document.getElementById("double-slots"),
         confirm: document.getElementById("confirm-button"),
         notice: document.getElementById("notice"),
+        balance: document.getElementById("my-balance"),
+        fieldButton: document.getElementById("field-cards-button"),
+        fieldModal: document.getElementById("field-cards-modal"),
+        fieldClose: document.getElementById("field-cards-close"),
+        fieldList: document.getElementById("field-cards-list"),
       };
+      this.nodes.fieldModal.hidden = true;
       this.nodes.confirm.addEventListener("click", () => this.handlers.onConfirm());
+      this.nodes.fieldButton.addEventListener("click", () => {
+        this.nodes.fieldModal.hidden = false;
+      });
+      this.nodes.fieldClose.addEventListener("click", () => {
+        this.nodes.fieldModal.hidden = true;
+      });
     }
 
     render(state) {
       this.renderTurn(state);
+      this.nodes.balance.textContent = `所持金 $${state.myBalance}`;
       this.renderMeta(state);
       this.renderList(state);
       this.renderHeld(state);
+      this.renderFieldCards(state);
       this.renderDouble(state);
       this.renderFooter(state);
+    }
+
+    renderFieldCards(state) {
+      const list = this.nodes.fieldList;
+      list.replaceChildren();
+      for (const card of state.faceUpCards) {
+        const item = el("div", "field-card");
+        if (sprite && sprite.cardArt) item.append(sprite.cardArt(card.rect, 0.27));
+        list.append(item);
+      }
     }
 
     /* CMP-betting-011 */

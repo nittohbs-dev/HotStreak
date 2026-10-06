@@ -29,6 +29,7 @@ function payload(overrides) {
         player(ME, 2, 14, [bet("t-1", "ダングル", "risky"), bet("t-2", "サイド YES", "safe", true)]),
         player("p_2", 1, 18, [bet("t-3", "ゴブラー", "safe")]),
       ],
+      myBets: [bet("t-1", "ダングル", "risky"), bet("t-2", "サイド YES", "safe", true)],
     },
     overrides
   );
@@ -49,6 +50,14 @@ test("state を受けるとお題・レース・自分の情報が入る", () =>
   assert.equal(state.playerTotal, 2);
   assert.equal(state.myBets.length, 2);
   assert.equal(state.myBets[1].double, true);
+});
+
+test("購入マ券は本人専用の myBets を優先する", () => {
+  const state = ready({
+    players: [player("p_2", 1, 18, [bet("t-3", "ゴブラー", "safe")])],
+    myBets: [bet("t-9", "マム", "risky")],
+  });
+  assert.deepEqual(state.myBets.map((bet) => bet.label), ["マム"]);
 });
 
 test("マスコットとプレイヤーはサーバの順位で並べる", () => {

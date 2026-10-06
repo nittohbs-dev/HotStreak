@@ -6,10 +6,10 @@
 })(typeof globalThis !== "undefined" ? globalThis : this, function () {
   const ME = "p1";
   const PLAYERS = [
-    { playerId: ME, displayName: "ヤマダ" },
-    { playerId: "p2", displayName: "サトウ" },
-    { playerId: "p3", displayName: "プレイヤー3" },
-    { playerId: "p4", displayName: "プレイヤー4" },
+    { playerId: ME, displayName: "ヤマダ", balance: 10 },
+    { playerId: "p2", displayName: "サトウ", balance: 10 },
+    { playerId: "p3", displayName: "プレイヤー3", balance: 10 },
+    { playerId: "p4", displayName: "プレイヤー4", balance: 10 },
   ];
 
   function stock(soldOut) {

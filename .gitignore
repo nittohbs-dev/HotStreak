@@ -5,3 +5,7 @@ tools/spec-browser/public/snapshot.json
 .playwright-mcp/
 *.log
 .DS_Store
+.hotstreak-session.json
+__pycache__/
+.pytest_cache/
+.venv/
