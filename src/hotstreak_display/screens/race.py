@@ -17,6 +17,7 @@ GOLD = (223, 191, 134)
 MUTED = (200, 184, 144)
 COLORS = ("blue", "orange", "yellow", "salmon")
 NAMES = ("ダングル", "ゴブラー", "マム", "ハーレー")
+COURSE_COLUMNS = 14
 
 class View(DisplaySeedRoot):
     def __init__(self, font_path=None):
@@ -85,9 +86,9 @@ class View(DisplaySeedRoot):
         pygame.draw.rect(surface,(3,32,60),rect.inflate(-12,-12))
 
     def point(self,col,row):
-        # 台形の4レーン×12マス。手前ほど広くする。
+        # 台形の4レーン×14マス。手前ほど広くする。
         depth=row/4
-        return (int(130-87*depth+col*(1010+164*depth)/12),int(344+depth*206))
+        return (int(130-87*depth+col*(1010+164*depth)/COURSE_COLUMNS),int(344+depth*206))
 
     def sign(self,surface,label,x,y,color):
         pygame.draw.rect(surface,(100,63,24),(x+13,y+38,7,29))
@@ -124,11 +125,12 @@ class View(DisplaySeedRoot):
             self.centered(surface,model.preview_title,625,206,24,(255,240,185))
         removed=model.removed
         # 黄金の縁、緑の盤面、白い格子。
-        corners=[self.point(removed,0),self.point(12,0),self.point(12,4),self.point(removed,4)]
+        corners=[self.point(removed,0),self.point(COURSE_COLUMNS,0),
+                 self.point(COURSE_COLUMNS,4),self.point(removed,4)]
         pygame.draw.polygon(surface,(7,42,46),[(x,y+15) for x,y in corners])
         pygame.draw.polygon(surface,(234,170,68),corners)
         for row in range(4):
-            for col in range(removed,12):
+            for col in range(removed,COURSE_COLUMNS):
                 pts=[self.point(col,row),self.point(col+1,row),self.point(col+1,row+1),self.point(col,row+1)]
                 pygame.draw.polygon(surface,(28,142,73) if (col+row)%2 else (22,125,65),pts)
                 pygame.draw.polygon(surface,(139,222,156),pts,2)
@@ -139,10 +141,13 @@ class View(DisplaySeedRoot):
             pygame.draw.line(surface,(255,245,190),self.point(2,0),self.point(2,4),4)
         for row in range(8):
             for col in range(2):
-                pts=[self.point(11.65+col*.17,row*.5),self.point(11.65+(col+1)*.17,row*.5),self.point(11.65+(col+1)*.17,(row+1)*.5),self.point(11.65+col*.17,(row+1)*.5)]
+                pts=[self.point(COURSE_COLUMNS-.35+col*.17,row*.5),
+                     self.point(COURSE_COLUMNS-.35+(col+1)*.17,row*.5),
+                     self.point(COURSE_COLUMNS-.35+(col+1)*.17,(row+1)*.5),
+                     self.point(COURSE_COLUMNS-.35+col*.17,(row+1)*.5)]
                 pygame.draw.polygon(surface,(242,245,230) if (row+col)%2 else (12,23,33),pts)
         for edge in (0,4):
-            for col in range(removed*2,24):
+            for col in range(removed*2,COURSE_COLUMNS*2):
                 x,y=self.point(col/2,edge)
                 pygame.draw.rect(surface,(81,66,28),(x-3,y-4,43,15))
                 pygame.draw.rect(surface,(249,204,103),(x,y-5,38,9),border_radius=3)
@@ -150,7 +155,7 @@ class View(DisplaySeedRoot):
         for i,pos in enumerate(model.visual_positions):
             if model.status[i] != 'racing':
                 continue
-            x,y=self.point(min(pos,12)+.3,model.visual_lanes[i]+.5)
+            x,y=self.point(min(pos,COURSE_COLUMNS)+.3,model.visual_lanes[i]+.5)
             pose='run' if model.moving and i in model.targets else 'idle'
             tilt=0
             if model.action=='fall' and i in model.targets and model.moving:
@@ -279,7 +284,7 @@ class RaceState:
         self.facing=[1]*4
         self.fallen=[state=='fall',False,False,False]
         self.positions=(2,2,2,2) if state=='start' else (8,5,7,3)
-        if state=='finish': self.positions=(12,11,12,12)
+        if state=='finish': self.positions=(14,13,14,14)
         self.visual_positions=list(self.positions)
         self.previous=self.positions
         self.card_id='blue_fall' if state=='fall' else 'card_back'

@@ -6,6 +6,8 @@ import pygame
 COLORS=('blue','orange','yellow','salmon')
 NAMES=('ダングル','ゴブラー','マム','ハーレー')
 CATALOG=Path(__file__).resolve().parents[3]/'data/cards/catalog.json'
+COURSE_COLUMNS=14
+FINAL_SPACE=COURSE_COLUMNS-1
 
 class EffectsMixin:
     def set_state(self,state):
@@ -31,8 +33,8 @@ class EffectsMixin:
         setups=[('自由に効果確認',(4,6,7,4),[1,1,2,3],[False]*4),
                 ('衝突・再転倒',(4,6,7,4),[1,1,2,3],[False,True,False,False]),
                 ('転倒・逆向き',(4,6,7,4),[0,1,2,3],[True,False,True,False]),
-                ('ゴール・コース外',(11,10,1,2),[0,1,2,3],[False]*4),
-                ('全員カード',(10,10,9,9),[1,1,2,3],[False,True,False,True])]
+                ('ゴール・コース外',(13,12,1,2),[0,1,2,3],[False]*4),
+                ('全員カード',(12,12,11,11),[1,1,2,3],[False,True,False,True])]
         title,positions,lanes,fallen=setups[index]
         self.positions=positions; self.visual_positions=list(positions); self.previous=positions
         self.lanes=lanes; self.visual_lanes=lanes[:]; self.previous_lanes=lanes[:]
@@ -65,7 +67,7 @@ class EffectsMixin:
                 if action.startswith('recover'):
                     fallen[i]=False; self.facing[i]=1
                 if action=='star':
-                    stars=[x for x in (0,5,8,12) if (x-start)*self.facing[i]>0]
+                    stars=[x for x in (0,5,8,COURSE_COLUMNS) if (x-start)*self.facing[i]>0]
                     dest=(min(stars) if self.facing[i]>0 else max(stars)) if stars else start
                     delta=dest-start
                 else:
@@ -73,12 +75,12 @@ class EffectsMixin:
                     delta=amount*self.facing[i]
                 if fallen[i] and delta: delta=1 if delta>0 else -1
                 dest=start+delta
-                if group: dest=min(11,dest)
+                if group: dest=min(FINAL_SPACE,dest)
                 direction=1 if dest>start else -1
                 for x in range(start+direction,dest+direction,direction) if dest!=start else []:
                     path.append((x,lane))
-                    if x>=12:
-                        outcomes[i]='goal'; dest=12; break
+                    if x>=COURSE_COLUMNS:
+                        outcomes[i]='goal'; dest=COURSE_COLUMNS; break
                     if x<self.removed:
                         outcomes[i]='dq'; dest=x; break
                 pos[i]=dest
@@ -118,7 +120,7 @@ class EffectsMixin:
         if self.progress<1: return
         self.moving=False
         if self.action=='shorten':
-            self.removed=min(12,self.removed+3)
+            self.removed=min(COURSE_COLUMNS,self.removed+3)
             outcomes={i:'dq' for i,x in enumerate(self.positions) if x<self.removed and self.status[i]=='racing'}
             self.remaining=15; self.deck_index=0; self.effect='再シャッフル・3枚バーン済み'
             self.card_history=[]; self.history_flight=None; self.card_id='card_back'

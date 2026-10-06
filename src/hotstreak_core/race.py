@@ -3,12 +3,19 @@ from dataclasses import dataclass
 from random import Random
 from .cards import COLORS, NAMES
 
+COURSE_COLUMNS = 14
+START_POSITION = 2
+STAR_POSITIONS = (0, 5, 8, COURSE_COLUMNS)
+FINAL_STRETCH_START = COURSE_COLUMNS - 3
+FINAL_SPACE = COURSE_COLUMNS - 1
+SHORTEN_STEP = 3
+
 
 @dataclass
 class Mascot:
     color: str
     lane: int
-    position: int = 2
+    position: int = START_POSITION
     facing: int = 1
     fallen: bool = False
     status: str = 'racing'
@@ -65,19 +72,20 @@ class RaceEngine:
             self.facts.add('same_space')
         if sum(m.fallen for m in active) >= 2:
             self.facts.add('fallen_two')
-        if sum(m.position == 11 for m in active) >= 2:
+        if sum(m.position == FINAL_SPACE for m in active) >= 2:
             self.facts.add('finish_two')
 
     def move(self, mascot, delta, group=False):
         direction = 1 if delta > 0 else -1
         for _ in range(abs(delta)):
-            if group and mascot.position + direction >= 12:
+            if group and mascot.position + direction >= COURSE_COLUMNS:
                 break
             previous = mascot.position
             mascot.position += direction
-            if mascot.fallen and (9 <= previous <= 11 or 9 <= mascot.position <= 11):
+            if mascot.fallen and (FINAL_STRETCH_START <= previous <= FINAL_SPACE
+                                  or FINAL_STRETCH_START <= mascot.position <= FINAL_SPACE):
                 self.facts.add('crawl_final')
-            if mascot.position >= 12:
+            if mascot.position >= COURSE_COLUMNS:
                 mascot.status = 'goal'
                 self.events.append(dict(kind='goal', mascotId=mascot.color))
                 break
@@ -116,7 +124,7 @@ class RaceEngine:
                 if action.startswith('recover_'):
                     m.fallen, m.facing = False, 1
                 if action == 'star':
-                    ahead = [p for p in (0, 5, 8, 12)
+                    ahead = [p for p in STAR_POSITIONS
                              if p >= self.removed and (p-m.position)*m.facing > 0]
                     dest = (min(ahead) if m.facing > 0 else max(ahead)) if ahead else m.position
                     delta = dest-m.position
@@ -144,7 +152,8 @@ class RaceEngine:
             slot = self.slots.index(None)
             self.slots[slot] = m.color
             m.rank = slot+1
-            if slot == 0 and not any(o.status == 'racing' and o.position >= 9 for o in self.mascots):
+            if slot == 0 and not any(o.status == 'racing' and o.position >= FINAL_STRETCH_START
+                                     for o in self.mascots):
                 self.facts.add('empty_final')
         if dqs:
             lowest = max(i for i, item in enumerate(self.slots) if item is None)+1
@@ -161,7 +170,7 @@ class RaceEngine:
             self.finished = True
 
     def shorten(self):
-        self.removed = min(12, self.removed+3)
+        self.removed = min(COURSE_COLUMNS, self.removed+SHORTEN_STEP)
         self.events.append(dict(kind='shorten', removed=self.removed))
         for m in self.mascots:
             if m.position < self.removed:
@@ -199,7 +208,8 @@ class RaceEngine:
 
     def public(self):
         return dict(mascots=[m.public() for m in self.mascots],
-                    course=dict(lanes=4, columns=12, start=2, stars=[0, 5, 8, 12], removed=self.removed),
+                    course=dict(lanes=4, columns=COURSE_COLUMNS, start=START_POSITION,
+                                stars=list(STAR_POSITIONS), removed=self.removed),
                     currentCard=self.current.public() if self.current else None,
                     remaining=len(self.deck), revealed=self.revealed, events=list(self.events),
                     revealedCards=[c.public() for c in self.history],

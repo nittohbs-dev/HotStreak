@@ -71,7 +71,7 @@ class EffectsTest(unittest.TestCase):
         self.play('orange_move_minus_2'); self.assertEqual(self.m.status[1],'dq')
 
     def test_goal_precedes_swerve_out(self):
-        self.m.positions=(11,6,7,4)
+        self.m.positions=(13,6,7,4)
         self.m.lanes[0]=0
         self.play('blue_swerve_2')
         self.assertEqual(self.m.status[0],'goal'); self.assertEqual(self.m.lanes[0],0)
@@ -81,10 +81,10 @@ class EffectsTest(unittest.TestCase):
         self.play('blue_star'); self.assertEqual(self.m.status[0],'goal')
 
     def test_green_no_collisions_no_goal(self):
-        self.m.positions=(10,11,10,10); self.m.lanes=[1,1,1,1]
+        self.m.positions=(12,13,12,12); self.m.lanes=[1,1,1,1]
         self.m.fallen[1]=True
         self.play('green_move_3')
-        self.assertEqual(self.m.positions,(11,11,11,11))
+        self.assertEqual(self.m.positions,(13,13,13,13))
         self.assertEqual(self.m.status,['racing']*4)
         self.assertEqual(self.m.fallen,[False,True,False,False])
 
