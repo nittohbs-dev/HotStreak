@@ -18,6 +18,7 @@ MUTED = (200, 184, 144)
 COLORS = ("blue", "orange", "yellow", "salmon")
 NAMES = ("ダングル", "ゴブラー", "マム", "ハーレー")
 COURSE_COLUMNS = 14
+STAR_COLUMNS = (0, 6, 13)
 
 class View(DisplaySeedRoot):
     def __init__(self, font_path=None):
@@ -134,7 +135,7 @@ class View(DisplaySeedRoot):
                 pts=[self.point(col,row),self.point(col+1,row),self.point(col+1,row+1),self.point(col,row+1)]
                 pygame.draw.polygon(surface,(28,142,73) if (col+row)%2 else (22,125,65),pts)
                 pygame.draw.polygon(surface,(139,222,156),pts,2)
-                if col in (0,5,8):
+                if col in STAR_COLUMNS:
                     x,y=self.point(col+.5,row+.5)
                     self.centered(surface,"★",x,y-17,32,(249,244,168))
         if removed<=2:

@@ -8,6 +8,7 @@ NAMES=('ダングル','ゴブラー','マム','ハーレー')
 CATALOG=Path(__file__).resolve().parents[3]/'data/cards/catalog.json'
 COURSE_COLUMNS=14
 FINAL_SPACE=COURSE_COLUMNS-1
+STAR_POSITIONS=(0,6,13,COURSE_COLUMNS)
 
 class EffectsMixin:
     def set_state(self,state):
@@ -67,7 +68,7 @@ class EffectsMixin:
                 if action.startswith('recover'):
                     fallen[i]=False; self.facing[i]=1
                 if action=='star':
-                    stars=[x for x in (0,5,8,COURSE_COLUMNS) if (x-start)*self.facing[i]>0]
+                    stars=[x for x in STAR_POSITIONS if (x-start)*self.facing[i]>0]
                     dest=(min(stars) if self.facing[i]>0 else max(stars)) if stars else start
                     delta=dest-start
                 else:
