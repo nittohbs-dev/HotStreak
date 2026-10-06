@@ -13,10 +13,10 @@ class EffectsTest(unittest.TestCase):
         self.m.update(1.2)
 
     def test_star_forward_back_and_no_next(self):
-        self.play('blue_star'); self.assertEqual(self.m.positions[0],6)
+        self.play('blue_star'); self.assertEqual(self.m.positions[0],7)
         self.m.facing[0]=-1
-        self.play('blue_star'); self.assertEqual(self.m.positions[0],0)
-        self.play('blue_star'); self.assertEqual(self.m.positions[0],0)
+        self.play('blue_star'); self.assertEqual(self.m.positions[0],2)
+        self.play('blue_star'); self.assertEqual(self.m.positions[0],2)
 
     def test_negative_reverses_with_facing(self):
         self.play('blue_move_minus_2'); self.assertEqual(self.m.positions[0],2)
@@ -77,7 +77,7 @@ class EffectsTest(unittest.TestCase):
         self.assertEqual(self.m.status[0],'goal'); self.assertEqual(self.m.lanes[0],0)
 
     def test_star_can_goal(self):
-        self.m.positions=(13,6,7,4)
+        self.m.positions=(9,6,7,4)
         self.play('blue_star'); self.assertEqual(self.m.status[0],'goal')
 
     def test_green_no_collisions_no_goal(self):

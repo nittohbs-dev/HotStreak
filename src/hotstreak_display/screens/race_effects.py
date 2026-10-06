@@ -8,7 +8,7 @@ NAMES=('ダングル','ゴブラー','マム','ハーレー')
 CATALOG=Path(__file__).resolve().parents[3]/'data/cards/catalog.json'
 COURSE_COLUMNS=14
 FINAL_SPACE=COURSE_COLUMNS-1
-STAR_POSITIONS=(0,6,13,COURSE_COLUMNS)
+STAR_POSITIONS=(2,7,9,COURSE_COLUMNS)
 
 class EffectsMixin:
     def set_state(self,state):

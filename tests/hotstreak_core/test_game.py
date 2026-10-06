@@ -24,7 +24,7 @@ def test_course_has_14_columns_including_starting_position():
     e = engine()
     course = e.public()['course']
     assert course == dict(lanes=4, columns=14, start=2,
-                          stars=[0, 6, 13, 14], removed=0)
+                          stars=[2, 7, 9], removed=0)
     assert all(m.position == 2 for m in e.mascots)
     e.move(e.mascots[0], 11)
     assert e.mascots[0].position == 13 and e.mascots[0].status == 'racing'
@@ -51,17 +51,17 @@ def test_collision_knockout_and_rank_from_bottom():
 def test_star_fallen_reverse_recover_and_swerve():
     e = engine()
     play(e, 'blue_star')
-    assert e.mascots[0].position == 6
+    assert e.mascots[0].position == 7
     play(e, 'blue_turn')
     play(e, 'blue_star')
-    assert e.mascots[0].position == 0
+    assert e.mascots[0].position == 2
     play(e, 'blue_recover_2')
-    assert e.mascots[0].position == 2 and e.mascots[0].facing == 1
+    assert e.mascots[0].position == 4 and e.mascots[0].facing == 1
     play(e, 'blue_fall')
     play(e, 'blue_star')
-    assert e.mascots[0].position == 3
+    assert e.mascots[0].position == 5
     play(e, 'blue_swerve_3')
-    assert e.mascots[0].position == 4
+    assert e.mascots[0].position == 6
     assert e.mascots[0].rank == 4
 
 

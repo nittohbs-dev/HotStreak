@@ -18,7 +18,7 @@ MUTED = (200, 184, 144)
 COLORS = ("blue", "orange", "yellow", "salmon")
 NAMES = ("ダングル", "ゴブラー", "マム", "ハーレー")
 COURSE_COLUMNS = 14
-STAR_COLUMNS = (0, 6, 13)
+STAR_COLUMNS = (2, 7, 9)
 
 class View(DisplaySeedRoot):
     def __init__(self, font_path=None):

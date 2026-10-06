@@ -5,7 +5,8 @@ from .cards import COLORS, NAMES
 
 COURSE_COLUMNS = 14
 START_POSITION = 2
-STAR_POSITIONS = (0, 6, 13, COURSE_COLUMNS)
+STAR_POSITIONS = (2, 7, 9)
+STAR_TARGETS = (*STAR_POSITIONS, COURSE_COLUMNS)
 FINAL_STRETCH_START = COURSE_COLUMNS - 3
 FINAL_SPACE = COURSE_COLUMNS - 1
 SHORTEN_STEP = 3
@@ -124,7 +125,7 @@ class RaceEngine:
                 if action.startswith('recover_'):
                     m.fallen, m.facing = False, 1
                 if action == 'star':
-                    ahead = [p for p in STAR_POSITIONS
+                    ahead = [p for p in STAR_TARGETS
                              if p >= self.removed and (p-m.position)*m.facing > 0]
                     dest = (min(ahead) if m.facing > 0 else max(ahead)) if ahead else m.position
                     delta = dest-m.position
