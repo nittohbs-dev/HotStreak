@@ -4,40 +4,42 @@
 
 ```mermaid
 sequenceDiagram
-  participant Sync as Sync_server
+  participant Host as 司会
   participant Display as Display_Pi
+  participant Sync as Sync_server
   participant Phone as Phone_Web
-
-  Note over Sync: seed.advanced → race
-  Sync->>Sync: startRace バーン
-  Sync-->>Display: WS race.state fx=burn
-  Sync-->>Phone: WS race.state
-  loop Enterごとに1枚
-    Note over Display: Enter押下（長押し・処理中は無視）
-    Display->>Sync: 1枚めくり要求（通信契約は未定）
-    Sync->>Sync: resolveNextCard
-    Sync-->>Display: WS race.state
-    Sync-->>Phone: WS race.state
-    opt 山切れ
-      Sync->>Sync: shortenCourse
-      Sync-->>Display: WS race.state fx=shorten
+  Sync-->>Display: race状態（バーン済み）
+  Note over Display: GO後、OFFで待機
+  Host->>Display: Enter（ON）
+  loop ONかつraceの間、1件ずつ
+    Display->>Sync: POST advance（phase, revision, 操作ID）
+    Sync->>Sync: カード効果・短縮・終了の判定
+    Sync-->>Display: 確定状態
+    Sync-->>Phone: 既存の状態通知
+    Note over Display: カード公開1.60秒 → 効果演出 → 短縮演出
+    opt Enterによる停止
+      Host->>Display: Enter（OFF）
+      Note over Display: 今の要求・演出を完了し、次は送らない
     end
+    Note over Display: ONかつraceなら演出完了後0.5秒で次の要求
   end
-  Sync->>Sync: finishRace
-  Sync-->>Display: WS race.finished
-  Sync-->>Phone: WS race.finished
+  Note over Display: 終了時はOFF、最終演出後に配当表示
 ```
 
 ## 状態遷移
 
 | 状態 | イベント | 次の状態 |
 |------|----------|----------|
-| starting | burn+GO | waiting |
-| waiting | Display Enter | resolving |
-| resolving | card resolved | waiting |
-| resolving | deck empty | shortening |
-| shortening | done | waiting |
-| resolving | 3 finished | finished |
-| finished | — | payout |
+| starting | burn+GO | paused（OFF） |
+| paused | Enter | running（ON、1枚要求） |
+| running | 応答・全演出完了 | interval（ON、0.5秒待機） |
+| interval | 0.5秒経過 | running（次の1枚要求） |
+| running | Enter | stopping（OFF、処理済みカードの演出を完了） |
+| interval | Enter | paused（OFF、次は送らない） |
+| stopping | 全演出完了 | paused |
+| stopping | Enter | running（ON、現在の要求・演出完了を待つ） |
+| running / interval / stopping / paused | 通信失敗・操作エラー・フォーカス喪失 | OFF（送信済みの確定結果のみ反映） |
+| OFF（通信確認中） | 最新状態取得 | paused（Enterで再開） |
+| 任意 | race以外の状態受信 | OFF（最終演出後に次フェーズを表示） |
 
-フェーズ: `race` → `payout`。
+フェーズ: `race` → `payout`。ON/OFFはフェーズを変更しない。新しいレースとアプリ再起動は必ずOFF。長押しのキーリピートは状態遷移を起こさない。

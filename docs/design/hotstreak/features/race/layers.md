@@ -11,7 +11,7 @@
 | Domain | CLS-HS-012 | 効果解決・終了判定 | race.finished |
 | Service | CLS-race-001 | レースループ・配信 | API-RACE-001, 002 |
 | API | CLS-race-002 | REST / WS | API-RACE-001, 002 |
-| UI | CLS-race-010 | Display 演出 | API-RACE-001, 002 |
+| UI | CLS-race-010 | Display 演出・自動進行状態・Enter切替・次カード要求の直列制御 | API-RACE-001, 002 |
 | UI | CLS-race-011 | Phone 観戦 | API-RACE-001 |
 
 ## 主要メソッド
