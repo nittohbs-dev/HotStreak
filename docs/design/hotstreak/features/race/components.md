@@ -22,7 +22,7 @@ flowchart TD
 
 | CMP-ID | 名前 | 役割 | 親 | 主な入出力 |
 |--------|------|------|-----|------------|
-| CMP-race-001 | DisplayRaceRoot | Display レース画面 | — | race.state |
+| CMP-race-001 | DisplayRaceRoot | Display レース画面・自動進行状態と操作案内 | — | race.state, Enter, 演出完了, 通信状態 |
 | CMP-race-002 | CourseProgressBar | START〜GOAL | CMP-race-001 | mascots |
 | CMP-race-003 | CurrentCardPanel | 今回のカード | CMP-race-001 | currentCard |
 | CMP-race-004 | CourseBoard | コースと駒 | CMP-race-001 | course, mascots |
