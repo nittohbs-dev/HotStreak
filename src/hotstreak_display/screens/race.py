@@ -237,8 +237,8 @@ class View(DisplaySeedRoot):
                                                     round(center[1] - 100 + rect.centery + dy)))
                     surface.blit(fragment, dest)
         else:
-            # 0.12秒だけ完成形を見せ、0.20秒で通常枠へ。
-            t = max(0., min(1., (elapsed - .62) / .20))
+            # 0.90秒完成形を見せ、0.20秒で通常枠へ。
+            t = max(0., min(1., (elapsed - 1.40) / .20))
             t = t * t * (3 - 2 * t)
             size = (round(144 + (87 - 144) * t), round(200 + (122 - 200) * t))
             image = pygame.transform.smoothscale(card, size)

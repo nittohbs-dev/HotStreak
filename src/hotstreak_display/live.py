@@ -58,7 +58,7 @@ class RacePresentation(RaceModel):
         super().__init__(SimpleNamespace(state='start'))
         self.snapshot = snapshot
         self.race = snapshot['raceIndex']
-        self.reveal_elapsed = .82
+        self.reveal_elapsed = 1.60
         self.reveal_snapshot = None
         self.pending_collapse = None
         self.apply(snapshot['mascots'])
@@ -132,9 +132,9 @@ class RacePresentation(RaceModel):
         self.elapsed += dt
         if self.revealing:
             self.reveal_elapsed += dt
-            if self.reveal_elapsed < .82:
+            if self.reveal_elapsed < 1.60:
                 return
-            dt = self.reveal_elapsed - .82
+            dt = self.reveal_elapsed - 1.60
             snapshot, self.reveal_snapshot = self.reveal_snapshot, None
             self.begin_effect(snapshot)
         if not self.moving:

@@ -81,7 +81,10 @@ def test_card_reveal_holds_positions_until_card_is_complete():
     assert model.reveal_elapsed == .4
     assert model.revealing and model.moving
     assert model.visual_positions == positions
-    model.update(.43)
+    model.update(.9)
+    assert model.revealing and model.moving
+    assert model.visual_positions == positions
+    model.update(.31)
     assert not model.revealing
     assert model.card_id == snapshot['currentCard']['cardId']
     model.update(4.)
