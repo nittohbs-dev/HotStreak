@@ -10,6 +10,7 @@
     const storageKey = `hotstreak-player-${session}`;
     let playerId = sessionStorage.getItem(storageKey) || '';
     let state, view, ws, timer, stopped = false, revision = -1, busy = false;
+    let refreshTimer, refreshing = false;
     const render = () => view.render(state);
     const error = (message) => {
       state.pending = false;
@@ -28,7 +29,7 @@
       return false;
     };
     const receive = (snapshot) => {
-      if (snapshot.revision < revision || redirect(snapshot.phase)) return;
+      if (stopped || snapshot.revision < revision || redirect(snapshot.phase)) return;
       revision = snapshot.revision;
       if (snapshot.viewerPlayerId) {
         playerId = snapshot.viewerPlayerId;
@@ -48,11 +49,23 @@
       }
       render();
     };
-    async function fetchState() {
-      const res = await fetch(base, { cache: 'no-store' });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || '状態を取得できません');
-      receive(data);
+    async function fetchState(onlyChanged = false) {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 5000);
+      try {
+        const res = await fetch(base, { cache: 'no-store', signal: controller.signal });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || '状態を取得できません');
+        // 定期確認で未確定の札選択や入力を上書きしない。
+        if (!onlyChanged || data.revision > revision || !state.connected) receive(data);
+      } finally { clearTimeout(timeout); }
+    }
+    async function refresh() {
+      if (stopped || refreshing || busy || document.visibilityState === 'hidden') return;
+      refreshing = true;
+      try { await fetchState(true); }
+      catch (_) { /* WebSocketの再接続を妨げず、次の確認で復旧する。 */ }
+      finally { refreshing = false; }
     }
     async function send(method, suffix, body) {
       if (!body || busy || !state.connected) return;
@@ -137,7 +150,28 @@
         timer = setTimeout(connect, 1000);
       }
     }
-    window.addEventListener('beforeunload', () => { stopped = true; clearTimeout(timer); if (ws) ws.close(); });
+    // Safariでは画面復帰後もWebSocketがOPENのまま通知が止まることがある。
+    // 通知とは別に本人の最新状態を確認し、手動再読込を不要にする。
+    const startRefresh = () => {
+      clearInterval(refreshTimer);
+      refreshTimer = setInterval(refresh, 2000);
+    };
+    document.addEventListener('visibilitychange', refresh);
+    window.addEventListener('online', refresh);
+    window.addEventListener('pagehide', () => {
+      stopped = true;
+      clearTimeout(timer);
+      clearInterval(refreshTimer);
+      if (ws) ws.close();
+    });
+    window.addEventListener('pageshow', event => {
+      if (!event.persisted) return;
+      stopped = false;
+      startRefresh();
+      refresh();
+      connect();
+    });
+    startRefresh();
     connect();
   }
 })();
