@@ -207,7 +207,7 @@ def create_app(session_factory=GameSession):
     @app.get('/join/{sid}')
     async def join_page(sid: str):
         room(sid)
-        return RedirectResponse(f'/phone/lobby.html?session={sid}')
+        return RedirectResponse(f'/phone/lobby.html?session={sid}&connection=session')
 
     app.mount('/assets', StaticFiles(directory=ROOT/'assets'), name='assets')
     app.mount('/phone', StaticFiles(directory=ROOT/'src/hotstreak_phone', html=True), name='phone')

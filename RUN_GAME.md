@@ -17,7 +17,7 @@ python -m venv .venv
 powershell -ExecutionPolicy Bypass -File scripts/run-hotstreak.ps1 -Python .venv/Scripts/python.exe -Windowed
 ```
 
-- 会場画面にQRを表示します。同じネットワーク上のスマホ3〜8台で参加してください。
+- 会場画面にQRを表示します。同じネットワーク上のスマホ1〜8台で参加してください。3人未満はCPUで補充します。
 - QRのアドレスが違う場合は `-JoinOrigin http://会場PCのIPv4アドレス:8010` を指定します。
 - 会場のEnterで公開カード準備 → マ券選び → カード仕込み → レースへ進みます。札選び・仕込みの未完了時には進めません。
 - レース中はEnter 1押下につき1枚。押しっぱなし・演出中の追加入力は受け付けません。
@@ -51,12 +51,12 @@ python -m hotstreak_display.live --server http://127.0.0.1:8010 --join-origin ht
 - 作成応答の `displayToken` を会場側だけで保持し、Enterには `X-Display-Token` を付けます。作成・進行はループバック接続限定です。
 - 更新要求には `Idempotency-Key` が必要です。Enterの本文は `{ "phase": "race", "revision": 12 }` のように画面で確認した状態を指定します。同じ操作IDの再送は同じ応答、古いrevisionの別操作は409です。
 - 参加応答でHttpOnly / SameSite Cookieを設定し、手札・仕込み札・個人配当は本人だけへ返します。公開playerIdを指定するだけでは他人の手札を取得できません。
-- 再読込時は同じCookieの参加者として復帰します。古い通信実装は固定モック検証用に残し、実セッション指定時は `live.js` が接続を担当します。
+- 再読込時は同じCookieの参加者として復帰します。`hotstreak_sync.app` の参加URLは `connection=session` を付け、`live.js` が接続します。既存の `hotstreak_sync.server` は `live-connection.js` を使用します。
 - WS封筒は `{ "type": "race.state", "payload": {...} }`。再接続時は現在フェーズの全状態を受け取り、画面遷移も現在フェーズへ追従します。
 - 同種の緑カードが複数あるため、`cardId` は種類、`cardInstanceId` は個体です。手札選択画面の選択用 `cardId` には個体IDを渡し、画像は `rect` を使用します。
-- コースはユーザー確認済みのゲーム画面に合わせて、開始列2、★列0/5/8/12、ゴール12を使用しています。設計書に残る旧座標とは異なります。
+- コースは2026-10-07ユーザー指定の13マス＋GOAL。STARTは3マス目、★は3・8・13マス目。内部座標は開始列2、★列2/7/12、ゴール境界13です。
 
-設計書自体は編集していません。通信の重複排除・本人識別は未確定部分を具体化したもの、再読込時の復帰とDisplayの状態取得方式は既存設計との差分です。レビュー時にこの契約を確認してください。
+コース座標に関する設計書だけをユーザー指定に合わせて更新しています。通信の重複排除・本人識別は未確定部分を具体化したもの、再読込時の復帰とDisplayの状態取得方式は既存設計との差分です。レビュー時にこの契約を確認してください。
 
 ## 検証
 
@@ -69,7 +69,7 @@ python -m pytest tests/hotstreak_core tests/hotstreak_sync tests/hotstreak_displ
 node --test tests/hotstreak_phone/*.test.js
 ```
 
-実ブラウザE2EはPlaywrightとEdgeを使います。サーバ起動後:
+実ブラウザE2EはPlaywrightとEdgeを使います。Chromeの場合は `HOTSTREAK_BROWSER_CHANNEL=chrome` を指定できます。サーバ起動後:
 
 ```powershell
 npm install --no-save playwright@1.62.1

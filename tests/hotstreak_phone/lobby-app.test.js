@@ -6,7 +6,7 @@ const fakeDom = require("./fake-dom.js");
 
 const MODULES = {
   HotStreakLobbyState: "../../src/hotstreak_phone/lobby-state.js",
-  HotStreakLobbyConnection: "../../src/hotstreak_phone/lobby-connection.js",
+  HotStreakLive: "../../src/hotstreak_phone/live-connection.js",
   HotStreakLobbyDemo: "../../src/hotstreak_phone/lobby-demo.js",
 };
 const APP = "../../src/hotstreak_phone/lobby-app.js";

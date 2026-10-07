@@ -152,6 +152,8 @@ class RacePresentation(RaceModel):
 
 class Application:
     def __init__(self, font=None):
+        from .app import japanese_font
+        font = japanese_font(font)
         self.views = {'lobby': DisplaySetupRoot(font), 'setup-cards': DisplaySetupRoot(font),
                       'betting': DisplayBettingRoot(font), 'card-seed': DisplaySeedRoot(font),
                       'race': RaceView(font), 'payout': PayoutView(font)}

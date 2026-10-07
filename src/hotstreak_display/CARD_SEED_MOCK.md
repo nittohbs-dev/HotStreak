@@ -10,7 +10,7 @@ python src/hotstreak_display/screens/card_seed.py --windowed
 
 - `--windowed` なしで全画面。Escでの終了は無効。ウィンドウの閉じる操作で終了。
 - 矢印キーでの切り替えは無効。固定表示例は起動時の `--state 0` ～ `--state 3` で指定。
-- 準備完了の見本でEnterを押すと、レースへの進行確認メッセージを表示。レース画面は未実装で、そのまま留まります。
+- 準備完了の見本（`--state 3`）で Enter を押すと「進行確認OK（レース画面は次のモック）」と出し、このプロセスに留まります。レース進行は別ランナー [`RACE_MOCK.md`](RACE_MOCK.md)（`screens/race.py`）です。
 - 仕込み中のEnterは何も変更しません。タイマーで勝手に進みません。
 - `--state 0`〜`--state 3`で表示例指定、`--screenshot output.png`でPNG保存。
 - 日本語フォントが見つからない場合は `--font path/to/font.ttf` を指定。

@@ -1,9 +1,9 @@
 /* SCR-phone-002 の起動。URL パラメータで接続先と playerId を受ける（lobby 未実装のための暫定）。 */
 (function () {
-  if (typeof HotStreakLive !== "undefined" && HotStreakLive.enabled) { HotStreakLive.start("betting"); return; }
+  if (typeof HotStreakSessionLive !== "undefined" && HotStreakSessionLive.enabled) { HotStreakSessionLive.start("betting"); return; }
   const params = new URLSearchParams(location.search);
   const isDemo = params.get("demo") === "1";
-  const server = params.get("server") || "http://127.0.0.1:8000";
+  const server = params.get("server") || location.origin;
   const sessionId = params.get("session") || "";
   const notice = document.getElementById("notice");
 
@@ -64,7 +64,7 @@
     label.textContent = driver.sceneName;
   } else {
     try {
-      driver = new HotStreakBettingConnection.BettingConnection({ server, sessionId, playerId, onMessage: receive });
+      driver = new HotStreakLive.Connection({ phase: "betting", server, sessionId, playerId, onMessage: receive });
     } catch (error) {
       fail(error.message);
       return;

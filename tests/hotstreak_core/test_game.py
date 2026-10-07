@@ -20,16 +20,16 @@ def play(e, key):
     e.resolve(CARDS[key])
 
 
-def test_course_has_14_columns_including_starting_position():
+def test_course_has_13_numbered_spaces_including_starting_position():
     e = engine()
     course = e.public()['course']
-    assert course == dict(lanes=4, columns=14, start=2,
-                          stars=[2, 7, 9], removed=0)
+    assert course == dict(lanes=4, columns=13, start=2,
+                          stars=[2, 7, 12], removed=0)
     assert all(m.position == 2 for m in e.mascots)
-    e.move(e.mascots[0], 11)
-    assert e.mascots[0].position == 13 and e.mascots[0].status == 'racing'
+    e.move(e.mascots[0], 10)
+    assert e.mascots[0].position == 12 and e.mascots[0].status == 'racing'
     e.move(e.mascots[0], 1)
-    assert e.mascots[0].position == 14 and e.mascots[0].status == 'goal'
+    assert e.mascots[0].position == 13 and e.mascots[0].status == 'goal'
 
 
 def test_collision_knockout_and_rank_from_bottom():
@@ -46,6 +46,29 @@ def test_collision_knockout_and_rank_from_bottom():
     play(e, 'yellow_fall')
     play(e, 'yellow_fall')
     assert e.mascots[2].rank == 3
+
+
+def test_star_route_matches_numbered_track_in_both_directions():
+    e = engine()
+    for expected in (7, 12, 13):
+        play(e, 'blue_star')
+        assert e.mascots[0].position == expected
+    assert e.mascots[0].status == 'goal'
+    e = engine()
+    e.mascots[0].position = 12
+    e.mascots[0].facing = -1
+    for expected in (7, 2, 2):
+        play(e, 'blue_star')
+        assert e.mascots[0].position == expected
+
+
+def test_display_and_mock_use_the_server_course():
+    from hotstreak_display.screens.race import COURSE_COLUMNS, STAR_COLUMNS
+    from hotstreak_display.screens.race_effects import STAR_POSITIONS
+    course = engine().public()['course']
+    assert COURSE_COLUMNS == course['columns'] == 13
+    assert list(STAR_COLUMNS) == course['stars'] == [2, 7, 12]
+    assert STAR_POSITIONS == (2, 7, 12, 13)
 
 
 def test_star_fallen_reverse_recover_and_swerve():
@@ -67,7 +90,7 @@ def test_star_fallen_reverse_recover_and_swerve():
 
 def test_goal_precedes_swerve_offside():
     e = engine()
-    e.mascots[0].position = 13
+    e.mascots[0].position = 12
     play(e, 'blue_swerve_1')
     assert e.mascots[0].status == 'goal' and e.mascots[0].rank == 1
 
@@ -75,11 +98,11 @@ def test_goal_precedes_swerve_offside():
 def test_green_cannot_finish_or_collide():
     e = engine()
     for m in e.mascots:
-        m.position = 12
+        m.position = 11
         m.lane = 1
     e.mascots[1].fallen = True
     play(e, 'green_move_3')
-    assert all(m.position == 13 and m.status == 'racing' for m in e.mascots)
+    assert all(m.position == 12 and m.status == 'racing' for m in e.mascots)
     assert sum(m.fallen for m in e.mascots) == 1
     assert 'finish_two' in e.facts
     play(e, 'green_recover_2')
@@ -112,12 +135,12 @@ def test_empty_final_only_at_first_finish():
     e = engine()
     play(e, 'blue_move_2')
     assert 'empty_final' not in e.facts
-    e.mascots[0].position = 13
+    e.mascots[0].position = 12
     e.mascots[1].position = 12
     play(e, 'blue_move_2')
     assert 'empty_final' not in e.facts
     other = engine()
-    other.mascots[0].position = 13
+    other.mascots[0].position = 12
     play(other, 'blue_move_2')
     assert 'empty_final' in other.facts
 
@@ -174,7 +197,7 @@ def test_side_bet_final_positions_and_crawling():
     assert 'same_space' in e.facts
     play(e, 'orange_fall')
     assert 'fallen_two' in e.facts
-    e.mascots[0].position = 14
+    e.mascots[0].position = 13
     e.mascots[0].status = 'goal'
     e.mascots[1].status = 'goal'
     e.mascots[2].status = 'dq'

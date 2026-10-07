@@ -58,13 +58,12 @@
 | OPEN-race-004 | コース短縮は**奥が消える／左から折りたたみ**（次の solid white line まで）。埋まった位置のマスコットは失格。山切れのたびに発生しうる | [rulebook](https://gamers-hq.de/media/pdf/dc/37/cf/Hot_Streak_rulebook_2nd_printing.pdf) RESHUFFLING「fold it over to the next solid white line… stragglers under the mat are disqualified」。display/screens.md |
 | OPEN-race-005 | **会場DisplayのEnter 1回で1枚めくる**。効果解決はサーバ担当。通信契約は未定 | 2026-09-21ユーザー指示 |
 | OPEN-race-006 | レース中に起きた事実を race 終了時に確定し、`race.finished` で sideBetOutcome 等を載せ **payout が精算**する | overview フロー race→payout、`manual.html` §6（事象）→§⑥配当 |
-| OPEN-race-002 | **デジタル正本: 4レーン × 14列（キャラクターの開始位置を含む）**。スタートは0始まり列2、ゴール境界は14とし、実走距離は12マス。従来スタート（列0）を★とし、その他の★は列5・8・ゴール先の14。コース短縮は実物の実線間隔に合わせて3マス単位 | 2026-10-06ユーザー確認「14、キャラがいる位置含めて」。現物写真とルールブックのコース短縮位置を照合 |
+| OPEN-race-002 | **デジタル正本: 4レーン × 13マス＋GOAL**。STARTは3マス目（列2）、★は3・8・13マス目（列2・7・12）、ゴール境界は13。コース短縮は3マス単位 | 2026-10-07ユーザー指定の並びに更新 |
 
 ## OPEN（確認待ち）
 
-（コースマス長は上記どおり閉じた。物理14との要否は実装前の確認事項として下記「推奨／注記」に残す）
+（コースマス長は上記のユーザー指定で確定）
 
 ### 注記（物理との差分）
 
-物理マットと14列にそろえる。公式 PDF に数値の明記はないため、実物写真とユーザーの数え方を正本とする。
-
+デジタル盤面はユーザー指定の13マス＋GOALを正本とする。

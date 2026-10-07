@@ -1,5 +1,5 @@
 /* 起動済みの実サーバに、Cookieが独立した3人のスマホで参加する。 */
-const { chromium } = require('playwright');
+const { chromium } = require(process.env.HOTSTREAK_PLAYWRIGHT_MODULE || 'playwright');
 const assert = require('node:assert/strict');
 const { randomUUID } = require('node:crypto');
 const fs = require('node:fs');
@@ -7,7 +7,7 @@ const path = require('node:path');
 
 (async () => {
   const origin = process.env.HOTSTREAK_TEST_URL || 'http://127.0.0.1:8010';
-  const browser = await chromium.launch({ headless: true, channel: 'msedge' });
+  const browser = await chromium.launch({ headless: true, channel: process.env.HOTSTREAK_BROWSER_CHANNEL || 'msedge' });
   const failures = [];
   const contexts = [];
   try {
@@ -29,11 +29,13 @@ const path = require('node:path');
       const page = await context.newPage();
       page.on('pageerror', error => failures.push(error.message));
       page.on('response', response => { if (response.status() >= 400 && !response.url().endsWith('/favicon.ico')) failures.push(`${response.status()} ${response.url()}`); });
-      await page.goto(origin+created.joinUrl);
+      await page.goto(new URL(created.joinUrl, origin).href);
       await page.locator('#name-input').fill(`参加者${i+1}`);
       await page.locator('#confirm-button').click();
       await page.waitForFunction(() => document.querySelector('#name-input').disabled);
-      const pid = await page.evaluate(sid => sessionStorage.getItem(`hotstreak-player-${sid}`), created.sessionId);
+      const personal = await (await page.request.get(base)).json();
+      const pid = personal.viewerPlayerId || personal.playerId;
+      assert(pid, '本人のプレイヤーIDを取得できる');
       people.push({ page, pid, context });
     }
     await advance();
@@ -52,10 +54,10 @@ const path = require('node:path');
         await page.waitForFunction(() => document.querySelector('#notice').dataset.error !== 'true');
         // WSによる全員への更新を待ってから、次の手番を取得する。
         for (let retry = 0; retry < 100; retry++) {
-          if ((await snapshot()).turnIndex === turn+1) break;
+          if (Object.values((await snapshot()).picksByPlayer).flat().length === turn+1) break;
           await new Promise(resolve => setTimeout(resolve, 20));
         }
-        assert.equal((await snapshot()).turnIndex, turn+1);
+        assert.equal(Object.values((await snapshot()).picksByPlayer).flat().length, turn+1);
       }
       if (race === 3) {
         for (const { page } of people) {

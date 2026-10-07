@@ -2,8 +2,8 @@
 (function () {
   const params = new URLSearchParams(location.search);
   const session = params.get('session');
-  const enabled = Boolean(session && params.get('demo') !== '1');
-  window.HotStreakLive = { enabled, start };
+  const enabled = Boolean(session && params.get('connection') === 'session' && params.get('demo') !== '1');
+  window.HotStreakSessionLive = { enabled, start };
 
   function start(page) {
     const base = `/api/sessions/${encodeURIComponent(session)}`;
@@ -22,7 +22,7 @@
       if (target && target !== page) {
         stopped = true;
         if (ws) ws.close();
-        location.replace(`${target}.html?${new URLSearchParams({ session })}`);
+        location.replace(`${target}.html?${new URLSearchParams({ session, connection: "session" })}`);
         return true;
       }
       return false;

@@ -144,7 +144,7 @@
     }
 
     get canSendDouble() {
-      return Boolean(this.needsDouble && !this.pending);
+      return Boolean(this.connected && !this.advanced && this.needsDouble && !this.pending);
     }
 
     get currentPlayerName() {

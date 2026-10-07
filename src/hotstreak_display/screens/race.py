@@ -17,8 +17,8 @@ GOLD = (223, 191, 134)
 MUTED = (200, 184, 144)
 COLORS = ("blue", "orange", "yellow", "salmon")
 NAMES = ("ダングル", "ゴブラー", "マム", "ハーレー")
-COURSE_COLUMNS = 14
-STAR_COLUMNS = (2, 7, 9)
+COURSE_COLUMNS = 13
+STAR_COLUMNS = (2, 7, 12)
 
 class View(DisplaySeedRoot):
     def __init__(self, font_path=None):
@@ -87,7 +87,7 @@ class View(DisplaySeedRoot):
         pygame.draw.rect(surface,(3,32,60),rect.inflate(-12,-12))
 
     def point(self,col,row):
-        # 台形の4レーン×14マス。手前ほど広くする。
+        # 台形の4レーン×13マス。手前ほど広くする。
         depth=row/4
         return (int(130-87*depth+col*(1010+164*depth)/COURSE_COLUMNS),int(344+depth*206))
 
@@ -101,7 +101,7 @@ class View(DisplaySeedRoot):
 
     def draw(self, surface, model):
         self.sea(surface)
-        self.text(surface,f"RACE {getattr(model, 'race', 1)} / 3",(32,25),32,(244,252,255))
+        self.text(surface,f"RACE {getattr(model, 'race', getattr(model, 'race_index', 1))} / 3",(32,25),32,(244,252,255))
         finishers=model.finished_entries
         if finishers:
             self.ocean_panel(surface,pygame.Rect(24,72,28+192*len(finishers),91))
@@ -138,6 +138,9 @@ class View(DisplaySeedRoot):
                 if col in STAR_COLUMNS:
                     x,y=self.point(col+.5,row+.5)
                     self.centered(surface,"★",x,y-17,32,(249,244,168))
+        for col in range(removed, COURSE_COLUMNS):
+            x, y = self.point(col + .5, 4)
+            self.centered(surface, str(col + 1), x, y + 17, 20, (255, 246, 198))
         if removed<=2:
             pygame.draw.line(surface,(255,245,190),self.point(2,0),self.point(2,4),4)
         for row in range(8):
@@ -181,12 +184,13 @@ class View(DisplaySeedRoot):
                     if size:
                         pygame.draw.rect(surface,(222,174,75),(x-size//2,y+int(t*35),size,size//2))
                     pygame.draw.ellipse(surface,(118,220,248),(x-20,y+18,40,10),2)
-        self.sign(surface,"START",max(20,self.point(max(2,removed),0)[0]-60),235,(247,207,42))
+        if removed <= 2:
+            self.sign(surface,"START",max(20,self.point(2.5,0)[0]-60),235,(247,207,42))
         self.sign(surface,"GOAL",1100,290,(225,39,46))
         if model.state=='start':
-            self.ocean_panel(surface,pygame.Rect(80,180,538,103))
-            self.centered(surface,"HOT STREAK",349,191,44,(255,231,115))
-            self.centered(surface,"ENTERで最初のカードをめくる",349,245,20,(244,252,255))
+            self.ocean_panel(surface,pygame.Rect(80,90,538,103))
+            self.centered(surface,"HOT STREAK",349,101,44,(255,231,115))
+            self.centered(surface,"ENTERで最初のカードをめくる",349,155,20,(244,252,255))
         elif model.action=='shorten' and model.moving:
             self.ocean_panel(surface,pygame.Rect(381,211,514,73))
             self.centered(surface,"コース短縮  /  左から3マス",638,231,24,(255,234,164))
@@ -285,7 +289,7 @@ class RaceState:
         self.facing=[1]*4
         self.fallen=[state=='fall',False,False,False]
         self.positions=(2,2,2,2) if state=='start' else (8,5,7,3)
-        if state=='finish': self.positions=(14,13,14,14)
+        if state=='finish': self.positions=(13,12,13,13)
         self.visual_positions=list(self.positions)
         self.previous=self.positions
         self.card_id='blue_fall' if state=='fall' else 'card_back'
@@ -378,4 +382,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
