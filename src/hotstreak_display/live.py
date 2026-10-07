@@ -58,6 +58,8 @@ class RacePresentation(RaceModel):
         super().__init__(SimpleNamespace(state='start'))
         self.snapshot = snapshot
         self.race = snapshot['raceIndex']
+        self.reveal_elapsed = 1.60
+        self.reveal_snapshot = None
         self.pending_collapse = None
         self.apply(snapshot['mascots'])
         self.removed = snapshot['course']['removed']
@@ -102,6 +104,16 @@ class RacePresentation(RaceModel):
         if snapshot['revealed'] == self.last_revealed:
             return
         self.last_revealed = snapshot['revealed']
+        self.reveal_snapshot = snapshot
+        self.reveal_elapsed = 0.
+        self.moving = True
+        self.state = 'running'
+
+    @property
+    def revealing(self):
+        return self.reveal_snapshot is not None
+
+    def begin_effect(self, snapshot):
         self.snapshot = snapshot
         self.previous, self.previous_lanes = self.positions, self.lanes[:]
         self.old_fallen = self.fallen[:]
@@ -118,6 +130,13 @@ class RacePresentation(RaceModel):
 
     def update(self, dt):
         self.elapsed += dt
+        if self.revealing:
+            self.reveal_elapsed += dt
+            if self.reveal_elapsed < 1.60:
+                return
+            dt = self.reveal_elapsed - 1.60
+            snapshot, self.reveal_snapshot = self.reveal_snapshot, None
+            self.begin_effect(snapshot)
         if not self.moving:
             return
         self.progress = min(1., self.progress + dt/(1.8 if self.action == 'shorten' else 1.15))
