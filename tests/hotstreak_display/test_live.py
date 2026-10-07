@@ -56,3 +56,35 @@ def test_server_snapshots_render_existing_screens_and_animation(tmp_path):
         draw()
     finally:
         pygame.quit()
+
+
+def test_card_reveal_holds_positions_until_card_is_complete():
+    s = GameSession(rng=Random(3))
+    s.join()
+    s.advance()
+    s.advance()
+    while s.turn < len(s.order):
+        key = next(k for k, count in s.stock.items() if count < 3)
+        s.pick(s.order[s.turn], dict(ticketId=key, ticketKind='mascot' if key in ('blue', 'orange', 'yellow', 'salmon') else 'side', face='safe'))
+    s.advance()
+    for p in s.players:
+        if p.seed is None:
+            s.seed(p.player_id, p.hand[0].instance_id)
+    s.advance()
+    model = RacePresentation(s.snapshot())
+    positions = model.visual_positions[:]
+    s.advance()
+    snapshot = s.snapshot()
+    model.receive(snapshot)
+    model.update(.4)
+    model.receive(snapshot)  # ポーリングで同じ状態が届いても演出をやり直さない。
+    assert model.reveal_elapsed == .4
+    assert model.revealing and model.moving
+    assert model.visual_positions == positions
+    model.update(.43)
+    assert not model.revealing
+    assert model.card_id == snapshot['currentCard']['cardId']
+    model.update(4.)
+    model.update(4.)
+    assert not model.moving
+    assert tuple(model.visual_positions) == model.positions

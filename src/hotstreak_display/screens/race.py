@@ -101,6 +101,7 @@ class View(DisplaySeedRoot):
 
     def draw(self, surface, model):
         self.sea(surface)
+        revealing = getattr(model, 'revealing', False)
         self.text(surface,f"RACE {getattr(model, 'race', getattr(model, 'race_index', 1))} / 3",(32,25),32,(244,252,255))
         finishers=model.finished_entries
         if finishers:
@@ -113,13 +114,13 @@ class View(DisplaySeedRoot):
                 surface.blit(icon,(x+37,105))
                 self.text(surface,NAMES[who],(x+85,118),20,(244,252,255))
         self.ocean_panel(surface,pygame.Rect(865,20,389,153))
-        surface.blit(self.card_assets.card(model.card_id,(87,122)),(881,35))
-        if model.card_id != 'card_back' and not model.card_id.startswith('green'):
+        surface.blit(self.card_assets.card('card_back' if revealing else model.card_id,(87,122)),(881,35))
+        if not revealing and model.card_id != 'card_back' and not model.card_id.startswith('green'):
             pygame.draw.rect(surface,(5,34,61),(890,91,68,49))
             avatar=pygame.transform.smoothscale(sprite(COLORS[model.active]),(40,44))
             surface.blit(avatar,(903,93))
         self.text(surface,"今回のカード",(986,38),24,(244,251,255))
-        self.text(surface,model.effect,(986,83),20,(255,237,168),max_width=249)
+        self.text(surface,'…' if revealing else model.effect,(986,83),20,(255,237,168),max_width=249)
         self.text(surface,f"残り {model.remaining} 枚",(986,124),20,(178,221,240))
         if getattr(model,"preview_title",None):
             self.ocean_panel(surface,pygame.Rect(270,190,710,65))
@@ -160,18 +161,18 @@ class View(DisplaySeedRoot):
             if model.status[i] != 'racing':
                 continue
             x,y=self.point(min(pos,COURSE_COLUMNS)+.3,model.visual_lanes[i]+.5)
-            pose='run' if model.moving and i in model.targets else 'idle'
+            pose='run' if model.moving and not revealing and i in model.targets else 'idle'
             tilt=0
-            if model.action=='fall' and i in model.targets and model.moving:
+            if model.action=='fall' and i in model.targets and model.moving and not revealing:
                 tilt=int(90*model.progress)
-            elif model.action=='recover' and i in model.targets and model.old_fallen[i] and model.moving:
+            elif model.action=='recover' and i in model.targets and model.old_fallen[i] and model.moving and not revealing:
                 tilt=int(90*(1-min(1,model.progress*2)))
-            elif model.fallen[i] and not (model.moving and model.action=='recover' and i in model.targets):
+            elif model.fallen[i] and not (model.moving and not revealing and model.action=='recover' and i in model.targets):
                 pose='fallen'
             image=sprite(COLORS[i],int(model.elapsed*10),pose,model.facing[i],tilt)
             pygame.draw.ellipse(surface,(12,82,50),(x-25,y+10,50,13))
             surface.blit(image,image.get_rect(midbottom=(x,y+20)))
-        if model.action=='shorten' and model.moving:
+        if model.action=='shorten' and model.moving and not revealing:
             # 3列の床が順に沈む。短縮完了後にのみ失格を確定する。
             for col in range(model.removed,model.removed+3):
                 t=max(0,min(1,model.progress*1.5-(col-model.removed)*.22))
@@ -191,10 +192,12 @@ class View(DisplaySeedRoot):
             self.ocean_panel(surface,pygame.Rect(80,90,538,103))
             self.centered(surface,"HOT STREAK",349,101,44,(255,231,115))
             self.centered(surface,"ENTERで最初のカードをめくる",349,155,20,(244,252,255))
-        elif model.action=='shorten' and model.moving:
+        elif model.action=='shorten' and model.moving and not revealing:
             self.ocean_panel(surface,pygame.Rect(381,211,514,73))
             self.centered(surface,"コース短縮  /  左から3マス",638,231,24,(255,234,164))
         self.draw_history(surface, model)
+        if revealing:
+            self.draw_card_reveal(surface, model)
         if model.state=='finish':
             self.ocean_panel(surface,pygame.Rect(370,187,540,414))
             self.centered(surface,"RACE RESULT",640,203,32,(255,231,115))
@@ -208,6 +211,41 @@ class View(DisplaySeedRoot):
                 self.text(surface,names[who],(522,y+12),24,(248,252,240))
                 result='失格' if model.status[who]=='dq' else 'ゴール' if model.status[who]=='goal' else 'レース終了'
                 self.text(surface,result,(750,y+16),20,(181,222,242))
+
+    def draw_card_reveal(self, surface, model):
+        """12片が寄り、短い間を置いてカード枠へ収まる。判定には触れない。"""
+        import math
+        elapsed = model.reveal_elapsed
+        card = self.card_assets.card(model.reveal_snapshot['currentCard']['cardId'], (144, 200))
+        center = (744, 202)
+        if elapsed < .50:
+            for row in range(4):
+                for col in range(3):
+                    index = row * 3 + col
+                    delay = ((index * 7) % 12) * .009
+                    t = max(0., min(1., (elapsed - delay) / .39))
+                    ease = 1 - (1 - t) ** 3
+                    rect = pygame.Rect(col * 48, row * 50, 48, 50)
+                    fragment = card.subsurface(rect).copy()
+                    angle = index * 2.39996
+                    distance = 55 + (index % 3) * 17
+                    dx = math.cos(angle) * distance * (1 - ease)
+                    dy = math.sin(angle) * distance * (1 - ease)
+                    fragment = pygame.transform.rotate(fragment, (index % 5 - 2) * 12 * (1 - ease))
+                    fragment.set_alpha(round(255 * min(1., t * 4)))
+                    dest = fragment.get_rect(center=(round(center[0] - 72 + rect.centerx + dx),
+                                                    round(center[1] - 100 + rect.centery + dy)))
+                    surface.blit(fragment, dest)
+        else:
+            # 0.12秒だけ完成形を見せ、0.20秒で通常枠へ。
+            t = max(0., min(1., (elapsed - .62) / .20))
+            t = t * t * (3 - 2 * t)
+            size = (round(144 + (87 - 144) * t), round(200 + (122 - 200) * t))
+            image = pygame.transform.smoothscale(card, size)
+            pos = (round(center[0] + (924 - center[0]) * t), round(center[1] + (96 - center[1]) * t))
+            dest = image.get_rect(center=pos)
+            pygame.draw.rect(surface, (5, 34, 61), dest.move(3, 4))
+            surface.blit(image, dest)
 
     def history_rect(self, index, total):
         # 履歴は常に1段。枚数が増えた場合はカードを縮めて横幅へ収める。
