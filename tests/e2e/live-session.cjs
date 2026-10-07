@@ -25,15 +25,27 @@ const path = require('node:path');
     const people = [];
     for (let i = 0; i < 3; i++) {
       const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+      if (process.env.HOTSTREAK_DROP_WS === '1') {
+        // 接続自体はOPENのまま、通知だけ届かないスマホを再現する。
+        await context.addInitScript(() => {
+          const NativeWebSocket = window.WebSocket;
+          window.WebSocket = class extends NativeWebSocket {
+            constructor(...args) {
+              super(...args);
+              this.addEventListener('message', event => event.stopImmediatePropagation());
+            }
+          };
+        });
+      }
       contexts.push(context);
       const page = await context.newPage();
       page.on('pageerror', error => failures.push(error.message));
       page.on('response', response => { if (response.status() >= 400 && !response.url().endsWith('/favicon.ico')) failures.push(`${response.status()} ${response.url()}`); });
-      await page.goto(new URL(created.joinUrl, origin).href);
+      await page.goto(new URL(created.joinUrl, process.env.HOTSTREAK_PHONE_ORIGIN || origin).href);
       await page.locator('#name-input').fill(`参加者${i+1}`);
       await page.locator('#confirm-button').click();
       await page.waitForFunction(() => document.querySelector('#name-input').disabled);
-      const personal = await (await page.request.get(base)).json();
+      const personal = await (await page.request.get(new URL(new URL(base).pathname, page.url()).href)).json();
       const pid = personal.viewerPlayerId || personal.playerId;
       assert(pid, '本人のプレイヤーIDを取得できる');
       people.push({ page, pid, context });
@@ -44,7 +56,7 @@ const path = require('node:path');
     for (let race = 1; race <= 3; race++) {
       for (const { page } of people) await page.waitForURL(/betting\.html/);
       // 再読込しても同じ参加者として復帰する。
-      await people[0].page.reload();
+      if (process.env.HOTSTREAK_DROP_WS !== '1') await people[0].page.reload();
       for (let turn = 0; turn < 6; turn++) {
         const s = await snapshot();
         const { page } = people.find(p => p.pid === s.currentPlayerId);
