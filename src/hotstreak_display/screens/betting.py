@@ -96,7 +96,7 @@ class DisplayBettingRoot(DisplaySetupRoot):
         self.text(surface, "HOT STREAK", (1080, 42), 16, (200, 184, 144))
 
         self.panel(surface, pygame.Rect(72, 99, 1136, 87))
-        surface.blit(self.card_assets.card(state.prompt_id, (58, 81)), (78, 102))
+        surface.blit(self.card_assets.card(getattr(screen, 'prompt_card', state.prompt_id), (58, 81)), (78, 102))
         self.text(surface, "SIDE BET  /  今回のお題", (157, 109), 20, (223, 191, 134))
         self.text(surface, state.prompt, (157, 141), 24, max_width=1020)
 

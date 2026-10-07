@@ -58,13 +58,12 @@
 | OPEN-race-004 | コース短縮は**奥が消える／左から折りたたみ**（次の solid white line まで）。埋まった位置のマスコットは失格。山切れのたびに発生しうる | [rulebook](https://gamers-hq.de/media/pdf/dc/37/cf/Hot_Streak_rulebook_2nd_printing.pdf) RESHUFFLING「fold it over to the next solid white line… stragglers under the mat are disqualified」。display/screens.md |
 | OPEN-race-005 | **会場DisplayのEnter 1回で1枚めくる**。効果解決はサーバ担当。通信契約は未定 | 2026-09-21ユーザー指示 |
 | OPEN-race-006 | レース中に起きた事実を race 終了時に確定し、`race.finished` で sideBetOutcome 等を載せ **payout が精算**する | overview フロー race→payout、`manual.html` §6（事象）→§⑥配当 |
-| OPEN-race-002 | **デジタル正本: 4レーン × START〜GOAL 間 12マス**。2026-09-21ユーザー指示によりスタートは従来の最初の★位置（0始まり列2）、従来スタート（列0）を★へ変更。その他の★は列5・8。ワイヤー上のコース短縮は 3マス単位（12の1/4） | 数え方: [`ゲーム進行画面-ディスプレイ側.png`](../../../wireframes/display/ゲーム進行画面-ディスプレイ側.png) 画面1・4で START〜GOAL の緑マス列を列挙（12列）。物理盤は Misut Meeple が「14 rows × 4 lanes」と記述（https://misutmeeple.com/en/2026/02/review-hot-streak/）— **物理14との差分あり。本デジタル設計はワイヤー12を採用** |
+| OPEN-race-002 | **デジタル正本: 4レーン × 13マス＋GOAL**。STARTは3マス目（列2）、★は3・8・13マス目（列2・7・12）、ゴール境界は13。コース短縮は3マス単位 | 2026-10-07ユーザー指定の並びに更新 |
 
 ## OPEN（確認待ち）
 
-（コースマス長は上記どおり閉じた。物理14との要否は実装前の確認事項として下記「推奨／注記」に残す）
+（コースマス長は上記のユーザー指定で確定）
 
 ### 注記（物理との差分）
 
-物理マットを 14 行とする二次資料あり。デジタルワイヤーは 12。公式 PDF に数値なし。物理準拠に切り替える場合は Course モデルを差し替える。
-
+デジタル盤面はユーザー指定の13マス＋GOALを正本とする。

@@ -19,6 +19,7 @@ class SeedPreview:
     total: int = 6
     deck_count: int = 18
     ready: bool = False
+    face_up_cards: tuple[str, ...] = ()
 
 
 class DisplaySeedScreen:
@@ -46,7 +47,7 @@ class DisplaySeedScreen:
 
 
 class DisplaySeedRoot(DisplaySetupRoot):
-    """CMP-seed-001〜003: 進捗・裏向きカード束・準備完了表示。"""
+    """CMP-seed-001〜003: 進捗・公開カード・準備完了表示。"""
 
     def panel(self, surface, rect):
         pygame.draw.rect(surface, (6, 8, 13), rect.move(5, 5))
@@ -69,8 +70,7 @@ class DisplaySeedRoot(DisplaySetupRoot):
         self.text(surface, "HOT STREAK", (1070, 42), 16, (200, 184, 144))
 
         self.panel(surface, pygame.Rect(104, 112, 1072, 113))
-        title = "全員のカードが揃いました" if complete else "スマホでカードを1枚仕込んでください"
-        self.text(surface, title, (130, 127), 24)
+        self.text(surface, "場のカード", (130, 127), 24)
         self.text(surface, f"仕込み完了  {state.completed} / {state.total} 人", (824, 129), 24, (223, 191, 134))
         for i in range(state.total):
             step = 1012 // max(1, state.total)
@@ -79,22 +79,19 @@ class DisplaySeedRoot(DisplaySetupRoot):
             if i < state.completed:
                 pygame.draw.rect(surface, (223, 191, 134), rect.inflate(-4, -4))
 
-        label = f"レース用カード束  {state.deck_count} 枚" if complete else f"レース用カード束  完成時 {state.deck_count} 枚"
-        self.text(surface, label, (104, 241), 24, (223, 191, 134))
+        self.text(surface, f"{state.deck_count} 枚", (104, 241), 24, (223, 191, 134))
+        visible_cards = state.face_up_cards[:state.deck_count]
         for i in range(state.deck_count):
-            self.card_back(surface, 124 + i % 9 * 116, 286 + i // 9 * 152, not complete)
+            x, y = 124 + i % 9 * 116, 286 + i // 9 * 152
+            if i < len(visible_cards):
+                surface.blit(self.card_assets.card(visible_cards[i], (100, 140)), (x, y))
+            else:
+                self.card_back(surface, x, y)
 
         if state.ready:
-            overlay = pygame.Surface((1100, 328), pygame.SRCALPHA)
-            overlay.fill((9, 12, 17, 190))
-            surface.blit(overlay, (90, 275))
-            self.panel(surface, pygame.Rect(266, 347, 748, 172))
-            self.text(surface, "全員の準備が整いました", (365, 367), 32, (223, 191, 134))
-            self.text(surface, "まもなく開始します", (438, 418), 24)
-            footer = "進行確認OK（レース画面は次のモック）" if screen.confirmed else "ENTER  →  レースへ"
-            self.text(surface, footer, (300 if screen.confirmed else 456, 472), 20)
-        elif complete:
-            self.text(surface, "公開カードと仕込みカードが揃いました", (358, 626), 24, (223, 191, 134))
+            self.panel(surface, pygame.Rect(458, 635, 364, 57))
+            footer = "進行確認OK" if screen.confirmed else "ENTER  →  レースへ"
+            self.text(surface, footer, (555 if screen.confirmed else 536, 651), 20, (223, 191, 134))
 
 
 def main():

@@ -64,6 +64,7 @@
       this.prompt = null;
       this.mascots = [];
       this.players = [];
+      this.purchasedBets = [];
       this.sheetOpen = false;
     }
 
@@ -72,7 +73,7 @@
     }
 
     get myBets() {
-      return this.me ? this.me.bets : [];
+      return this.purchasedBets;
     }
 
     get playerTotal() {
@@ -116,7 +117,13 @@
         const players = payload.players.map(parsePlayer);
         if (new Set(players.map((p) => p.playerId)).size !== players.length) throw new TypeError("duplicate player");
         const prompt = isObject(payload.prompt) && isText(payload.prompt.text) ? { text: payload.prompt.text } : null;
-        next = { raceIndex, mascots, players, prompt };
+        const ownPlayer = players.find((player) => player.playerId === this.myPlayerId);
+        const purchasedBets = Array.isArray(payload.myBets)
+          ? payload.myBets.map(parseBet)
+          : ownPlayer
+            ? ownPlayer.bets
+            : [];
+        next = { raceIndex, mascots, players, prompt, purchasedBets };
       } catch (error) {
         this.error = MESSAGES.invalidState;
         return false;

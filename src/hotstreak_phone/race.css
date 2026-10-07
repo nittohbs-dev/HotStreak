@@ -5,74 +5,30 @@
   font-weight: 700;
 }
 
-.race-meta {
-  margin: 0.15rem 0 0;
-  color: var(--muted);
-  font-size: 0.9rem;
-}
-
-.side-prompt {
+.race-event {
   margin: 0.6rem 0 0;
   padding: 0.5rem 0.75rem;
   border-left: 3px solid var(--accent);
   background: var(--panel);
+}
+
+.event-label {
+  margin: 0 0 0.15rem;
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.side-prompt {
+  margin: 0;
   font-size: 0.95rem;
 }
 
-.mascot-list,
 .bet-list,
 .sheet-list {
   margin: 0;
   padding: 0;
   list-style: none;
-}
-
-.mascot {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  margin-bottom: 0.4rem;
-  padding: 0.6rem 0.75rem;
-  border: 1px solid var(--line);
-  border-left-width: 4px;
-  border-radius: 0.6rem;
-  background: var(--panel);
-}
-
-.mascot[data-color="blue"] {
-  border-left-color: #5b8bd6;
-}
-
-.mascot[data-color="orange"] {
-  border-left-color: #d98b5f;
-}
-
-.mascot[data-color="yellow"] {
-  border-left-color: #e0b25a;
-}
-
-.mascot[data-color="salmon"] {
-  border-left-color: #d97f86;
-}
-
-.mascot[data-out="true"] {
-  opacity: 0.5;
-}
-
-.mascot-rank {
-  min-width: 2.5rem;
-  color: var(--accent);
-  font-weight: 700;
-}
-
-.mascot-name {
-  flex: 1;
-  font-weight: 700;
-}
-
-.mascot-note {
-  color: var(--muted);
-  font-size: 0.8rem;
 }
 
 .bet-list {
@@ -120,24 +76,6 @@
 .double-mark {
   color: var(--accent);
   font-size: 0.75rem;
-  font-weight: 700;
-}
-
-.self-summary {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 0.25rem 0.75rem;
-  margin: 0.75rem 0 0;
-}
-
-.self-summary dt {
-  color: var(--muted);
-  font-size: 0.85rem;
-}
-
-.self-summary dd {
-  margin: 0;
-  font-size: 1.05rem;
   font-weight: 700;
 }
 

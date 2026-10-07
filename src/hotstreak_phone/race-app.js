@@ -1,5 +1,6 @@
 /* SCR-phone-004: セッション指定時は会場と同じレースを購読する。 */
 (function () {
+  if (typeof HotStreakSessionLive !== "undefined" && HotStreakSessionLive.enabled) { HotStreakSessionLive.start("race"); return; }
   const params = new URLSearchParams(typeof location === "undefined" ? "" : location.search);
   const live = params.has("session") && params.get("demo") !== "1";
   const playerId = live ? params.get("player") : HotStreakRaceMock.MOCK_PLAYER_ID;

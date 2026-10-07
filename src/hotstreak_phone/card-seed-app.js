@@ -1,5 +1,6 @@
 /* SCR-phone-003: セッション指定時は実接続。それ以外は従来のデモ。 */
 (function () {
+  if (typeof HotStreakSessionLive !== "undefined" && HotStreakSessionLive.enabled) { HotStreakSessionLive.start("card-seed"); return; }
   const params = new URLSearchParams(typeof location === "undefined" ? "" : location.search);
   const live = params.has("session") && params.get("demo") !== "1";
   const playerId = live ? params.get("player") : HotStreakCardSeedMock.MOCK_PLAYER_ID;

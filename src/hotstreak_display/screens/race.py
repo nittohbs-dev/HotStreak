@@ -17,6 +17,8 @@ GOLD = (223, 191, 134)
 MUTED = (200, 184, 144)
 COLORS = ("blue", "orange", "yellow", "salmon")
 NAMES = ("ダングル", "ゴブラー", "マム", "ハーレー")
+COURSE_COLUMNS = 13
+STAR_COLUMNS = (2, 7, 12)
 
 class View(DisplaySeedRoot):
     def __init__(self, font_path=None):
@@ -85,9 +87,9 @@ class View(DisplaySeedRoot):
         pygame.draw.rect(surface,(3,32,60),rect.inflate(-12,-12))
 
     def point(self,col,row):
-        # 台形の4レーン×12マス。手前ほど広くする。
+        # 台形の4レーン×13マス。手前ほど広くする。
         depth=row/4
-        return (int(130-87*depth+col*(1010+164*depth)/12),int(344+depth*276))
+        return (int(130-87*depth+col*(1010+164*depth)/COURSE_COLUMNS),int(344+depth*206))
 
     def sign(self,surface,label,x,y,color):
         pygame.draw.rect(surface,(100,63,24),(x+13,y+38,7,29))
@@ -99,17 +101,17 @@ class View(DisplaySeedRoot):
 
     def draw(self, surface, model):
         self.sea(surface)
-        self.text(surface,f"RACE {getattr(model, 'race_index', 1)} / 3",(32,28),32,(244,252,255))
+        self.text(surface,f"RACE {getattr(model, 'race', getattr(model, 'race_index', 1))} / 3",(32,25),32,(244,252,255))
         finishers=model.finished_entries
         if finishers:
-            self.ocean_panel(surface,pygame.Rect(24,78,28+192*len(finishers),91))
-            self.text(surface,"確定した着順",(40,87),16,(181,222,242))
+            self.ocean_panel(surface,pygame.Rect(24,72,28+192*len(finishers),91))
+            self.text(surface,"確定した着順",(40,81),16,(181,222,242))
             for slot,(place,who,status) in enumerate(finishers):
                 x=40+slot*192
-                self.text(surface,f"{place}位", (x,120),20,(255,231,115))
+                self.text(surface,f"{place}位", (x,114),20,(255,231,115))
                 icon=pygame.transform.smoothscale(sprite(COLORS[who]),(44,46))
-                surface.blit(icon,(x+37,111))
-                self.text(surface,NAMES[who],(x+85,124),20,(244,252,255))
+                surface.blit(icon,(x+37,105))
+                self.text(surface,NAMES[who],(x+85,118),20,(244,252,255))
         self.ocean_panel(surface,pygame.Rect(865,20,389,153))
         surface.blit(self.card_assets.card(model.card_id,(87,122)),(881,35))
         if model.card_id != 'card_back' and not model.card_id.startswith('green'):
@@ -124,25 +126,32 @@ class View(DisplaySeedRoot):
             self.centered(surface,model.preview_title,625,206,24,(255,240,185))
         removed=model.removed
         # 黄金の縁、緑の盤面、白い格子。
-        corners=[self.point(removed,0),self.point(12,0),self.point(12,4),self.point(removed,4)]
+        corners=[self.point(removed,0),self.point(COURSE_COLUMNS,0),
+                 self.point(COURSE_COLUMNS,4),self.point(removed,4)]
         pygame.draw.polygon(surface,(7,42,46),[(x,y+15) for x,y in corners])
         pygame.draw.polygon(surface,(234,170,68),corners)
         for row in range(4):
-            for col in range(removed,12):
+            for col in range(removed,COURSE_COLUMNS):
                 pts=[self.point(col,row),self.point(col+1,row),self.point(col+1,row+1),self.point(col,row+1)]
                 pygame.draw.polygon(surface,(28,142,73) if (col+row)%2 else (22,125,65),pts)
                 pygame.draw.polygon(surface,(139,222,156),pts,2)
-                if col in (0,5,8):
+                if col in STAR_COLUMNS:
                     x,y=self.point(col+.5,row+.5)
                     self.centered(surface,"★",x,y-17,32,(249,244,168))
+        for col in range(removed, COURSE_COLUMNS):
+            x, y = self.point(col + .5, 4)
+            self.centered(surface, str(col + 1), x, y + 17, 20, (255, 246, 198))
         if removed<=2:
             pygame.draw.line(surface,(255,245,190),self.point(2,0),self.point(2,4),4)
         for row in range(8):
             for col in range(2):
-                pts=[self.point(11.65+col*.17,row*.5),self.point(11.65+(col+1)*.17,row*.5),self.point(11.65+(col+1)*.17,(row+1)*.5),self.point(11.65+col*.17,(row+1)*.5)]
+                pts=[self.point(COURSE_COLUMNS-.35+col*.17,row*.5),
+                     self.point(COURSE_COLUMNS-.35+(col+1)*.17,row*.5),
+                     self.point(COURSE_COLUMNS-.35+(col+1)*.17,(row+1)*.5),
+                     self.point(COURSE_COLUMNS-.35+col*.17,(row+1)*.5)]
                 pygame.draw.polygon(surface,(242,245,230) if (row+col)%2 else (12,23,33),pts)
         for edge in (0,4):
-            for col in range(removed*2,24):
+            for col in range(removed*2,COURSE_COLUMNS*2):
                 x,y=self.point(col/2,edge)
                 pygame.draw.rect(surface,(81,66,28),(x-3,y-4,43,15))
                 pygame.draw.rect(surface,(249,204,103),(x,y-5,38,9),border_radius=3)
@@ -150,7 +159,7 @@ class View(DisplaySeedRoot):
         for i,pos in enumerate(model.visual_positions):
             if model.status[i] != 'racing':
                 continue
-            x,y=self.point(min(pos,12)+.3,model.visual_lanes[i]+.5)
+            x,y=self.point(min(pos,COURSE_COLUMNS)+.3,model.visual_lanes[i]+.5)
             pose='run' if model.moving and i in model.targets else 'idle'
             tilt=0
             if model.action=='fall' and i in model.targets and model.moving:
@@ -175,15 +184,17 @@ class View(DisplaySeedRoot):
                     if size:
                         pygame.draw.rect(surface,(222,174,75),(x-size//2,y+int(t*35),size,size//2))
                     pygame.draw.ellipse(surface,(118,220,248),(x-20,y+18,40,10),2)
-        self.sign(surface,"START",max(20,self.point(max(2,removed),0)[0]-60),290,(247,207,42))
+        if removed <= 2:
+            self.sign(surface,"START",max(20,self.point(2.5,0)[0]-60),235,(247,207,42))
         self.sign(surface,"GOAL",1100,290,(225,39,46))
         if model.state=='start':
-            self.ocean_panel(surface,pygame.Rect(368,195,538,103))
-            self.centered(surface,"HOT STREAK",637,206,44,(255,231,115))
-            self.centered(surface,"ENTERで最初のカードをめくる",637,260,20,(244,252,255))
+            self.ocean_panel(surface,pygame.Rect(80,90,538,103))
+            self.centered(surface,"HOT STREAK",349,101,44,(255,231,115))
+            self.centered(surface,"ENTERで最初のカードをめくる",349,155,20,(244,252,255))
         elif model.action=='shorten' and model.moving:
             self.ocean_panel(surface,pygame.Rect(381,211,514,73))
             self.centered(surface,"コース短縮  /  左から3マス",638,231,24,(255,234,164))
+        self.draw_history(surface, model)
         if model.state=='finish':
             self.ocean_panel(surface,pygame.Rect(370,187,540,414))
             self.centered(surface,"RACE RESULT",640,203,32,(255,231,115))
@@ -197,6 +208,47 @@ class View(DisplaySeedRoot):
                 self.text(surface,names[who],(522,y+12),24,(248,252,240))
                 result='失格' if model.status[who]=='dq' else 'ゴール' if model.status[who]=='goal' else 'レース終了'
                 self.text(surface,result,(750,y+16),20,(181,222,242))
+
+    def history_rect(self, index, total):
+        # 履歴は常に1段。枚数が増えた場合はカードを縮めて横幅へ収める。
+        gap = 8 if total > 1 else 0
+        width = min(77, max(24, (1200 - gap * max(0, total - 1)) // max(1, total)))
+        height = min(108, round(width / .71))
+        total_width = total * width + max(0, total - 1) * gap
+        start = (1280 - total_width) // 2
+        y = 596 + (108 - height) // 2
+        return pygame.Rect(start + index * (width + gap), y, width, height)
+
+    def draw_history(self, surface, model):
+        # 最新の1枚は中央に残し、次のめくりで初めて履歴へ送る。
+        cards = getattr(model, 'card_history', [])[:-1]
+        if not cards:
+            return
+        flight = getattr(model, 'history_flight', None)
+        progress = min(1., max(0., (model.elapsed-flight[1])/.7)) if flight else 1.
+        self.ocean_panel(surface, pygame.Rect(20, 585, 1240, 130))
+        for index, card_id in enumerate(cards):
+            rect = self.history_rect(index, len(cards))
+            if index == len(cards)-1 and progress < 1:
+                continue
+            surface.blit(self.card_assets.card(card_id, rect.size), rect)
+        if flight and progress < 1:
+            target = self.history_rect(len(cards)-1, len(cards))
+            origin = pygame.Rect(881, 35, 87, 122)
+            # なめらかに加減速し、軽い弧を描いて履歴の末尾に着地。
+            t = progress*progress*(3-2*progress)
+            width = round(origin.width+(target.width-origin.width)*t)
+            height = round(origin.height+(target.height-origin.height)*t)
+            x = origin.centerx+(target.centerx-origin.centerx)*t+50*4*t*(1-t)
+            y = origin.centery+(target.centery-origin.centery)*t
+            card = self.card_assets.card(flight[0], (width, height))
+            import math
+            card = pygame.transform.rotate(card, -9*math.sin(math.pi*progress))
+            rect = card.get_rect(center=(round(x), round(y)))
+            shadow = pygame.Surface(card.get_size(), pygame.SRCALPHA)
+            shadow.fill((0, 15, 30, 65))
+            surface.blit(shadow, rect.move(4, 6))
+            surface.blit(card, rect)
 
 DESCRIPTION = "レース進行モック / Issue #37"
 STATES = ("start", "running", "fall", "shorten", "finish")
@@ -237,7 +289,7 @@ class RaceState:
         self.facing=[1]*4
         self.fallen=[state=='fall',False,False,False]
         self.positions=(2,2,2,2) if state=='start' else (8,5,7,3)
-        if state=='finish': self.positions=(12,11,12,12)
+        if state=='finish': self.positions=(13,12,13,13)
         self.visual_positions=list(self.positions)
         self.previous=self.positions
         self.card_id='blue_fall' if state=='fall' else 'card_back'
@@ -330,4 +382,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

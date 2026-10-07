@@ -5,7 +5,10 @@ CARDS = {c.card_id: c for c in CardSupply(Random(1)).cards}
 
 
 def engine():
-    return RaceEngine(list(CARDS.values())[:18], Random(1))
+    e = RaceEngine(list(CARDS.values())[:18], Random(1))
+    for lane, mascot in enumerate(e.mascots):
+        mascot.lane = lane
+    return e
 
 def play(e, key):
     e.resolve(CARDS[key])
@@ -28,33 +31,34 @@ def test_collision_knockout_and_rank_from_bottom():
 def test_star_fallen_reverse_recover_and_swerve():
     e = engine()
     play(e, 'blue_star')
-    assert e.mascots[0].position == 5
+    assert e.mascots[0].position == 7
     play(e, 'blue_turn')
     play(e, 'blue_star')
-    assert e.mascots[0].position == 0
+    assert e.mascots[0].position == 2
     play(e, 'blue_recover_2')
-    assert e.mascots[0].position == 2 and e.mascots[0].facing == 1
+    assert e.mascots[0].position == 4 and e.mascots[0].facing == 1
     play(e, 'blue_fall')
     play(e, 'blue_star')
-    assert e.mascots[0].position == 3
+    assert e.mascots[0].position == 5
     play(e, 'blue_swerve_3')
-    assert e.mascots[0].position == 4
+    assert e.mascots[0].position == 6
     assert e.mascots[0].rank == 4
+
 
 def test_goal_precedes_swerve_offside():
     e = engine()
-    e.mascots[0].position = 11
+    e.mascots[0].position = 12
     play(e, 'blue_swerve_1')
     assert e.mascots[0].status == 'goal' and e.mascots[0].rank == 1
 
 def test_green_cannot_finish_or_collide():
     e = engine()
     for m in e.mascots:
-        m.position = 10
+        m.position = 11
         m.lane = 1
     e.mascots[1].fallen = True
     play(e, 'green_move_3')
-    assert all(m.position == 11 and m.status == 'racing' for m in e.mascots)
+    assert all(m.position == 12 and m.status == 'racing' for m in e.mascots)
     assert sum(m.fallen for m in e.mascots) == 1
     assert 'finish_two' in e.facts
     play(e, 'green_recover_2')
@@ -84,12 +88,12 @@ def test_empty_final_only_at_first_finish():
     e = engine()
     play(e, 'blue_move_2')
     assert 'empty_final' not in e.facts
-    e.mascots[0].position = 11
-    e.mascots[1].position = 10
+    e.mascots[0].position = 12
+    e.mascots[1].position = 11
     play(e, 'blue_move_2')
     assert 'empty_final' not in e.facts
     other = engine()
-    other.mascots[0].position = 11
+    other.mascots[0].position = 12
     play(other, 'blue_move_2')
     assert 'empty_final' in other.facts
 
@@ -101,15 +105,15 @@ def test_all_catalog_effects_resolve():
 
 def test_side_bet_final_positions_and_crawling():
     e = engine()
-    e.mascots[0].position = 8
+    e.mascots[0].position = 9
     e.mascots[0].fallen = True
     play(e, 'blue_star')
     assert 'crawl_final' in e.facts
-    e.mascots[1].position = 9
+    e.mascots[1].position = 10
     e.mascots[1].lane = 0
     play(e, 'orange_move_minus_2')
     assert 'same_space' not in e.facts
-    e.mascots[1].position = 9
+    e.mascots[1].position = 10
     play(e, 'orange_turn')
     assert 'same_space' in e.facts
     play(e, 'orange_fall')

@@ -6,12 +6,17 @@ import pygame
 COLORS=('blue','orange','yellow','salmon')
 NAMES=('ダングル','ゴブラー','マム','ハーレー')
 CATALOG=Path(__file__).resolve().parents[3]/'data/cards/catalog.json'
+COURSE_COLUMNS=13
+FINAL_SPACE=COURSE_COLUMNS-1
+STAR_POSITIONS=(2,7,12,COURSE_COLUMNS)
 
 class EffectsMixin:
     def set_state(self,state):
         super().set_state(state)
-        self.lanes=list(range(4)); self.visual_lanes=list(range(4))
-        self.previous_lanes=list(range(4))
+        self.lanes=[2,0,3,1]; self.visual_lanes=self.lanes[:]
+        self.previous_lanes=self.lanes[:]
+        self.card_history=[]
+        self.history_flight=None
         self.picker=False; self.selection=0; self.scenario_index=-1
         self.catalog=[c for c in json.loads(CATALOG.read_text(encoding='utf-8'))['cards'] if c['kind']=='race']
         self.pending=None; self.targets=[]; self.old_fallen=self.fallen[:]
@@ -29,8 +34,8 @@ class EffectsMixin:
         setups=[('自由に効果確認',(4,6,7,4),[1,1,2,3],[False]*4),
                 ('衝突・再転倒',(4,6,7,4),[1,1,2,3],[False,True,False,False]),
                 ('転倒・逆向き',(4,6,7,4),[0,1,2,3],[True,False,True,False]),
-                ('ゴール・コース外',(11,10,1,2),[0,1,2,3],[False]*4),
-                ('全員カード',(10,10,9,9),[1,1,2,3],[False,True,False,True])]
+                ('ゴール・コース外',(13,12,1,2),[0,1,2,3],[False]*4),
+                ('全員カード',(12,12,11,11),[1,1,2,3],[False,True,False,True])]
         title,positions,lanes,fallen=setups[index]
         self.positions=positions; self.visual_positions=list(positions); self.previous=positions
         self.lanes=lanes; self.visual_lanes=lanes[:]; self.previous_lanes=lanes[:]
@@ -46,6 +51,9 @@ class EffectsMixin:
         self.targets=targets; self.active=targets[0] if targets else 0
         self.old_fallen=self.fallen[:]; self.previous=self.positions; self.previous_lanes=self.lanes[:]
         self.card_id=card_id; self.effect=effect or card['label']
+        if self.card_history:
+            self.history_flight=(self.card_history[-1], self.elapsed)
+        self.card_history.append(card_id)
         pos=list(self.positions); lanes=self.lanes[:]; fallen=self.fallen[:]
         outcomes={}; hits=set(); paths={}
         self.action='recover' if action.startswith('recover') else action
@@ -60,7 +68,7 @@ class EffectsMixin:
                 if action.startswith('recover'):
                     fallen[i]=False; self.facing[i]=1
                 if action=='star':
-                    stars=[x for x in (0,5,8,12) if (x-start)*self.facing[i]>0]
+                    stars=[x for x in STAR_POSITIONS if (x-start)*self.facing[i]>0]
                     dest=(min(stars) if self.facing[i]>0 else max(stars)) if stars else start
                     delta=dest-start
                 else:
@@ -68,12 +76,12 @@ class EffectsMixin:
                     delta=amount*self.facing[i]
                 if fallen[i] and delta: delta=1 if delta>0 else -1
                 dest=start+delta
-                if group: dest=min(11,dest)
+                if group: dest=min(FINAL_SPACE,dest)
                 direction=1 if dest>start else -1
                 for x in range(start+direction,dest+direction,direction) if dest!=start else []:
                     path.append((x,lane))
-                    if x>=12:
-                        outcomes[i]='goal'; dest=12; break
+                    if x>=COURSE_COLUMNS:
+                        outcomes[i]='goal'; dest=COURSE_COLUMNS; break
                     if x<self.removed:
                         outcomes[i]='dq'; dest=x; break
                 pos[i]=dest
@@ -113,9 +121,10 @@ class EffectsMixin:
         if self.progress<1: return
         self.moving=False
         if self.action=='shorten':
-            self.removed=min(12,self.removed+3)
+            self.removed=min(COURSE_COLUMNS,self.removed+3)
             outcomes={i:'dq' for i,x in enumerate(self.positions) if x<self.removed and self.status[i]=='racing'}
             self.remaining=15; self.deck_index=0; self.effect='再シャッフル・3枚バーン済み'
+            self.card_history=[]; self.history_flight=None; self.card_id='card_back'
         else:
             self.fallen,outcomes,hits=self.pending
             self.pending=None
@@ -126,6 +135,8 @@ class EffectsMixin:
             self.tie_ranks.update({i:lowest for i in dqs})
         for i,kind in outcomes.items(): self.place(i,kind)
         if self.finish_if_ready(): return
+        if self.action=='shorten':
+            self.action='idle'; self.state='start'; self.effect='3枚バーン済み'
         if self.remaining==0:
             self.action='shorten'; self.progress=0.; self.moving=True
             self.previous=self.positions; self.previous_lanes=self.lanes[:]

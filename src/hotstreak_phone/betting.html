@@ -15,10 +15,24 @@
     </div>
 
     <header class="head">
+      <div class="head-actions">
+        <span id="my-balance" class="my-balance"></span>
+        <button id="field-cards-button" class="field-cards-button" type="button">場のカード</button>
+      </div>
       <p id="turn-status" class="turn-status"></p>
       <p id="turn-detail" class="turn-detail"></p>
       <p id="race-meta" class="race-meta"></p>
     </header>
+
+    <div id="field-cards-modal" class="field-cards-modal" hidden>
+      <section class="field-cards-sheet" role="dialog" aria-modal="true" aria-labelledby="field-cards-title">
+        <header class="field-cards-head">
+          <h2 id="field-cards-title">場のカード</h2>
+          <button id="field-cards-close" class="field-cards-close" type="button" aria-label="閉じる">×</button>
+        </header>
+        <div id="field-cards-list" class="field-cards-list"></div>
+      </section>
+    </div>
 
     <main>
       <section class="panel">
@@ -41,10 +55,12 @@
     </footer>
 
     <script src="ticket-payouts.js"></script>
+    <script src="card-sprite.js"></script>
     <script src="betting-state.js"></script>
     <script src="live-connection.js"></script>
     <script src="betting-view.js"></script>
     <script src="betting-demo.js"></script>
-    <script src="betting-app.js"></script>
+    <script src="live.js"></script>
+  <script src="betting-app.js"></script>
   </body>
 </html>

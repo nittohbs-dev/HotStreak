@@ -39,11 +39,14 @@ function payload(overrides) {
       prompt: { promptId: "sb-03", text: "コースアウトはある？" },
       stock: [ticket(), ticket({ ticketId: "side-yes", ticketKind: "side", label: "YES", tier: "mid" })],
       players: [
-        { playerId: ME, displayName: "ヤマダ" },
-        { playerId: "p2", displayName: "サトウ" },
+        { playerId: ME, displayName: "ヤマダ", balance: 17 },
+        { playerId: "p2", displayName: "サトウ", balance: 8 },
       ],
       picksByPlayer: {},
       doubleByPlayer: {},
+      faceUpCards: [
+        { cardInstanceId: "blue_swerve_1:0", cardId: "blue_swerve_1", rect: [0, 0, 240, 336] },
+      ],
     },
     overrides
   );
@@ -63,6 +66,8 @@ test("state を受けるとレース・周回・手番が反映される", () =>
   assert.equal(state.currentPlayerName, "ヤマダ");
   assert.equal(state.isMyTurn, true);
   assert.equal(state.error, "");
+  assert.equal(state.myBalance, 17);
+  assert.deepEqual(state.faceUpCards[0].rect, [0, 0, 240, 336]);
 });
 
 test("他者の番では札を選べず確定もできない", () => {
@@ -174,6 +179,8 @@ test("壊れた payload では状態を進めない", () => {
     payload({ stock: [ticket(), ticket()] }),
     payload({ picksByPlayer: { [ME]: [pick({ face: "normal" })] } }),
     payload({ picksByPlayer: null }),
+    payload({ faceUpCards: "hidden" }),
+    payload({ faceUpCards: [{ cardInstanceId: "c:0", cardId: "c", rect: [0, 0, 240] }] }),
     "not-json",
   ];
   for (const bad of broken) {

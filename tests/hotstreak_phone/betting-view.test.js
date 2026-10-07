@@ -3,6 +3,7 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 
 globalThis.HotStreakTicketPayouts = require("../../src/hotstreak_phone/ticket-payouts.js");
+globalThis.HotStreakCardSprite = require("../../src/hotstreak_phone/card-sprite.js");
 const { BettingScreenState } = require("../../src/hotstreak_phone/betting-state.js");
 const fakeDom = require("./fake-dom.js");
 
@@ -35,11 +36,15 @@ function payload(overrides) {
         { ticketId: "side-yes", ticketKind: "side", label: "サイド YES", tier: "top", remaining: 0 },
       ],
       players: [
-        { playerId: "p1", displayName: "ヤマダ" },
-        { playerId: "p2", displayName: "サトウ" },
+        { playerId: "p1", displayName: "ヤマダ", balance: 17 },
+        { playerId: "p2", displayName: "サトウ", balance: 8 },
       ],
       picksByPlayer: {},
       doubleByPlayer: {},
+      faceUpCards: [
+        { cardInstanceId: "blue_swerve_1:0", cardId: "blue_swerve_1", rect: [0, 0, 240, 336] },
+        { cardInstanceId: "orange_fall:0", cardId: "orange_fall", rect: [720, 336, 240, 336] },
+      ],
     },
     overrides
   );
@@ -58,6 +63,7 @@ test("自分の番では手番バー・周回・レースを表示する", () =>
   assert.equal(nodes["turn-status"].dataset.mode, "mine");
   assert.equal(nodes["turn-detail"].textContent, "2周目 3/4");
   assert.equal(nodes["race-meta"].textContent, "レース 1/3");
+  assert.equal(nodes["my-balance"].textContent, "所持金 $17");
 });
 
 test("お題は表示しない（Display 側で見せる）", () => {
@@ -67,6 +73,18 @@ test("お題は表示しない（Display 側で見せる）", () => {
   for (const node of rendered) {
     assert.doesNotMatch(node.text, /コースアウト/);
   }
+});
+
+test("右上のボタンで場のカードだけをモーダル表示する", () => {
+  const { view, nodes } = setup();
+  view.render(stateOf());
+  assert.equal(nodes["field-cards-modal"].hidden, true);
+  nodes["field-cards-button"].click();
+  assert.equal(nodes["field-cards-modal"].hidden, false);
+  assert.equal(nodes["field-cards-list"].children.length, 2);
+  assert.ok(nodes["field-cards-list"].children[0].findByClass("card-art"));
+  nodes["field-cards-close"].click();
+  assert.equal(nodes["field-cards-modal"].hidden, true);
 });
 
 test("サイド券には種別を出して横並びにできるようにする", () => {

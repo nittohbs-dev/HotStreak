@@ -1,5 +1,6 @@
 /* SCR-phone-005: 本人の実精算と3レース終了後の受付復帰。 */
 (function () {
+  if (typeof HotStreakSessionLive !== "undefined" && HotStreakSessionLive.enabled) { HotStreakSessionLive.start("payout"); return; }
   const params = new URLSearchParams(typeof location === "undefined" ? "" : location.search);
   const live = params.has("session") && params.get("demo") !== "1";
   const playerId = live ? params.get("player") : HotStreakPayoutMock.MOCK_PLAYER_ID;

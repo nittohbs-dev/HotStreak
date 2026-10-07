@@ -13,10 +13,10 @@ class EffectsTest(unittest.TestCase):
         self.m.update(1.2)
 
     def test_star_forward_back_and_no_next(self):
-        self.play('blue_star'); self.assertEqual(self.m.positions[0],5)
+        self.play('blue_star'); self.assertEqual(self.m.positions[0],7)
         self.m.facing[0]=-1
-        self.play('blue_star'); self.assertEqual(self.m.positions[0],0)
-        self.play('blue_star'); self.assertEqual(self.m.positions[0],0)
+        self.play('blue_star'); self.assertEqual(self.m.positions[0],2)
+        self.play('blue_star'); self.assertEqual(self.m.positions[0],2)
 
     def test_negative_reverses_with_facing(self):
         self.play('blue_move_minus_2'); self.assertEqual(self.m.positions[0],2)
@@ -65,24 +65,26 @@ class EffectsTest(unittest.TestCase):
         self.assertEqual(self.m.status[0],'dq')
 
     def test_out_of_bounds_side_and_back(self):
+        self.m.lanes[0]=0
         self.play('blue_swerve_1'); self.assertEqual(self.m.status[0],'dq')
         self.m.positions=(4,1,7,4)
         self.play('orange_move_minus_2'); self.assertEqual(self.m.status[1],'dq')
 
     def test_goal_precedes_swerve_out(self):
-        self.m.positions=(11,6,7,4)
+        self.m.positions=(12,6,7,4)
+        self.m.lanes[0]=0
         self.play('blue_swerve_2')
         self.assertEqual(self.m.status[0],'goal'); self.assertEqual(self.m.lanes[0],0)
 
     def test_star_can_goal(self):
-        self.m.positions=(9,6,7,4)
+        self.m.positions=(12,6,7,4)
         self.play('blue_star'); self.assertEqual(self.m.status[0],'goal')
 
     def test_green_no_collisions_no_goal(self):
-        self.m.positions=(10,11,10,10); self.m.lanes=[1,1,1,1]
+        self.m.positions=(11,12,11,11); self.m.lanes=[1,1,1,1]
         self.m.fallen[1]=True
         self.play('green_move_3')
-        self.assertEqual(self.m.positions,(11,11,11,11))
+        self.assertEqual(self.m.positions,(12,12,12,12))
         self.assertEqual(self.m.status,['racing']*4)
         self.assertEqual(self.m.fallen,[False,True,False,False])
 
