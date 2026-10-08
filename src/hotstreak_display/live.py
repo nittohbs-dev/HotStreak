@@ -283,7 +283,7 @@ class Application:
         if self.state['phase'] != 'race':
             return 'レース終了 / 最後のカードを表示しています'
         if self.start_delay > 0:
-            return 'レース開始準備中'
+            return f'開始まで {ceil(self.start_delay - .5)}' if self.start_delay > .5 else 'GO!'
         if self.auto_running:
             return '自動進行中 / Enterで一時停止'
         if self.pending or self.moving:
@@ -318,11 +318,9 @@ class Application:
         view = self.views[phase]
         if phase == 'race':
             self.race.live = True
-            self.race.start_label = (str(ceil(self.start_delay - .5))
-                                     if self.start_delay > .5 else 'GO!') if self.start_delay > 0 else 'Enterで1枚 / 1秒長押しで自動開始'
             view.draw(canvas, self.race)
-            pygame.draw.rect(canvas, (3, 32, 60), (20, 564, 1240, 20), border_radius=4)
-            view.centered(canvas, self.race_notice, 640, 565, 16, (244, 252, 255))
+            pygame.draw.rect(canvas, (3, 32, 60), (256, 22, 590, 42), border_radius=6)
+            view.text(canvas, self.race_notice, (272, 32), 20, (244, 252, 255), max_width=558)
         elif phase == 'setup-cards':
             screen = DisplaySetupCardsScreen(lambda: None, lambda _: None)
             screen.handle_message('setup.state', s)
