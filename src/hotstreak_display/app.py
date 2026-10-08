@@ -8,6 +8,7 @@ from queue import Empty
 import pygame
 from .connection import DisplayConnection
 from .screens.lobby import LobbyView
+from .audio import GameAudio
 
 
 def lan_address():
@@ -73,6 +74,7 @@ def main():
         print(f'参加用サーバ: {public_base}', flush=True)
     connection = DisplayConnection(args.server)
     pygame.init()
+    audio = GameAudio()
     try:
         views = make_views(japanese_font(args.font))
         display = pygame.display.set_mode((1280, 720), pygame.RESIZABLE if args.windowed else pygame.FULLSCREEN)
@@ -123,10 +125,12 @@ def main():
             else:
                 canvas.fill((12, 15, 20))
                 views['lobby'].text(canvas, '次の画面を準備しています', (300, 300), 32)
+            audio.update(state, views['race'].model if state['phase'] == 'race' else None, dt)
             if error or not connected or pending:
                 pygame.draw.rect(canvas, (15, 17, 22), (0, 650, 1280, 70))
                 message = error or ('進行を確認しています…' if pending else '接続しています…')
                 views['lobby'].text(canvas, message, (30, 674), 20, (244, 151, 128), 1220)
+            audio.draw_credit(canvas)
             width, height = display.get_size()
             scale = min(width/1280, height/720)
             size = max(1, int(1280*scale)), max(1, int(720*scale))
@@ -136,6 +140,7 @@ def main():
     finally:
         if connection.thread.is_alive():
             connection.close()
+        audio.close()
         pygame.quit()
         if server:
             server.should_exit = True
