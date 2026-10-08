@@ -366,7 +366,7 @@ class Application:
             view.text(canvas, self.error, (32, 680), 20)
 
 
-def main():
+def main(argv=None):
     parser = argparse.ArgumentParser(description='HotStreak 会場Display（実セッション）')
     parser.add_argument('--server', default='http://127.0.0.1:8000')
     parser.add_argument('--join-origin', help='スマホから到達できる会場PCのURL')
@@ -374,7 +374,7 @@ def main():
     parser.add_argument('--new', action='store_true')
     parser.add_argument('--windowed', action='store_true')
     parser.add_argument('--font')
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     credentials = None
     if args.session_file.exists() and not args.new:
         credentials = json.loads(args.session_file.read_text(encoding='utf-8'))

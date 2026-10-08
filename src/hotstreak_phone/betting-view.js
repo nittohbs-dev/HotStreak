@@ -72,9 +72,6 @@
       } else if (!state.connected) {
         bar.textContent = "接続中…";
         bar.dataset.mode = "offline";
-      } else if (!state.currentPlayerId && state.heldCount === 2) {
-        bar.textContent = state.needsDouble ? "ダブルを指定してください" : "選択完了";
-        bar.dataset.mode = "done";
       } else if (state.isMyTurn) {
         bar.textContent = "あなたの番です";
         bar.dataset.mode = "mine";
@@ -161,7 +158,7 @@
       for (const pick of state.myPicks) {
         const button = el("button", "double-option", `${pick.label}（${FACE_LABEL[pick.face]}）`);
         button.type = "button";
-        button.disabled = !state.canSendDouble;
+        button.disabled = state.pending;
         button.addEventListener("click", () => this.handlers.onDouble(pick.ticketInstanceId));
         slots.append(button);
       }
@@ -174,9 +171,9 @@
 
       let notice = state.error;
       if (!notice && state.advanced) notice = "全員が2枚取得しました。次の画面を待っています。";
-      else if (!notice && state.needsDouble) notice = "配当ダブルにする札を1枚選んでください。";
-      else if (!notice && state.heldCount >= 2) notice = "このレースの札は選択済みです。会場の進行を待ってください。";
       else if (!notice && state.connected && !state.isMyTurn) notice = "ほかの人の番です。操作できません。";
+      else if (!notice && state.needsDouble) notice = "配当ダブルにする札を1枚選んでください。";
+      else if (!notice && state.isMyTurn && state.heldCount >= 2) notice = "このレースの取得は終わりました。";
       this.nodes.notice.textContent = notice || "";
       this.nodes.notice.dataset.error = String(Boolean(state.error));
     }

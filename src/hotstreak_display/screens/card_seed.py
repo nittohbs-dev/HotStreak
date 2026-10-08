@@ -73,8 +73,8 @@ class DisplaySeedRoot(DisplaySetupRoot):
         self.text(surface, "場のカード", (130, 127), 24)
         self.text(surface, f"仕込み完了  {state.completed} / {state.total} 人", (824, 129), 24, (223, 191, 134))
         for i in range(state.total):
-            step = 1012 // max(1, state.total)
-            rect = pygame.Rect(132 + i * step, 177, step - 12, 19)
+            stride = min(168, 1000 // state.total)
+            rect = pygame.Rect(132 + i * stride, 177, stride - 18, 19)
             pygame.draw.rect(surface, (39, 42, 47), rect)
             if i < state.completed:
                 pygame.draw.rect(surface, (223, 191, 134), rect.inflate(-4, -4))

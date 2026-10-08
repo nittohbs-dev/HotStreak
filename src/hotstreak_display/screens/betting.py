@@ -96,22 +96,21 @@ class DisplayBettingRoot(DisplaySetupRoot):
         self.text(surface, "HOT STREAK", (1080, 42), 16, (200, 184, 144))
 
         self.panel(surface, pygame.Rect(72, 99, 1136, 87))
-        surface.blit(self.card_assets.card(getattr(screen, 'prompt_card', state.prompt_id), (58, 81)), (78, 102))
+        surface.blit(self.card_assets.card(getattr(screen, 'prompt_card', 'event_disqualified'), (58, 81)), (78, 102))
         self.text(surface, "SIDE BET  /  今回のお題", (157, 109), 20, (223, 191, 134))
         self.text(surface, state.prompt, (157, 141), 24, max_width=1020)
 
         self.panel(surface, pygame.Rect(72, 205, 476, 405))
         self.text(surface, "参加者・選択状況", (94, 220), 24)
         self.text(surface, state.round_label, (364, 224), 20, (223, 191, 134), 164)
-        row_height = min(53, 338 // max(1, len(state.players)))
         for i, player in enumerate(state.players):
-            y = 266 + i * row_height
+            y = 266 + i * min(53, 335 // max(1, len(state.players)))
             active = i == state.current_player
             if active:
-                pygame.draw.rect(surface, (56, 37, 28), (87, y - 2, 446, row_height - 4))
-                pygame.draw.rect(surface, (231, 125, 77), (87, y - 2, 446, row_height - 4), 2)
+                pygame.draw.rect(surface, (56, 37, 28), (87, y - 2, 446, 49))
+                pygame.draw.rect(surface, (231, 125, 77), (87, y - 2, 446, 49), 2)
             self.mascot_icon(surface, player.mascot, (116, y + 21), 3)
-            self.text(surface, player.name, (145, y + 7), 20, max_width=140)
+            self.text(surface, player.name, (145, y + 7), 24)
             if active:
                 self.text(surface, "選択中", (295, y + 9), 20, (231, 125, 77))
             elif player.tickets == 2:
@@ -151,7 +150,7 @@ class DisplayBettingRoot(DisplaySetupRoot):
         if footer:
             self.panel(surface, pygame.Rect(72, 628, 1136, 48))
             self.text(surface, footer, (92, 638), 24, (223, 191, 134), 1090)
-        if not getattr(screen, "live", False):
+        if not getattr(screen, 'live', False):
             self.text(surface, f"MOCK  |  ← → 表示例切替：{state.label}  |  ESC 終了", (76, 689), 20, (200, 184, 144))
 
 
