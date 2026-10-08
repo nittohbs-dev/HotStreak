@@ -1,0 +1,8 @@
+Race BGM: "Run Amok" Kevin MacLeod (incompetech.com)
+Licensed under Creative Commons: By Attribution 4.0 License
+https://creativecommons.org/licenses/by/4.0/
+Source: https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1400024
+Original MP3, unmodified; playback volume adjusted in game.
+
+Waiting BGM and sound effects: original compositions synthesized for this HotStreak project on 2026-10-08. No external samples.
+countdown_tick.wav and countdown_go.wav are excerpts of se_06_countdown_go.wav.
