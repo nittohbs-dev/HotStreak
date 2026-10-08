@@ -21,3 +21,6 @@ features:
   - id: payout
     title: 配当
     status: draft
+  - id: audio
+    title: 会場BGM・効果音
+    status: approved
