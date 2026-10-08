@@ -4,6 +4,8 @@
 
 ## Windows
 
+macOS / Linuxの通常起動は `./play.sh --windowed` です。Windowsと同じ `hotstreak_display.live` の会場UIと `hotstreak_sync.app` の実セッションを使用します。`--server` を指定する場合も、この実セッションサーバを指定してください。
+
 Python 3.11以上で、初回だけリポジトリ直下から実行します。
 
 ```powershell
