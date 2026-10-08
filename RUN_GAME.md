@@ -28,6 +28,14 @@ powershell -ExecutionPolicy Bypass -File scripts/run-hotstreak.ps1 -Python .venv
 - 会場ウィンドウを閉じるとサーバも終了します。状態は設計どおりメモリ内のみで、サーバ終了時に失われます。
 - Displayの再起動用認証情報は `.hotstreak-session.json` に保存します。Gitの対象外です。
 
+## 会場のBGM・効果音
+
+参加受付・準備・ベット・仕込み・配当では「いたずらスウィング」（40%）、レースではKevin MacLeod「Run Amok」（50%）を再生します。カード公開・移動・転倒・逆走・開始・ゴール・配当にも効果音が付きます。音声専用の操作は不要です。
+
+音は会場端末からだけ出ます。音声デバイスや音源を利用できない場合はログに警告を出し、画面・Enter操作は続行します。OS側の音量も確認してください。
+
+音源・ライセンス・実時間録画の再現手順: [assets/audio/README.md](assets/audio/README.md)。録画用のimageio-ffmpegはゲーム実行の必須依存ではありません。
+
 ## サーバとDisplayを別々に起動する場合
 
 両ターミナルで `$env:PYTHONPATH='src'` を設定し、次を実行します。

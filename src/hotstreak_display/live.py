@@ -15,6 +15,7 @@ from .screens.betting import DisplayBettingRoot, BettingPreview, PlayerPreview, 
 from .screens.card_seed import DisplaySeedRoot, SeedPreview
 from .screens.race import View as RaceView, Model as RaceModel, COLORS
 from .screens.payout import View as PayoutView
+from .audio import GameAudio
 
 
 class Connection:
@@ -171,7 +172,7 @@ class RacePresentation(RaceModel):
 
 
 class Application:
-    def __init__(self, font=None):
+    def __init__(self, font=None, audio=None):
         from .app import japanese_font
         font = japanese_font(font)
         self.views = {'lobby': DisplaySetupRoot(font), 'setup-cards': DisplaySetupRoot(font),
@@ -189,6 +190,7 @@ class Application:
         self.manual_requested = False
         self.next_delay = 0.
         self.start_delay = 0.
+        self.audio = audio if audio is not None else GameAudio()
 
     def receive(self, state, *, advanced=False):
         if self.state and state['revision'] < self.state['revision']:
@@ -308,6 +310,7 @@ class Application:
             self.next_delay = .5
         elif not self.moving and not self.pending:
             self.next_delay = max(0., self.next_delay - dt)
+        self.audio.update(self.state, self.race, dt, self.start_delay)
 
     def draw(self, canvas, join_url):
         if not self.state:
@@ -364,6 +367,7 @@ class Application:
         if self.error and phase != 'race':
             pygame.draw.rect(canvas, (45, 15, 20), (20, 670, 1240, 40))
             view.text(canvas, self.error, (32, 680), 20)
+        self.audio.draw_credit(canvas)
 
 
 def main(argv=None):
@@ -426,6 +430,8 @@ def main(argv=None):
     finally:
         connection.stop.set()
         connection.thread.join(timeout=5)
+        if 'app' in locals():
+            app.audio.close()
         pygame.quit()
 
 
