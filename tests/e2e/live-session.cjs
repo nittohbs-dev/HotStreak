@@ -91,9 +91,24 @@ const path = require('node:path');
       await advance();
       for (const { page } of people) await page.waitForURL(/race\.html/);
       let state;
-      for (let count = 0; count < 61; count++) {
-        state = await advance();
-        if (state.phase === 'payout') break;
+      if (process.env.HOTSTREAK_AUTO_RACE === '1') {
+        const { spawn } = require('node:child_process');
+        await new Promise((resolve, reject) => {
+          const child = spawn('uv', ['run', '--python', '3.12', '--with-requirements', 'requirements.txt',
+            'python', 'tests/e2e/auto-race.py'], { env: { ...process.env, PYTHONPATH: 'src' } });
+          let output = '';
+          child.stdout.on('data', data => { output += data; });
+          child.stderr.on('data', data => { output += data; });
+          child.on('error', reject);
+          child.on('close', code => code === 0 ? (console.log(output.trim()), resolve()) : reject(new Error(output)));
+          child.stdin.end(JSON.stringify({ origin, credentials: created }));
+        });
+        state = await snapshot();
+      } else {
+        for (let count = 0; count < 61; count++) {
+          state = await advance();
+          if (state.phase === 'payout') break;
+        }
       }
       assert.equal(state.phase, 'payout');
       for (const { page } of people) {

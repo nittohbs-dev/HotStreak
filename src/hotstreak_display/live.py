@@ -1,6 +1,7 @@
 """既存の会場画面にサーバ確定状態を表示する実行入口。"""
 import argparse
 import json
+from math import ceil
 from pathlib import Path
 from queue import Queue, Empty
 from threading import Thread, Event
@@ -40,7 +41,7 @@ class Connection:
                     body = self.commands.get_nowait()
                 except Empty:
                     body = None
-                self.messages.put(('state', self.request(body)))
+                self.messages.put(('advanced' if body is not None else 'state', self.request(body)))
             except HTTPError as exc:
                 try:
                     message = json.load(exc).get('message', '操作できません')
@@ -181,16 +182,36 @@ class Application:
         self.error = ''
         self.pending = False
         self.connected = False
+        self.auto_running = False
+        self.enter_held = False
+        self.hold_elapsed = None
+        self.focused = True
+        self.manual_requested = False
+        self.next_delay = 0.
+        self.start_delay = 0.
 
-    def receive(self, state):
+    def receive(self, state, *, advanced=False):
         if self.state and state['revision'] < self.state['revision']:
             return
         if not self.connected:
             self.error = ''
-        self.pending, self.connected = False, True
+        # 定期GETが先に届いても、送信中のPOSTを完了扱いにしない。
+        if advanced:
+            self.pending = False
+        self.connected = True
         if self.state and state['revision'] == self.state['revision']:
             return
         self.error = ''
+        new_race = state['phase'] == 'race' and (
+            not self.state or self.state['phase'] != 'race'
+            or self.state['raceIndex'] != state['raceIndex'])
+        if new_race or state['phase'] != 'race':
+            self.hold_elapsed = None
+            self.auto_running = False
+            self.next_delay = 0.
+            self.manual_requested = False
+        if new_race:
+            self.start_delay = 3.5 if state['revealed'] == 0 else 0.
         if state['phase'] in ('race', 'payout') and state.get('course'):
             if self.race is None or self.race.race != state['raceIndex']:
                 self.race = RacePresentation(state)
@@ -204,9 +225,89 @@ class Application:
     def moving(self):
         return bool(self.race and self.race.moving)
 
+    def fail(self, message):
+        self.error = message
+        self.hold_elapsed = None
+        self.pending = self.connected = self.auto_running = False
+        self.manual_requested = False
+
+    def handle_event(self, event):
+        if event.type == pygame.WINDOWFOCUSLOST:
+            self.focused = False
+            self.hold_elapsed = None
+            self.auto_running = False
+            self.manual_requested = False
+            # 押下状態を維持し、復帰時の押しっぱなしを新しい押下にしない。
+        elif event.type == pygame.WINDOWFOCUSGAINED:
+            self.focused = True
+        elif event.type == pygame.KEYUP and event.key in (pygame.K_RETURN, pygame.K_KP_ENTER):
+            if (self.hold_elapsed is not None and self.focused and self.connected
+                    and self.state and self.state['phase'] == 'race'
+                    and not self.pending and not self.moving):
+                self.manual_requested = True
+            self.hold_elapsed = None
+            self.enter_held = False
+        elif event.type == pygame.KEYDOWN and event.key in (pygame.K_RETURN, pygame.K_KP_ENTER):
+            fresh = not self.enter_held and not getattr(event, 'repeat', False)
+            self.enter_held = True
+            if not fresh or not self.focused or not self.connected or not self.state:
+                return
+            if self.state['phase'] == 'race':
+                if self.start_delay <= 0:
+                    if self.auto_running:
+                        self.auto_running = False
+                        self.hold_elapsed = None
+                    else:
+                        self.hold_elapsed = 0.
+            elif not self.pending and not self.moving:
+                self.manual_requested = True
+
+    def take_command(self):
+        if not self.state or not self.connected or not self.focused or self.pending or self.moving:
+            return None
+        if self.state['phase'] == 'race':
+            if self.start_delay > 0:
+                return None
+            if not self.manual_requested and (not self.auto_running or self.next_delay > 0):
+                return None
+        elif not self.manual_requested:
+            return None
+        self.manual_requested = False
+        self.pending = True
+        return dict(revision=self.state['revision'], phase=self.state['phase'])
+
+    @property
+    def race_notice(self):
+        if not self.connected:
+            return '通信確認中 / 自動進行を停止しました'
+        if self.state['phase'] != 'race':
+            return 'レース終了 / 最後のカードを表示しています'
+        if self.start_delay > 0:
+            return 'レース開始準備中'
+        if self.auto_running:
+            return '自動進行中 / Enterで一時停止'
+        if self.pending or self.moving:
+            return 'このカードの演出後に停止 / 1秒長押しで自動再開'
+        if self.state['revealed'] == 0:
+            return 'Enterで1枚 / 1秒長押しで自動開始'
+        return '一時停止中 / Enterで1枚・1秒長押しで自動再開'
+
     def update(self, dt):
+        if self.hold_elapsed is not None:
+            self.hold_elapsed += dt
+            if self.hold_elapsed >= 1.:
+                self.hold_elapsed = None
+                self.auto_running = True
+                if not self.pending and not self.moving:
+                    self.next_delay = 0.
+        self.start_delay = max(0., self.start_delay - dt)
+        was_moving = self.moving
         if self.race:
             self.race.update(dt)
+        if was_moving and not self.moving:
+            self.next_delay = .5
+        elif not self.moving and not self.pending:
+            self.next_delay = max(0., self.next_delay - dt)
 
     def draw(self, canvas, join_url):
         if not self.state:
@@ -216,7 +317,12 @@ class Application:
         phase = 'race' if self.moving else s['phase']
         view = self.views[phase]
         if phase == 'race':
+            self.race.live = True
+            self.race.start_label = (str(ceil(self.start_delay - .5))
+                                     if self.start_delay > .5 else 'GO!') if self.start_delay > 0 else 'Enterで1枚 / 1秒長押しで自動開始'
             view.draw(canvas, self.race)
+            pygame.draw.rect(canvas, (3, 32, 60), (20, 564, 1240, 20), border_radius=4)
+            view.centered(canvas, self.race_notice, 640, 565, 16, (244, 252, 255))
         elif phase == 'setup-cards':
             screen = DisplaySetupCardsScreen(lambda: None, lambda _: None)
             screen.handle_message('setup.state', s)
@@ -255,7 +361,7 @@ class Application:
             for i, p in enumerate(s['players']):
                 view.text(canvas, p['displayName'] or '名前入力中…', (90, 235+i*43), 24)
             view.text(canvas, f"参加 {s['playerCount']} / 8人  ・  1人からEnter（不足分はCPU）", (70, 650), 24)
-        if self.error:
+        if self.error and phase != 'race':
             pygame.draw.rect(canvas, (45, 15, 20), (20, 670, 1240, 40))
             view.text(canvas, self.error, (32, 680), 20)
 
@@ -293,30 +399,23 @@ def main():
         screen = pygame.display.set_mode((1280, 720), pygame.RESIZABLE if args.windowed else pygame.FULLSCREEN)
         pygame.display.set_caption('HotStreak — 会場Display')
         canvas = pygame.Surface((1280, 720))
-        clock, running, enter_held = pygame.time.Clock(), True, False
+        clock, running = pygame.time.Clock(), True
         while running:
             dt = clock.tick(60)/1000
             while not connection.messages.empty():
                 kind, payload = connection.messages.get_nowait()
-                if kind == 'state':
-                    app.receive(payload)
+                if kind in ('state', 'advanced'):
+                    app.receive(payload, advanced=kind == 'advanced')
                 else:
-                    app.error, app.pending = payload, False
-                    if kind == 'offline':
-                        app.connected = False
+                    app.fail(payload)
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
-                if event.type == pygame.WINDOWFOCUSLOST:
-                    enter_held = False
-                if event.type == pygame.KEYUP and event.key in (pygame.K_RETURN, pygame.K_KP_ENTER):
-                    enter_held = False
-                if event.type == pygame.KEYDOWN and event.key in (pygame.K_RETURN, pygame.K_KP_ENTER):
-                    if not enter_held and not getattr(event, 'repeat', False) and app.connected and not app.pending and not app.moving:
-                        app.pending = True
-                        connection.commands.put(dict(revision=app.state['revision'], phase=app.state['phase']))
-                    enter_held = True
+                app.handle_event(event)
             app.update(dt)
+            command = app.take_command()
+            if command is not None:
+                connection.commands.put(command)
             app.draw(canvas, join_url)
             w, h = screen.get_size()
             ratio = min(w/1280, h/720)

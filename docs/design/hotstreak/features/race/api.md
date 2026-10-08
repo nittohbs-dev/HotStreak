@@ -1,6 +1,6 @@
 # API設計: レース進行
 
-自動進行ON/OFFは会場Displayのローカル状態。新しい切替APIは作らない。DisplayはEnterでONになった後、既存advance APIで1枚ずつ要求する。サーバが効果と終了を判定し、Displayが演出完了まで次の要求を待つ。
+自動進行ON/OFFは会場Displayのローカル状態。新しい切替APIは作らない。DisplayはEnterを1秒長押ししてONになった後、既存advance APIで1枚ずつ要求する。サーバが効果と終了を判定し、Displayが演出完了まで次の要求を待つ。
 
 ## API一覧
 

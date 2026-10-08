@@ -188,10 +188,10 @@ class View(DisplaySeedRoot):
         if removed <= 2:
             self.sign(surface,"START",max(20,self.point(2.5,0)[0]-60),235,(247,207,42))
         self.sign(surface,"GOAL",1100,290,(225,39,46))
-        if model.state=='start':
+        if model.state=='start' and (not getattr(model, 'live', False) or model.last_revealed == 0):
             self.ocean_panel(surface,pygame.Rect(80,90,538,103))
             self.centered(surface,"HOT STREAK",349,101,44,(255,231,115))
-            self.centered(surface,"ENTERで最初のカードをめくる",349,155,20,(244,252,255))
+            self.centered(surface,getattr(model, "start_label", "ENTERで最初のカードをめくる"),349,155,20,(244,252,255))
         elif model.action=='shorten' and model.moving and not revealing:
             self.ocean_panel(surface,pygame.Rect(381,211,514,73))
             self.centered(surface,"コース短縮  /  左から3マス",638,231,24,(255,234,164))
