@@ -24,7 +24,9 @@ class View(DisplaySeedRoot):
     def __init__(self, font_path=None):
         import os
         windows_font = Path(os.environ.get("WINDIR", "C:/Windows")) / "Fonts/YuGothB.ttc"
-        super().__init__(font_path or (str(windows_font) if windows_font.exists() else None))
+        path = font_path or (str(windows_font) if windows_font.exists() else None)
+        super().__init__(path)
+        self.start_fonts = {size: pygame.font.Font(path, size) for size in (72, 84)}
 
     def centered(self, surface, text, x, y, size=24, color=GOLD):
         self.text(surface, text, (x - self.fonts[size].size(text)[0] // 2, y), size, color)
@@ -139,9 +141,6 @@ class View(DisplaySeedRoot):
                 if col in STAR_COLUMNS:
                     x,y=self.point(col+.5,row+.5)
                     self.centered(surface,"★",x,y-17,32,(249,244,168))
-        for col in range(removed, COURSE_COLUMNS):
-            x, y = self.point(col + .5, 4)
-            self.centered(surface, str(col + 1), x, y + 17, 20, (255, 246, 198))
         if removed<=2:
             pygame.draw.line(surface,(255,245,190),self.point(2,0),self.point(2,4),4)
         for row in range(8):
@@ -188,7 +187,9 @@ class View(DisplaySeedRoot):
         if removed <= 2:
             self.sign(surface,"START",max(20,self.point(2.5,0)[0]-60),235,(247,207,42))
         self.sign(surface,"GOAL",1100,290,(225,39,46))
-        if model.state=='start' and not getattr(model, 'live', False):
+        if getattr(model, 'live', False) and model.last_revealed == 0:
+            self.draw_race_start(surface, model)
+        elif model.state=='start' and not getattr(model, 'live', False):
             self.ocean_panel(surface,pygame.Rect(80,90,538,103))
             self.centered(surface,"HOT STREAK",349,101,44,(255,231,115))
             self.centered(surface,getattr(model, "start_label", "ENTERで最初のカードをめくる"),349,155,20,(244,252,255))
@@ -211,6 +212,22 @@ class View(DisplaySeedRoot):
                 self.text(surface,names[who],(522,y+12),24,(248,252,240))
                 result='失格' if model.status[who]=='dq' else 'ゴール' if model.status[who]=='goal' else 'レース終了'
                 self.text(surface,result,(750,y+16),20,(181,222,242))
+
+    def draw_race_start(self, surface, model):
+        """開始演出だけ中央に大きく、操作案内はヘッダーに残す。"""
+        label = model.start_label
+        center_x, top = 640, 185
+        points = [(400, top), (864, top), (884, top+20),
+                  (884, top+132), (420, top+132), (400, top+112)]
+        pygame.draw.polygon(surface, (3, 32, 60), [(x+5, y+6) for x, y in points])
+        pygame.draw.polygon(surface, (255, 226, 136), points)
+        inner = [(405, top+5), (861, top+5), (879, top+23),
+                 (879, top+127), (423, top+127), (405, top+109)]
+        pygame.draw.polygon(surface, (12, 81, 132), inner)
+        self.centered(surface, f"RACE {model.race}", center_x, top+13, 24, (244,252,255))
+        size = 84 if label.isdigit() else 72
+        text = self.start_fonts[size].render(label, True, (255,231,115))
+        surface.blit(text, text.get_rect(center=(center_x, top+84)))
 
     def draw_card_reveal(self, surface, model):
         """12片が寄り、短い間を置いてカード枠へ収まる。判定には触れない。"""
