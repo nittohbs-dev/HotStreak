@@ -49,7 +49,7 @@
 - [ ] REQ-race-005: Phone に自分のマ券・所持金・順位要約を表示する
 - [ ] REQ-race-006: 全員状況小画面で他プレイヤーの札を参照できる
 
-- [ ] REQ-race-008: Enterだけで自動進行の開始・停止・再開ができ、演出中の停止、長押し抑止、終了・通信失敗時のOFFを満たす
+- [ ] REQ-race-008: Enterだけで自動進行の開始・停止・再開ができ、演出中の停止、短押しと1秒長押しの分岐・リピート抑止、終了・通信失敗時のOFFを満たす
 
 ## 根拠で閉じた項目
 
@@ -58,7 +58,7 @@
 | OPEN-race-001 | 設計書には効果の**種別名＋要約のみ**。詳細解決の正は英語ルールブック。全文転載しない。要約は `manual.html` §6 をデジタル説明の正とする | [`overview.md`](../../00-project/overview.md) スコープ外「ルール全文の転載」、同「英語ルールブックを構造の正」、[`manual.html`](../../manual.html) §6 効果表 |
 | OPEN-race-003 | DQ は manual 要約どおり: 転倒中の再転倒／衝突、コース外、短縮で埋まる、など | `manual.html` §6「失格（DQ）」行 |
 | OPEN-race-004 | コース短縮は**奥が消える／左から折りたたみ**（次の solid white line まで）。埋まった位置のマスコットは失格。山切れのたびに発生しうる | [rulebook](https://gamers-hq.de/media/pdf/dc/37/cf/Hot_Streak_rulebook_2nd_printing.pdf) RESHUFFLING「fold it over to the next solid white line… stragglers under the mat are disqualified」。display/screens.md |
-| OPEN-race-005 | **Enterで自動進行を開始／停止**。演出完了後に次の1枚を要求し、効果解決はサーバ担当 | 2026-10-08ユーザー指示。従来の1押下1枚を置換 |
+| OPEN-race-005 | **Enter短押しで1枚、1秒長押しで自動開始、自動中の押下で停止**。演出完了後に次の1枚を要求し、効果解決はサーバ担当 | 2026-10-08ユーザー指示。従来の1押下1枚を置換 |
 | OPEN-race-006 | レース中に起きた事実を race 終了時に確定し、`race.finished` で sideBetOutcome 等を載せ **payout が精算**する | overview フロー race→payout、`manual.html` §6（事象）→§⑥配当 |
 | OPEN-race-002 | **デジタル正本: 4レーン × 13マス＋GOAL**。STARTは3マス目（列2）、★は3・8・13マス目（列2・7・12）、ゴール境界は13。コース短縮は3マス単位 | 2026-10-07ユーザー指定の並びに更新 |
 
