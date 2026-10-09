@@ -33,7 +33,7 @@ class View(DisplaySeedRoot):
         self.centered(surface, footer, 640, 659, 20)
 
     def draw(self,surface,model):
-        footer = "ENTER  →  参加受付へ" if model.race == 3 else f"ENTER  →  レース {model.race+1} のマ券選びへ"
+        footer = "ENTER  →  総合優勝へ" if model.race == 3 else f"ENTER  →  レース {model.race+1} のマ券選びへ"
         if model.confirmed:
             footer = "進行確認の表示例  /  次画面への接続は未実装"
         self.chrome(surface,f"RACE {model.race} RESULT","着順が確定しました。払戻の詳細はスマホで確認してください",footer)
@@ -56,11 +56,35 @@ class View(DisplaySeedRoot):
         fourth_icon=pygame.transform.smoothscale(sprite(standings[3]['color']),(34,35))
         surface.blit(fourth_icon,(60,597))
         self.text(surface,fourth,(104,601),20,MUTED)
-        if model.race == 3:
-            message = "総合優勝  くま・さかな（共同優勝）" if model.state == "tie" else "総合優勝  くま"
-            if hasattr(model, 'winners'):
-                message = '総合優勝  ' + '・'.join(model.winners)
-            self.text(surface,message,(478,601),20,GOLD)
+
+    def draw_champion(self, surface, snapshot):
+        winners = [p for p in snapshot['balances'] if p['playerId'] in snapshot['winners']]
+        title = '共同優勝' if len(winners) > 1 else '総合優勝'
+        self.chrome(surface, 'FINAL RESULT', '3レースの総合結果', 'ENTER  →  参加受付へ')
+        self.centered(surface, title, 640, 145, 44)
+        columns = 2 if len(winners) > 1 else 1
+        rows = max(1, (len(winners) + columns - 1) // columns)
+        height = min(180, 400 // rows)
+        width = 1100 // columns
+        for i, player in enumerate(winners):
+            x = 90 + (i % columns) * width
+            y = 225 + (i // columns) * height
+            rect = pygame.Rect(x + 8, y, width - 16, height - 12)
+            self.panel(surface, rect)
+            # 共同優勝者に同じ面積を割り当て、長い名前は2行にする。
+            font = self.fonts[44 if len(winners) == 1 else 20 if rows == 4 else 32]
+            lines, line = [], ''
+            for char in player['displayName']:
+                if line and font.size(line + char)[0] > rect.width - 36:
+                    lines.append(line)
+                    line = ''
+                line += char
+            lines.append(line)
+            for j, line in enumerate(lines):
+                name = font.render(line, True, GOLD)
+                surface.blit(name, name.get_rect(midtop=(rect.centerx, y + 8 + j*font.get_height())))
+            self.centered(surface, f"$ {player['balance']}", rect.centerx,
+                          y + height*.62, 20 if rows == 4 else 32)
 
 DESCRIPTION = "着順・結果モック / Issue #42"
 STATES = ("normal", "dq", "tie")
@@ -127,7 +151,7 @@ class LiveView(View):
     """REQ-payout-005・006: 確定着順と総合優勝をサーバ値から表示する。"""
     def draw_live(self, surface, snapshot, context):
         race = snapshot['raceIndex']
-        footer = 'ENTER  →  参加受付へ' if race == 3 else f'ENTER  →  レース {race+1} のマ券選びへ'
+        footer = 'ENTER  →  総合優勝へ' if race == 3 else f'ENTER  →  レース {race+1} のマ券選びへ'
         outcome = 'YES' if snapshot['sideBetOutcome'] else 'NO'
         subtitle = f"{snapshot['prompt']['text']}  →  {outcome}  /  払戻の詳細はスマホへ"
         self.chrome(surface, f'RACE {race} RESULT', subtitle, footer)

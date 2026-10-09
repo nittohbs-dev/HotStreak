@@ -50,9 +50,23 @@ const path = require('node:path');
       assert(pid, '本人のプレイヤーIDを取得できる');
       people.push({ page, pid, context });
     }
-    await advance();
+    async function phoneAdvance() {
+      const before = await snapshot();
+      await people[0].page.waitForFunction(() => {
+        const button = document.getElementById('host-advance');
+        return button && !button.disabled && !document.getElementById('host-controls').hidden;
+      });
+      await people[0].page.locator('#host-advance').click();
+      for (let i = 0; i < 100; i++) {
+        if ((await snapshot()).phase !== before.phase) return;
+        await new Promise(resolve => setTimeout(resolve, 30));
+      }
+      throw new Error('Phoneの進行が反映されません');
+    }
+    for (const { page } of people.slice(1)) assert(await page.locator('#host-controls').isHidden());
+    await phoneAdvance();
     await people[0].page.waitForFunction(() => document.querySelector('#notice').textContent.includes('公開カード'));
-    await advance();
+    await phoneAdvance();
     for (let race = 1; race <= 3; race++) {
       for (const { page } of people) await page.waitForURL(/betting\.html/);
       // 再読込しても同じ参加者として復帰する。
@@ -80,7 +94,7 @@ const path = require('node:path');
           await new Promise(resolve => setTimeout(resolve, 20));
         }
       }
-      await advance();
+      await phoneAdvance();
       for (const { page } of people) {
         await page.waitForURL(/card-seed\.html/);
         await page.locator('#hand-list .hand-card').first().click();
@@ -88,7 +102,7 @@ const path = require('node:path');
         await page.locator('#seeded-slot').waitFor({ state: 'visible' });
         assert.equal(await page.locator('#hand-list .hand-card').count(), 2);
       }
-      await advance();
+      await phoneAdvance();
       for (const { page } of people) await page.waitForURL(/race\.html/);
       let state;
       if (process.env.HOTSTREAK_AUTO_RACE === '1') {
@@ -120,7 +134,14 @@ const path = require('node:path');
         fs.mkdirSync(process.env.HOTSTREAK_ARTIFACTS, { recursive: true });
         await people[0].page.screenshot({ path: path.join(process.env.HOTSTREAK_ARTIFACTS, `payout-race-${race}.png`), fullPage: true });
       }
-      await advance();
+      await phoneAdvance();
+      if (race === 3) {
+        for (const { page } of people) await page.locator('#champion-panel').waitFor({ state: 'visible' });
+        await people[0].page.reload();
+        await people[0].page.locator('#champion-panel').waitFor({ state: 'visible' });
+        if (process.env.HOTSTREAK_ARTIFACTS) await people[0].page.screenshot({ path: path.join(process.env.HOTSTREAK_ARTIFACTS, 'champion-phone.png'), fullPage: true });
+        await phoneAdvance();
+      }
     }
     for (const { page } of people) await page.waitForURL(/lobby\.html/);
     assert.deepEqual(failures, []);

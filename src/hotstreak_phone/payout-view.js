@@ -36,6 +36,21 @@
     }
 
     render(state) {
+      const champion = state.phase === 'champion';
+      const panel = document.getElementById('champion-panel');
+      if (panel) {
+        panel.hidden = !champion;
+        for (const section of document.querySelectorAll('.payout-details')) section.hidden = champion;
+        document.getElementById('champion-heading').textContent = state.winners.length > 1 ? '共同優勝' : '総合優勝';
+        const list = document.getElementById('champion-winners');
+        list.replaceChildren();
+        for (const player of state.rankedBalances.filter(p => state.isWinner(p.playerId))) {
+          const row = el('li', 'champion-winner');
+          row.append(el('span', 'champion-name', player.displayName));
+          row.append(el('strong', 'champion-money', payouts.money(player.balance)));
+          list.append(row);
+        }
+      }
       this.renderTitle(state);
       this.renderStandings(state);
       this.renderBreakdown(state);
@@ -45,7 +60,7 @@
 
     /* CMP-payout-010 */
     renderTitle(state) {
-      this.nodes.title.textContent = state.raceIndex ? `レース${state.raceIndex} 結果` : "配当";
+      this.nodes.title.textContent = state.phase === "champion" ? "3レースの総合結果" : state.raceIndex ? `レース${state.raceIndex} 結果` : "配当";
     }
 
     /* CMP-payout-011: 順位はサーバの値をそのまま並べる。 */
@@ -117,7 +132,7 @@
       let notice = state.error;
       if (!notice && state.advancedTo) notice = NEXT_NOTICE[state.advancedTo];
       else if (!notice && !state.connected) notice = "配当を集計しています…";
-      else if (!notice) notice = state.isFinalRace ? "ラズパイ Enter でロビーへ" : "ラズパイ Enter で次のレースへ";
+      else if (!notice) notice = state.phase === "champion" ? "進行役のスマホ、または会場のEnterで参加受付へ" : state.isFinalRace ? "進行役のスマホ、または会場のEnterで総合優勝へ" : "進行役のスマホ、または会場のEnterで次のレースへ";
       this.nodes.notice.textContent = notice;
       this.nodes.notice.dataset.error = String(Boolean(state.error));
     }

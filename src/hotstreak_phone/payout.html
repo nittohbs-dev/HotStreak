@@ -19,18 +19,22 @@
     </header>
 
     <main>
-      <section class="panel">
+      <section id="champion-panel" class="panel champion-panel" hidden aria-live="polite">
+        <h1 id="champion-heading" class="champion-heading">総合優勝</h1>
+        <ul id="champion-winners" class="champion-winners"></ul>
+      </section>
+      <section class="panel payout-details">
         <h2 class="panel-title">着順</h2>
         <ol id="standing-list" class="standing-list"></ol>
       </section>
 
-      <section class="panel">
+      <section class="panel payout-details">
         <h2 class="panel-title">あなたの獲得金額</h2>
         <p id="my-total" class="my-total"></p>
         <ul id="breakdown-list" class="breakdown-list"></ul>
       </section>
 
-      <section class="panel">
+      <section class="panel payout-details">
         <h2 class="panel-title">プレイヤー順位</h2>
         <ol id="balance-list" class="balance-list"></ol>
       </section>
@@ -38,6 +42,10 @@
 
     <footer class="foot">
       <p id="notice" class="notice"></p>
+      <div id="host-controls" class="host-controls" hidden>
+        <button id="host-advance" class="confirm" type="button" disabled>次へ</button>
+        <p id="host-reason" class="notice" aria-live="polite"></p>
+      </div>
     </footer>
 
     <script src="ticket-payouts.js"></script>

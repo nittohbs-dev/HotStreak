@@ -252,6 +252,8 @@ def test_three_complete_races_conserve_cards_and_settle_once(n):
             assert [p.balance for p in s.players] == before
             assert all(m.rank is not None for m in s.engine.mascots)
             s.advance()
+        assert s.phase == 'champion'
+        s.advance()
         assert s.phase == 'lobby' and not s.players
 
 

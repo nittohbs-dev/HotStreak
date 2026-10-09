@@ -36,6 +36,9 @@ const IDS = [
   "all-players-sheet",
   "sheet-list",
   "sheet-close",
+  "champion-panel",
+  "champion-heading",
+  "champion-winners",
   "payout-title",
   "standing-list",
   "my-total",
@@ -105,6 +108,7 @@ function install() {
   const registry = {};
   for (const id of IDS) registry[id] = new FakeNode("div");
   globalThis.document = {
+    querySelectorAll: () => [],
     createElement: (tag) => new FakeNode(tag),
     getElementById: (id) => registry[id],
   };

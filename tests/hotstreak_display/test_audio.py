@@ -192,6 +192,9 @@ def test_three_real_races_lobby_return_and_all_eight_effects(legacy):
         assert out.events.count(('effect', 'payout')) == before_payout+1
         session.advance()
         present()
+    assert session.phase == 'champion'
+    session.advance()
+    present()
     assert session.phase == 'lobby'
     names = {name for kind, name in out.events if kind == 'effect'}
     assert {'confirm', 'card', 'step', 'tumble', 'reverse', 'goal', 'payout'} <= names
