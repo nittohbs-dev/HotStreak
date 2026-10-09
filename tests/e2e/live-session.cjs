@@ -27,10 +27,10 @@ const path = require('node:path');
     if (process.env.HOTSTREAK_PHONE_ENTER === '1') {
       const { spawn } = require('node:child_process');
       enterDisplay = spawn('uv', ['run', '--python', '3.12', '--with-requirements', 'requirements.txt',
-        'python', 'tests/e2e/phone-enter-display.py'], { env: { ...process.env, PYTHONPATH: 'src' } });
+        'python', 'tests/e2e/phone-enter-display.py'], { detached: process.platform !== 'win32', env: { ...process.env, PYTHONPATH: 'src' } });
       let output = '';
       enterDisplay.stdout.on('data', data => { output += data; });
-      enterDisplay.stderr.on('data', data => { output += data; });
+      enterDisplay.stderr.on('data', data => { output += data; console.error(data.toString().trim()); });
       displayExit = new Promise(resolve => enterDisplay.on('close', code => resolve({ code, output })));
       enterDisplay.stdin.end(JSON.stringify({ origin, credentials: created }));
     }
@@ -218,7 +218,10 @@ const path = require('node:path');
     assert.deepEqual(failures, []);
     console.log('PASS: 独立した3ブラウザで参加・3レース・配当・再参加まで完了');
   } finally {
-    if (enterDisplay && enterDisplay.exitCode === null) enterDisplay.kill('SIGTERM');
+    if (enterDisplay && enterDisplay.exitCode === null) {
+      if (process.platform === 'win32') enterDisplay.kill('SIGTERM');
+      else { try { process.kill(-enterDisplay.pid, 'SIGTERM'); } catch (error) { if (error.code !== 'ESRCH') throw error; } }
+    }
     await Promise.all(contexts.map(c => c.close()));
     await browser.close();
   }
