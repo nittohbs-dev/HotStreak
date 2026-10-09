@@ -316,3 +316,63 @@ def test_bundled_assets_really_decode_and_credit_is_visible():
         audio.close()
     finally:
         pygame.quit()
+
+
+def test_recovery_restarts_stopped_track_but_leaves_healthy_loop_alone(mixer):
+    output = MixerAudio()
+    output.bgm('race')
+    mixer.music.get_busy.return_value = True
+    output.recover('race')
+    assert mixer.music.play.call_count == 1
+    mixer.music.get_busy.return_value = False
+    output.recover('race')
+    assert mixer.music.play.call_count == 2
+    assert output.status == ''
+    output.close()
+    output.recover('race')
+    assert mixer.music.play.call_count == 2
+
+
+def test_recovery_retries_initial_device_and_track_failure(mixer):
+    mixer.get_init.return_value = None
+    mixer.init.side_effect = pygame.error('device unavailable')
+    output = MixerAudio()
+    assert output.status
+    mixer.init.side_effect = None
+    mixer.music.load.side_effect = OSError('temporarily missing')
+    output.recover('waiting')
+    assert output.enabled and output.status
+    mixer.get_init.return_value = (44100, -16, 2)
+    mixer.music.get_busy.return_value = False
+    mixer.music.load.side_effect = None
+    output.recover('waiting')
+    assert output.status == ''
+    mixer.music.play.assert_called_once_with(-1, fade_ms=350)
+
+
+def test_audio_health_check_is_rate_limited_and_uses_current_phase():
+    output = Mock()
+    audio = GameAudio(output)
+    state = dict(phase='lobby', revision=0)
+    for _ in range(49):
+        audio.update(state, None, .1)
+    output.recover.assert_not_called()
+    audio.update(state, None, .2)
+    output.recover.assert_called_once_with('waiting')
+    audio.update(dict(phase='race', revision=1, raceIndex=1, revealed=0), model_at_start(), 5.)
+    assert output.recover.call_count == 2
+    output.recover.assert_called_with('race')
+
+
+def test_device_error_reinitializes_before_retrying(mixer):
+    output = MixerAudio()
+    mixer.music.play.side_effect = pygame.error('device lost')
+    output.bgm('waiting')
+    assert output.device_failed
+    mixer.music.play.side_effect = None
+    mixer.get_init.return_value = None
+    mixer.music.get_busy.return_value = False
+    output.recover('waiting')
+    mixer.quit.assert_called_once()
+    mixer.init.assert_called_once_with(44100, -16, 2, 512)
+    assert output.status == '' and not output.device_failed
