@@ -372,13 +372,26 @@ class Application:
         self.audio.draw_credit(canvas)
 
 
+def open_display(windowed=False):
+    # (0, 0) は現在のモニター解像度。1280×720へ解像度を変更しない。
+    return pygame.display.set_mode((1280, 720) if windowed else (0, 0),
+                                   pygame.RESIZABLE if windowed else pygame.FULLSCREEN)
+
+
+def fitted_canvas_size(width, height):
+    ratio = min(width/1280, height/720)
+    return max(1, int(1280*ratio)), max(1, int(720*ratio))
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description='HotStreak 会場Display（実セッション）')
     parser.add_argument('--server', default='http://127.0.0.1:8000')
     parser.add_argument('--join-origin', help='スマホから到達できる会場PCのURL')
     parser.add_argument('--session-file', type=Path, default=Path('.hotstreak-session.json'))
     parser.add_argument('--new', action='store_true')
-    parser.add_argument('--windowed', action='store_true')
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument('--windowed', action='store_true', help='1280×720のウィンドウ表示')
+    mode.add_argument('--fullscreen', action='store_true', help='モニター全面に表示（既定）')
     parser.add_argument('--font')
     args = parser.parse_args(argv)
     credentials = None
@@ -402,7 +415,7 @@ def main(argv=None):
     connection.thread.start()
     try:
         app = Application(args.font)
-        screen = pygame.display.set_mode((1280, 720), pygame.RESIZABLE if args.windowed else pygame.FULLSCREEN)
+        screen = open_display(args.windowed)
         pygame.display.set_caption('HotStreak — 会場Display')
         canvas = pygame.Surface((1280, 720))
         clock, running = pygame.time.Clock(), True
@@ -424,8 +437,7 @@ def main(argv=None):
                 connection.commands.put(command)
             app.draw(canvas, join_url)
             w, h = screen.get_size()
-            ratio = min(w/1280, h/720)
-            size = (max(1, int(1280*ratio)), max(1, int(720*ratio)))
+            size = fitted_canvas_size(w, h)
             screen.fill((0, 0, 0))
             screen.blit(pygame.transform.scale(canvas, size), ((w-size[0])//2, (h-size[1])//2))
             pygame.display.flip()

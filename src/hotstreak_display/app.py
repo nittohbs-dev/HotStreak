@@ -44,7 +44,9 @@ def make_views(font):
 
 def main():
     parser = argparse.ArgumentParser(description='HotStreak: QR参加から3レースまで')
-    parser.add_argument('--windowed', action='store_true')
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument('--windowed', action='store_true', help='1280×720のウィンドウ表示')
+    mode.add_argument('--fullscreen', action='store_true', help='モニター全面に表示（既定）')
     parser.add_argument('--font')
     parser.add_argument('--server', help='既に起動している会場サーバ（未指定なら同時起動）')
     parser.add_argument('--port', type=int, default=8000)
@@ -78,6 +80,8 @@ def main():
         options += ['--join-origin', f'http://{args.public_host}:{args.port}']
     if args.windowed:
         options.append('--windowed')
+    elif args.fullscreen:
+        options.append('--fullscreen')
     if args.font:
         options += ['--font', args.font]
     try:

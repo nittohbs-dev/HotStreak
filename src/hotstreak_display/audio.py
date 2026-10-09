@@ -21,14 +21,26 @@ class MixerAudio:
         self.music = None
         self.failed_tracks = set()
         self.sounds = {}
+        self.status = ''
+        self.closed = False
+        self.device_failed = False
+        self._initialize()
+
+    def _initialize(self):
+        self.enabled = False
+        self.music = None
+        self.sounds = {}
         try:
             if not pygame.mixer.get_init():
                 pygame.mixer.init(44100, -16, 2, 512)
             pygame.mixer.set_num_channels(16)
         except (pygame.error, OSError) as error:
+            self.status = '音声を再接続中…'
             LOGGER.warning('音声を使用できません: %s', error)
             return
         self.enabled = True
+        self.status = ''
+        self.device_failed = False
         for key, name in EFFECTS.items():
             try:
                 sound = pygame.mixer.Sound(str(ROOT / 'sfx' / name))
@@ -38,20 +50,46 @@ class MixerAudio:
                 LOGGER.warning('効果音 %s を読み込めません: %s', key, error)
 
     def bgm(self, name):
-        if name == self.music or not self.enabled:
+        if self.closed or name == self.music or not self.enabled:
             return
         # 失敗した曲は再試行を連発せず、別の曲・効果音は引き続き利用する。
         self.music = name
         try:
             pygame.mixer.music.stop()
             if name in self.failed_tracks:
+                self.status = 'BGMを再接続中…'
                 return
             pygame.mixer.music.load(str(ROOT / 'music' / ('race.mp3' if name == 'race' else 'waiting.wav')))
             pygame.mixer.music.set_volume(.50 if name == 'race' else .40)
             pygame.mixer.music.play(-1, fade_ms=350)
+            self.status = ''
         except (pygame.error, OSError) as error:
+            self.status = 'BGMを再接続中…'
+            self.device_failed = isinstance(error, pygame.error)
             self.failed_tracks.add(name)
             LOGGER.warning('BGM %s を再生できません: %s', name, error)
+
+    def recover(self, name):
+        """REQ-play-003: 呼出側が5秒間隔を保証。正常な曲は再開しない。"""
+        if self.closed:
+            return
+        if self.device_failed:
+            pygame.mixer.quit()
+        if self.device_failed or not self.enabled or not pygame.mixer.get_init():
+            self._initialize()
+        if not self.enabled:
+            return
+        try:
+            if name == self.music and pygame.mixer.music.get_busy():
+                return
+        except pygame.error:
+            self.status = '音声を再接続中…'
+            self.device_failed = True
+            self.enabled = False
+            return
+        self.music = None
+        self.failed_tracks.discard(name)
+        self.bgm(name)
 
     def effect(self, name):
         if self.enabled and name in self.sounds:
@@ -62,6 +100,7 @@ class MixerAudio:
                 LOGGER.warning('効果音 %s を再生できません: %s', name, error)
 
     def close(self):
+        self.closed = True
         if self.enabled:
             self.enabled = False
             try:
@@ -82,6 +121,7 @@ class GameAudio:
         self.step_delay = 0.
         self.session_id = None
         self.revision = -1
+        self.health_elapsed = 0.
 
     def update(self, state, model, dt, start_delay=None):
         if not state or state.get('revision', -1) < 0:
@@ -95,7 +135,7 @@ class GameAudio:
             return
         self.revision = state['revision']
         phase = ('race' if self.phase == 'race' and model and model.moving
-                 and state['phase'] == 'payout' else state['phase'])
+                 and state['phase'] in ('payout', 'champion') else state['phase'])
         if phase != self.phase:
             previous = self.phase
             self.phase = phase
@@ -107,6 +147,11 @@ class GameAudio:
                 self.output.effect('payout')
             elif previous and phase != 'race':
                 self.output.effect('confirm')
+        self.health_elapsed += dt
+        if self.health_elapsed >= 5.:
+            self.health_elapsed = 0.
+            if hasattr(self.output, 'recover'):
+                self.output.recover('race' if phase == 'race' else 'waiting')
         if phase != 'race' or model is None:
             self.race_key = None
             return
@@ -157,3 +202,11 @@ class GameAudio:
             self.credit = font.render('Race music: Run Amok / Kevin MacLeod (incompetech.com) / CC BY 4.0 - creativecommons.org/licenses/by/4.0/', True, (190, 205, 218))
         pygame.draw.rect(surface, (8, 20, 31), (0, 704, 1280, 16))
         surface.blit(self.credit, (12, 705))
+        status = getattr(self.output, 'status', '')
+        if status:
+            if not hasattr(self, 'status_font'):
+                from .app import japanese_font
+                self.status_font = pygame.font.Font(japanese_font(None), 20)
+            label = self.status_font.render(status, True, (223, 191, 134))
+            pygame.draw.rect(surface, (8, 20, 31), (0, 679, 1280, 25))
+            surface.blit(label, label.get_rect(center=(640, 691)))
