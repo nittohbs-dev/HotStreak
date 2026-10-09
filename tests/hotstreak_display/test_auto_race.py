@@ -287,3 +287,55 @@ def test_stop_key_held_long_does_not_restart(live):
     key(app, repeat=True)
     key(app, pygame.KEYUP)
     assert not app.auto_running and app.take_command() is None
+
+
+def remote(app, s, action, identifier):
+    s.revision += 1
+    app.receive(dict(s.snapshot(), remoteEnter=dict(id=identifier, action=action,
+        revision=s.revision, phase=s.phase, raceIndex=s.race_index)))
+
+
+def test_phone_enter_uses_same_animation_and_pause_boundary_even_unfocused(live):
+    app, s = live
+    app.focused = False
+    remote(app, s, 'tap', 'one')
+    assert app.take_command() == dict(phase='race', revision=s.revision)
+    assert app.take_command() is None
+    response(app, s)
+    assert app.moving
+    remote(app, s, 'hold', 'two')
+    assert app.auto_running
+    assert app.take_command() is None  # 演出を飛ばさない。
+    remote(app, s, 'stop', 'stop')
+    assert not app.auto_running
+    finish_animation(app)
+    assert app.take_command() is None
+    remote(app, s, 'hold', 'resume')
+    assert app.auto_running and app.take_command()
+    app.receive(dict(s.snapshot(), remoteEnter=dict(id='resume', action='hold',
+        revision=s.revision, phase=s.phase, raceIndex=s.race_index)))
+    assert app.auto_running  # 同じ通知で停止に反転しない。
+
+
+def test_phone_enter_drops_stale_race_and_start_countdown_inputs(live):
+    app, s = live
+    app.start_delay = 2
+    remote(app, s, 'hold', 'countdown')
+    assert not app.auto_running
+    app.start_delay = 0
+    app.apply_remote_enter(dict(id='old-race', action='hold', phase='race',
+        revision=s.revision, raceIndex=s.race_index+1))
+    assert not app.auto_running
+    app.apply_remote_enter(dict(id='old-state', action='hold', phase='race',
+        revision=s.revision-1, raceIndex=s.race_index))
+    assert not app.auto_running
+
+
+def test_remote_stop_remains_stop_after_conflicting_request_fails(live):
+    app, s = live
+    app.auto_running = True
+    app.fail('状態が更新されました')
+    remote(app, s, 'stop', 'pending-stop')
+    assert app.connected
+    assert not app.auto_running
+    assert app.take_command() is None

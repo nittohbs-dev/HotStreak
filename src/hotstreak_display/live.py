@@ -22,6 +22,7 @@ class Connection:
     def __init__(self, server, credentials):
         self.base = server.rstrip('/') + '/api/sessions/' + credentials['sessionId']
         self.token = credentials['displayToken']
+        self.enter_report = dict(revision=-1, control=dict(canTap=False, canHold=False, autoRunning=False, notice='会場に接続しています…'))
         self.messages, self.commands = Queue(), Queue()
         self.stop = Event()
         self.thread = Thread(target=self.run, daemon=True)
@@ -30,8 +31,8 @@ class Connection:
         headers = {'Content-Type': 'application/json', 'X-Display-Token': self.token}
         if body is not None:
             headers['Idempotency-Key'] = str(uuid4())
-        request = Request(self.base + ('/advance' if body is not None else ''),
-                          data=json.dumps(body).encode() if body is not None else None, headers=headers)
+        request = Request(self.base + ('/advance' if body is not None else '/enter/poll'),
+                          data=json.dumps(body if body is not None else self.enter_report).encode(), headers=headers)
         with urlopen(request, timeout=4) as response:
             return json.load(response)
 
@@ -184,6 +185,8 @@ class Application:
         self.pending = False
         self.connected = False
         self.auto_running = False
+        self.remote_control = False
+        self.last_remote_enter = None
         self.enter_held = False
         self.hold_elapsed = None
         self.focused = True
@@ -202,12 +205,14 @@ class Application:
             self.pending = False
         self.connected = True
         if self.state and state['revision'] == self.state['revision']:
+            self.apply_remote_enter(state.get('remoteEnter'))
             return
         self.error = ''
         new_race = state['phase'] == 'race' and (
             not self.state or self.state['phase'] != 'race'
             or self.state['raceIndex'] != state['raceIndex'])
         if new_race or state['phase'] != 'race':
+            self.remote_control = False
             self.hold_elapsed = None
             self.auto_running = False
             self.next_delay = 0.
@@ -222,6 +227,36 @@ class Application:
         elif state['phase'] != 'payout':
             self.race = None
         self.state = state
+        self.apply_remote_enter(state.get('remoteEnter'))
+
+    def enter_report(self):
+        race = bool(self.state and self.state['phase'] == 'race')
+        ready = race and self.connected and self.start_delay <= 0
+        return dict(revision=self.state['revision'] if self.state else -1, control=dict(
+            canTap=bool(ready and (self.auto_running or (not self.pending and not self.moving))),
+            canHold=bool(ready), autoRunning=self.auto_running,
+            notice=self.race_notice if race else 'ENTERで次の画面へ'))
+
+    def apply_remote_enter(self, command):
+        if not command or command['id'] == self.last_remote_enter:
+            return
+        self.last_remote_enter = command['id']
+        if (not self.state or self.state['phase'] != 'race' or command['phase'] != 'race'
+                or command['raceIndex'] != self.state['raceIndex']
+                or command['revision'] != self.state['revision']
+                or not self.connected or self.start_delay > 0):
+            return
+        self.remote_control = True
+        self.hold_elapsed = None
+        if command['action'] == 'stop':
+            self.auto_running = False
+            self.manual_requested = False
+        elif command['action'] == 'hold':
+            self.auto_running = True
+            if not self.pending and not self.moving:
+                self.next_delay = 0.
+        elif not self.pending and not self.moving:
+            self.manual_requested = True
 
     @property
     def moving(self):
@@ -231,6 +266,7 @@ class Application:
         self.error = message
         self.hold_elapsed = None
         self.pending = self.connected = self.auto_running = False
+        self.remote_control = False
         self.manual_requested = False
 
     def handle_event(self, event):
@@ -265,7 +301,7 @@ class Application:
                 self.manual_requested = True
 
     def take_command(self):
-        if not self.state or not self.connected or not self.focused or self.pending or self.moving:
+        if not self.state or not self.connected or (not self.focused and not self.remote_control) or self.pending or self.moving:
             return None
         if self.state['phase'] == 'race':
             if self.start_delay > 0:
@@ -432,6 +468,7 @@ def main(argv=None):
                     running = False
                 app.handle_event(event)
             app.update(dt)
+            connection.enter_report = app.enter_report()
             command = app.take_command()
             if command is not None:
                 connection.commands.put(command)
