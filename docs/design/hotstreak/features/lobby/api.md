@@ -10,7 +10,7 @@
 | API-LOBBY-002 | GET | `/api/sessions/{sessionId}` | ロビー状態取得 | sessionId | phase, players[], playerCount | なし |
 | API-LOBBY-003 | POST | `/api/sessions/{sessionId}/join` | Phone 参加 | sessionId | playerId, phase, players[] | なし |
 | API-LOBBY-004 | PUT | `/api/sessions/{sessionId}/players/{playerId}/name` | 名前確定 | displayName（非空） | player, players[] | playerId 一致 |
-| API-LOBBY-005 | POST | `/api/sessions/{sessionId}/advance` | Enter によるフェーズ進行 | sessionId | phase, players[] | Display ローカル |
+| API-LOBBY-005 | POST | `/api/sessions/{sessionId}/advance` | Enter または最初の参加者によるフェーズ進行 | sessionId | phase, players[] | Display ローカル |
 
 ## API-LOBBY-001
 
@@ -81,3 +81,5 @@ Phone がロビーに参加する。
 | 他人の playerId で名前変更 | 403 | 「操作できません」 |
 | 3人未満で advance | 409 | 「参加者が足りません（3人以上）」 |
 | フェーズ不正（lobby 以外で advance） | 409 | 「この操作はできません」 |
+
+API-LOBBY-005 の認証拡張は `../play-experience/api.md` の API-play-001 を正本とする。
