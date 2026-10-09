@@ -30,7 +30,7 @@ python src/hotstreak_display/screens/betting.py --from-setup
 - `--screenshot output.png`: 現在の表示例をPNG保存して終了。
 
 操作はモックの確認用です。参加者名・枚数・在庫数は固定の見本です。手番計算・購入・在庫更新はしません。
-お題文はカタログの `event_disqualified`（「1体以上が失格する？」）を表示し、カード絵とマスコットアイコンは `CardAssets` から読みます。色ラベルは青／オレンジ／サーモン／黄です。
+お題文はカタログの `event_disqualified`（「1体以上が失格する？」）を表示し、カード絵とマスコットアイコンは `CardAssets` から読みます。マ券にはキャラクター名（青: ダングル／オレンジ: ゴブラー／サーモン: ハーレー／黄: マム）を表示します。
 通信、抽選、スネーク手番の演算、配当計算は実装していません。
 スマホでの選択UIは [`src/hotstreak_phone/README.md`](../hotstreak_phone/README.md) 側です。REQ-betting-003/006のうち表示と進行可否の見た目を確認し、実接続は後工程で行います。
 

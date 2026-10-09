@@ -9,9 +9,9 @@ from pathlib import Path
 import pygame
 
 if __package__:
-    from .setup_cards import DisplaySetupRoot, DisplaySetupCardsScreen, demo_state, CardAssets, COLOR_LABELS
+    from .setup_cards import DisplaySetupRoot, DisplaySetupCardsScreen, demo_state, CardAssets
 else:
-    from setup_cards import DisplaySetupRoot, DisplaySetupCardsScreen, demo_state, CardAssets, COLOR_LABELS
+    from setup_cards import DisplaySetupRoot, DisplaySetupCardsScreen, demo_state, CardAssets
 
 
 @dataclass(frozen=True)
@@ -36,6 +36,7 @@ class BettingPreview:
 
 
 MASCOTS = ("blue", "orange", "salmon", "yellow")
+MASCOT_NAMES = {"blue": "ダングル", "orange": "ゴブラー", "salmon": "ハーレー", "yellow": "マム"}
 NAMES = ("くま", "さかな", "とり", "うさぎ", "ねこ", "いぬ")
 
 
@@ -130,7 +131,7 @@ class DisplayBettingRoot(DisplaySetupRoot):
             self.panel(surface, pygame.Rect(x, y, 181, 128), color)
             if i < 4:
                 self.mascot_icon(surface, MASCOTS[i], (x + 31, y + 34), 3)
-                label = COLOR_LABELS[MASCOTS[i]]
+                label = MASCOT_NAMES[MASCOTS[i]]
             else:
                 label = "YES" if i == 4 else "NO"
                 self.text(surface, "?", (x + 16, y + 12), 32, color)
