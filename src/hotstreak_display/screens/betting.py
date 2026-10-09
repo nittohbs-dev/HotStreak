@@ -111,7 +111,7 @@ class DisplayBettingRoot(DisplaySetupRoot):
                 pygame.draw.rect(surface, (56, 37, 28), (87, y - 2, 446, 49))
                 pygame.draw.rect(surface, (231, 125, 77), (87, y - 2, 446, 49), 2)
             self.mascot_icon(surface, player.mascot, (116, y + 21), 3)
-            self.text(surface, player.name, (145, y + 7), 24)
+            self.text(surface, player.name, (145, y + 7), 24, max_width=138)
             if active:
                 self.text(surface, "選択中", (295, y + 9), 20, (231, 125, 77))
             elif player.tickets == 2:

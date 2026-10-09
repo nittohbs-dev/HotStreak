@@ -94,8 +94,8 @@ class View(DisplaySeedRoot):
         return (int(130-87*depth+col*(1010+164*depth)/COURSE_COLUMNS),int(344+depth*206))
 
     def sign(self,surface,label,x,y,color):
-        pygame.draw.rect(surface,(100,63,24),(x+13,y+38,7,29))
-        pygame.draw.rect(surface,(100,63,24),(x+101,y+38,7,29))
+        pygame.draw.rect(surface,(100,63,24),(x+13,y+38,7,self.point(0,0)[1]-y-38))
+        pygame.draw.rect(surface,(100,63,24),(x+101,y+38,7,self.point(0,0)[1]-y-38))
         pygame.draw.rect(surface,(6,28,43),(x-3,y-3,126,48))
         pygame.draw.rect(surface,(255,246,198),(x,y,120,42))
         pygame.draw.rect(surface,color,(x+4,y+4,112,34))
@@ -117,12 +117,9 @@ class View(DisplaySeedRoot):
                 self.text(surface,NAMES[who],(x+85,118),20,(244,252,255))
         self.ocean_panel(surface,pygame.Rect(865,20,389,153))
         surface.blit(self.card_assets.card('card_back' if revealing else model.card_id,(87,122)),(881,35))
-        if not revealing and model.card_id != 'card_back' and not model.card_id.startswith('green'):
-            pygame.draw.rect(surface,(5,34,61),(890,91,68,49))
-            avatar=pygame.transform.smoothscale(sprite(COLORS[model.active]),(40,44))
-            surface.blit(avatar,(903,93))
         self.text(surface,"今回のカード",(986,38),24,(244,251,255))
-        self.text(surface,'…' if revealing else model.effect,(986,83),20,(255,237,168),max_width=249)
+        if revealing or not model.card_id.startswith('green'):
+            self.text(surface,'…' if revealing else model.effect,(986,83),20,(255,237,168),max_width=249)
         self.text(surface,f"残り {model.remaining} 枚",(986,124),20,(178,221,240))
         if getattr(model,"preview_title",None):
             self.ocean_panel(surface,pygame.Rect(270,190,710,65))
@@ -142,7 +139,7 @@ class View(DisplaySeedRoot):
                     x,y=self.point(col+.5,row+.5)
                     self.centered(surface,"★",x,y-17,32,(249,244,168))
         if removed<=2:
-            pygame.draw.line(surface,(255,245,190),self.point(2,0),self.point(2,4),4)
+            pygame.draw.line(surface,(255,245,190),self.point(3,0),self.point(3,4),4)
         for row in range(8):
             for col in range(2):
                 pts=[self.point(COURSE_COLUMNS-.35+col*.17,row*.5),
@@ -156,6 +153,9 @@ class View(DisplaySeedRoot):
                 pygame.draw.rect(surface,(81,66,28),(x-3,y-4,43,15))
                 pygame.draw.rect(surface,(249,204,103),(x,y-5,38,9),border_radius=3)
                 pygame.draw.line(surface,(255,235,171),(x+2,y-4),(x+34,y-4),2)
+        if removed <= 2:
+            self.sign(surface,"START",self.point(3,0)[0]-60,self.point(3,0)[1]-100,(247,207,42))
+        self.sign(surface,"GOAL",self.point(COURSE_COLUMNS,0)[0]-60,self.point(COURSE_COLUMNS,0)[1]-100,(225,39,46))
         for i,pos in enumerate(model.visual_positions):
             if model.status[i] != 'racing':
                 continue
@@ -184,9 +184,6 @@ class View(DisplaySeedRoot):
                     if size:
                         pygame.draw.rect(surface,(222,174,75),(x-size//2,y+int(t*35),size,size//2))
                     pygame.draw.ellipse(surface,(118,220,248),(x-20,y+18,40,10),2)
-        if removed <= 2:
-            self.sign(surface,"START",max(20,self.point(2.5,0)[0]-60),235,(247,207,42))
-        self.sign(surface,"GOAL",1100,290,(225,39,46))
         if getattr(model, 'live', False) and model.last_revealed == 0:
             self.draw_race_start(surface, model)
         elif model.state=='start' and not getattr(model, 'live', False):
