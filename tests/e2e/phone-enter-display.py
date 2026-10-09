@@ -14,7 +14,7 @@ app = Application()
 connection = Connection(config['origin'], config['credentials'])
 connection.thread.start()
 canvas = pygame.Surface((1280, 720))
-deadline = time.monotonic() + 180
+deadline = time.monotonic() + 300
 completed = False
 try:
     while time.monotonic() < deadline:
@@ -23,6 +23,7 @@ try:
             if kind in ('state', 'advanced'):
                 app.receive(payload, advanced=kind == 'advanced')
             else:
+                print('Display error:', payload, flush=True)
                 app.fail(payload)
         app.update(.1)
         connection.enter_report = app.enter_report()

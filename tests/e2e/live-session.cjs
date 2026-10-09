@@ -123,13 +123,14 @@ const path = require('node:path');
       let state;
       if (process.env.HOTSTREAK_PHONE_ENTER === '1') {
         const page = people[0].page;
-        const waitState = async predicate => {
-          for (let i = 0; i < 500; i++) {
-            const value = await snapshot();
+        const waitState = async (predicate, attempts = 500) => {
+          let last;
+          for (let i = 0; i < attempts; i++) {
+            const value = last = await snapshot();
             if (predicate(value)) return value;
             await new Promise(resolve => setTimeout(resolve, 50));
           }
-          throw new Error('Phone ENTERの状態待ちがタイムアウトしました');
+          throw new Error('Phone ENTERの状態待ちがタイムアウトしました: ' + JSON.stringify({phase:last?.phase, revealed:last?.revealed, control:last?.enterControl, failures}));
         };
         const button = page.locator('#host-advance');
         await waitState(s => s.enterControl?.canTap);
@@ -168,7 +169,8 @@ const path = require('node:path');
           await page.screenshot({ path: path.join(process.env.HOTSTREAK_ARTIFACTS, `enter-race-${race}.png`), fullPage: true });
         }
         await hold();
-        state = await waitState(s => s.phase === 'payout');
+        // 山札の再構成があるため、1レース最大90秒（既存会場E2Eと同じ）。
+        state = await waitState(s => s.phase === 'payout', 1800);
       } else if (process.env.HOTSTREAK_AUTO_RACE === '1') {
         const { spawn } = require('node:child_process');
         await new Promise((resolve, reject) => {
