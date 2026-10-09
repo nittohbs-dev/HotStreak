@@ -10,7 +10,9 @@ const path = require('node:path');
   const browser = await chromium.launch({ headless: true, channel: process.env.HOTSTREAK_BROWSER_CHANNEL || 'msedge' });
   const failures = [];
   const contexts = [];
+  let enterDisplay, displayExit;
   try {
+    if (process.env.HOTSTREAK_ARTIFACTS) fs.mkdirSync(process.env.HOTSTREAK_ARTIFACTS, { recursive: true });
     const created = await (await fetch(origin+'/api/sessions', { method: 'POST' })).json();
     const base = origin+'/api/sessions/'+created.sessionId;
     const snapshot = async () => (await fetch(base)).json();
@@ -21,6 +23,16 @@ const path = require('node:path');
       }, body: JSON.stringify({ phase: s.phase, revision: s.revision }) });
       assert.equal(response.status, 200, await response.text());
       return snapshot();
+    }
+    if (process.env.HOTSTREAK_PHONE_ENTER === '1') {
+      const { spawn } = require('node:child_process');
+      enterDisplay = spawn('uv', ['run', '--python', '3.12', '--with-requirements', 'requirements.txt',
+        'python', 'tests/e2e/phone-enter-display.py'], { detached: process.platform !== 'win32', env: { ...process.env, PYTHONPATH: 'src' } });
+      let output = '';
+      enterDisplay.stdout.on('data', data => { output += data; });
+      enterDisplay.stderr.on('data', data => { output += data; console.error(data.toString().trim()); });
+      displayExit = new Promise(resolve => enterDisplay.on('close', code => resolve({ code, output })));
+      enterDisplay.stdin.end(JSON.stringify({ origin, credentials: created }));
     }
     const people = [];
     for (let i = 0; i < 3; i++) {
@@ -69,6 +81,10 @@ const path = require('node:path');
     await phoneAdvance();
     for (let race = 1; race <= 3; race++) {
       for (const { page } of people) await page.waitForURL(/betting\.html/);
+      assert.equal((await people[0].page.request.get(base)).ok(), true);
+      assert.equal((await (await people[0].page.request.get(base)).json()).hostPlayerId, people[0].pid);
+      assert.equal(await people[0].page.locator('#host-advance').innerText(), 'ENTER');
+      for (const { page } of people.slice(1)) assert(await page.locator('#host-controls').isHidden());
       // 再読込しても同じ参加者として復帰する。
       if (process.env.HOTSTREAK_DROP_WS !== '1') await people[0].page.reload();
       for (let turn = 0; turn < 6; turn++) {
@@ -105,7 +121,57 @@ const path = require('node:path');
       await phoneAdvance();
       for (const { page } of people) await page.waitForURL(/race\.html/);
       let state;
-      if (process.env.HOTSTREAK_AUTO_RACE === '1') {
+      if (process.env.HOTSTREAK_PHONE_ENTER === '1') {
+        const page = people[0].page;
+        const waitState = async (predicate, attempts = 500) => {
+          let last;
+          for (let i = 0; i < attempts; i++) {
+            const value = last = await snapshot();
+            if (predicate(value)) return value;
+            await new Promise(resolve => setTimeout(resolve, 50));
+          }
+          throw new Error('Phone ENTERの状態待ちがタイムアウトしました: ' + JSON.stringify({phase:last?.phase, revealed:last?.revealed, control:last?.enterControl, failures}));
+        };
+        const button = page.locator('#host-advance');
+        await waitState(s => s.enterControl?.canTap);
+        for (const { page: other } of people.slice(1)) assert(await other.locator('#host-controls').isHidden());
+        assert.equal(await button.innerText(), 'ENTER');
+        if (race === 1) {
+          // 指のキャンセルでは長押しが残らない。
+          const cancelBox = await button.boundingBox();
+          await page.mouse.move(cancelBox.x + cancelBox.width/2, cancelBox.y + cancelBox.height/2);
+          await page.mouse.down();
+          await button.dispatchEvent('pointercancel', { pointerId: 1 });
+          await page.mouse.up();
+          await page.waitForTimeout(1100);
+          assert.equal((await snapshot()).revealed, 0);
+        }
+        await button.click();
+        await waitState(s => s.revealed === 1 && s.enterControl?.canTap);
+        assert.equal((await snapshot()).enterControl.autoRunning, false);
+        const hold = async () => {
+          const box = await button.boundingBox();
+          await page.mouse.move(box.x + box.width/2, box.y + box.height/2);
+          await page.mouse.down();
+          await page.waitForTimeout(1150);
+          await page.mouse.up();
+        };
+        await hold();
+        await waitState(s => s.enterControl?.autoRunning);
+        await button.click();
+        await waitState(s => !s.enterControl?.autoRunning && s.enterControl?.canTap);
+        const paused = (await snapshot()).revealed;
+        await page.waitForTimeout(700);
+        assert.equal((await snapshot()).revealed, paused);
+        await page.reload();
+        await page.waitForFunction(() => !document.getElementById('host-advance').disabled);
+        if (process.env.HOTSTREAK_ARTIFACTS) {
+          await page.screenshot({ path: path.join(process.env.HOTSTREAK_ARTIFACTS, `enter-race-${race}.png`), fullPage: true });
+        }
+        await hold();
+        // 山札の再構成があるため、1レース最大90秒（既存会場E2Eと同じ）。
+        state = await waitState(s => s.phase === 'payout', 1800);
+      } else if (process.env.HOTSTREAK_AUTO_RACE === '1') {
         const { spawn } = require('node:child_process');
         await new Promise((resolve, reject) => {
           const child = spawn('uv', ['run', '--python', '3.12', '--with-requirements', 'requirements.txt',
@@ -144,9 +210,18 @@ const path = require('node:path');
       }
     }
     for (const { page } of people) await page.waitForURL(/lobby\.html/);
+    if (displayExit) {
+      const result = await displayExit;
+      assert.equal(result.code, 0, result.output);
+      console.log(result.output.trim());
+    }
     assert.deepEqual(failures, []);
     console.log('PASS: 独立した3ブラウザで参加・3レース・配当・再参加まで完了');
   } finally {
+    if (enterDisplay && enterDisplay.exitCode === null) {
+      if (process.platform === 'win32') enterDisplay.kill('SIGTERM');
+      else { try { process.kill(-enterDisplay.pid, 'SIGTERM'); } catch (error) { if (error.code !== 'ESRCH') throw error; } }
+    }
     await Promise.all(contexts.map(c => c.close()));
     await browser.close();
   }

@@ -2,6 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const vm = require('node:vm');
 const fs = require('node:fs');
+const { FakeNode } = require('./fake-dom.js');
 const source = fs.readFileSync(require.resolve('../../src/hotstreak_phone/live.js'), 'utf8');
 
 async function phone() {
@@ -16,7 +17,8 @@ async function phone() {
     constructor() { sockets.push(this); }
     close() { if (this.onclose) this.onclose(); }
   }
-  const document = { getElementById: () => null, visibilityState: 'visible', addEventListener: (k, fn) => { documentEvents[k] = fn; } };
+  const controls = Object.fromEntries(['host-controls', 'host-advance', 'host-reason'].map(id => [id, new FakeNode('div')]));
+  const document = { getElementById: id => controls[id] || null, visibilityState: 'visible', addEventListener: (k, fn) => { documentEvents[k] = fn; } };
   const window = { addEventListener: (k, fn) => { events[k] = fn; } };
   vm.runInNewContext(source, {
     window, document, URLSearchParams, AbortController, setTimeout, clearTimeout,
@@ -31,7 +33,7 @@ async function phone() {
   });
   window.HotStreakSessionLive.start('lobby');
   await new Promise(resolve => setImmediate(resolve));
-  return { events, documentEvents, document, sockets, redirects, intervals,
+  return { events, documentEvents, document, sockets, redirects, intervals, controls,
     tick: () => [...intervals.values()][0](),
     update: next => { snapshot = next; },
     renders: () => renders, reads: () => reads };
@@ -72,5 +74,22 @@ test('ページキャッシュから復帰しても同期とWS接続を再開す
   p.update({ phase: 'card-seed', revision: 6 });
   await p.tick();
   assert.deepEqual(p.redirects, ['card-seed.html?session=s&connection=session']);
+  p.events.pagehide();
+});
+
+
+test('同じrevisionでもENTERの権限・可否は更新し、入力欄は描き直さない', async () => {
+  const p = await phone();
+  const renders = p.renders();
+  p.update({ phase: 'lobby', revision: 1, viewerPlayerId: 'p', hostPlayerId: 'p', canAdvance: true, advanceLabel: '公開カードへ' });
+  await p.tick();
+  assert.equal(p.controls['host-controls'].hidden, false);
+  assert.equal(p.controls['host-advance'].textContent, 'ENTER');
+  assert.equal(p.controls['host-advance'].disabled, false);
+  p.update({ phase: 'lobby', revision: 1, viewerPlayerId: 'p', hostPlayerId: 'other', canAdvance: false });
+  await p.tick();
+  assert.equal(p.controls['host-controls'].hidden, true);
+  assert.equal(p.controls['host-advance'].disabled, true);
+  assert.equal(p.renders(), renders);
   p.events.pagehide();
 });

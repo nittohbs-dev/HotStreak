@@ -15,19 +15,62 @@
     const hostControls = document.getElementById('host-controls');
     const hostButton = document.getElementById('host-advance');
     const hostReason = document.getElementById('host-reason');
-    const render = () => {
-      view.render(state);
+    let enterTimer, pressContext, holdSent = false;
+    const cancelEnter = () => {
+      clearTimeout(enterTimer);
+      pressContext = null;
+      holdSent = false;
+    };
+    const renderControls = () => {
       if (!hostControls || !latestSnapshot) return;
       const host = Boolean(latestSnapshot.viewerPlayerId && latestSnapshot.viewerPlayerId === latestSnapshot.hostPlayerId);
-      hostControls.hidden = !host || latestSnapshot.phase === 'race';
-      hostButton.textContent = busy ? '進行中…' : (latestSnapshot.advanceLabel || '次へ');
-      hostButton.disabled = busy || !state.connected || !latestSnapshot.canAdvance;
-      hostReason.textContent = !state.connected ? '再接続しています…' : (latestSnapshot.advanceReason || 'あなたが進行役です');
+      const race = latestSnapshot.phase === 'race';
+      const control = latestSnapshot.enterControl || {};
+      hostControls.hidden = !host;
+      hostButton.textContent = 'ENTER';
+      hostButton.disabled = busy || !state.connected || !host ||
+        (race ? !(control.canTap || control.canHold) : !latestSnapshot.canAdvance);
+      hostReason.textContent = state.error || (busy ? 'ENTERを送信しています…' : !state.connected ? '再接続しています…' :
+        race ? (control.autoRunning ? '自動進行中・ENTERで一時停止' : control.notice) :
+        (latestSnapshot.advanceReason || `${latestSnapshot.advanceLabel}・3レース通してあなたが進行役です`));
     };
-    if (hostButton) hostButton.addEventListener('click', () => {
+    const render = () => { view.render(state); renderControls(); };
+    const sendEnter = action => {
       if (!latestSnapshot || hostButton.disabled) return;
-      send('POST', '/advance', { revision: latestSnapshot.revision, phase: latestSnapshot.phase });
-    });
+      if (latestSnapshot.phase === 'race' && !latestSnapshot.enterControl?.[action === 'hold' ? 'canHold' : 'canTap']) return;
+      send('POST', '/enter', { revision: latestSnapshot.revision, phase: latestSnapshot.phase, action });
+    };
+    if (hostButton) {
+      hostButton.addEventListener('pointerdown', event => {
+        if (event.button !== 0 || hostButton.disabled || pressContext) return;
+        holdSent = false;
+        pressContext = { phase: latestSnapshot.phase, race: latestSnapshot.raceIndex, pointer: event.pointerId };
+        hostButton.setPointerCapture(event.pointerId);
+        if (latestSnapshot.phase === 'race' && latestSnapshot.enterControl?.autoRunning) {
+          holdSent = true;
+          sendEnter('tap');
+        } else if (latestSnapshot.phase === 'race') {
+          enterTimer = setTimeout(() => {
+            if (!pressContext || latestSnapshot.phase !== pressContext.phase || latestSnapshot.raceIndex !== pressContext.race) return;
+            holdSent = true;
+            sendEnter('hold');
+          }, 1000);
+        }
+      });
+      hostButton.addEventListener('pointerup', event => {
+        if (!pressContext || pressContext.pointer !== event.pointerId) return;
+        const valid = latestSnapshot.phase === pressContext.phase && latestSnapshot.raceIndex === pressContext.race;
+        const sendTap = valid && !holdSent;
+        cancelEnter();
+        if (sendTap) sendEnter('tap');
+      });
+      hostButton.addEventListener('pointercancel', cancelEnter);
+      hostButton.addEventListener('lostpointercapture', cancelEnter);
+      hostButton.addEventListener('contextmenu', event => event.preventDefault());
+      // Pointerの後のclickは無視。キーボード・支援技術のclickだけを受ける。
+      hostButton.addEventListener('click', event => { if (event.detail === 0) sendEnter('tap'); });
+      hostButton.addEventListener('keydown', event => { if (event.repeat) event.preventDefault(); });
+    }
     const error = (message) => {
       state.pending = false;
       state.error = message;
@@ -75,6 +118,10 @@
         if (!res.ok) throw new Error(data.message || '状態を取得できません');
         // 定期確認で未確定の札選択や入力を上書きしない。
         if (!onlyChanged || data.revision > revision || !state.connected) receive(data);
+        else if (data.revision === revision) {
+          latestSnapshot = data;
+          renderControls();
+        }
       } finally { clearTimeout(timeout); }
     }
     async function refresh() {
@@ -173,9 +220,13 @@
       clearInterval(refreshTimer);
       refreshTimer = setInterval(refresh, 2000);
     };
-    document.addEventListener('visibilitychange', refresh);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') cancelEnter();
+      return refresh();
+    });
     window.addEventListener('online', refresh);
     window.addEventListener('pagehide', () => {
+      cancelEnter();
       stopped = true;
       clearTimeout(timer);
       clearInterval(refreshTimer);
