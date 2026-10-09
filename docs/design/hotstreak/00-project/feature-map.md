@@ -14,6 +14,8 @@
 | payout | 配当 | draft | 精算とレース間リセット（札戻し・お題更新・手札補充・先頭ローテ） |
 | audio | 会場BGM・効果音 | approved | 待機40%・レース50%のBGMと8種類の効果音を会場の表示に同期する |
 
+| play-experience | 会場プレイ体験の改善 | approved | 総合優勝・先着者進行・表示修正・BGM復帰・全画面 |
+
 ※ `manifest.yaml` の `features` は、各機能の `features/<id>/` を起こす設計PRで同期する。現時点: `lobby`, `setup-cards`, `betting`, `card-seed`, `race`, `payout`, `audio` を掲載。
 
 ## 機能間の関係

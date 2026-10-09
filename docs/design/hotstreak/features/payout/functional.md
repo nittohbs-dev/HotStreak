@@ -19,7 +19,7 @@
 | BR-payout-004 | リスキー外れは損失。所持金下限 $0 | — |
 | BR-payout-005 | 第3は指定1枚のみ×2（マイナスも倍） | — |
 | BR-payout-006 | レース1–2後: マ券返却・お題更新・**既存レーシングデッキから**各1枚補充・コース／マスコットリセット・先頭ローテ | — |
-| BR-payout-007 | レース3後: 最多所持金が勝ち。同点最多は**共同優勝**。Enter でロビーへ | — |
+| BR-payout-007 | レース3後: 最多所持金が勝ち。同点最多は**共同優勝**。Enter で総合優勝画面へ、さらに Enter でロビーへ | — |
 
 ## 要件
 
@@ -34,8 +34,10 @@
 ### REQ-payout-006: Enter
 
 - raceIndex < 3: レース間リセット後 `betting`
-- raceIndex === 3: phase=`lobby`（SCR-phone-001 / SCR-display-001）。同点最多は**共同優勝**（勝者配列を複数可）
+- raceIndex === 3: phase=`champion`、次の進行で phase=`lobby`（SCR-phone-001 / SCR-display-001）。同点最多は**共同優勝**（勝者配列を複数可）
 
 ## OPEN（詳細）
 
 （なし）
+
+総合優勝画面とPhone進行の追加仕様は `../play-experience/functional.md` の REQ-play-001 を参照。

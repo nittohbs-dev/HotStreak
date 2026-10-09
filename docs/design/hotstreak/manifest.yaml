@@ -24,3 +24,6 @@ features:
   - id: audio
     title: 会場BGM・効果音
     status: approved
+  - id: play-experience
+    title: 会場プレイ体験の改善
+    status: approved
