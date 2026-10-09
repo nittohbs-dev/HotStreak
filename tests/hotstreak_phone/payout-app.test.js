@@ -57,5 +57,5 @@ test("最後の場面から最初に戻せる", () => {
   for (let step = 0; step < 4; step += 1) nodes["demo-next"].click();
   assert.equal(nodes["demo-scene"].textContent, "レース1結果");
   assert.equal(nodes["payout-title"].textContent, "レース1 結果");
-  assert.equal(nodes.notice.textContent, "ラズパイ Enter で次のレースへ");
+  assert.equal(nodes.notice.textContent, "進行役のスマホ、または会場のEnterで次のレースへ");
 });

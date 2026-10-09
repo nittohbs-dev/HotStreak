@@ -8,7 +8,7 @@
   const FACES = ["safe", "risky"];
   const KINDS = ["mascot", "side"];
   const TIERS = ["top", "mid", "bot"];
-  const NEXT_PHASES = ["betting", "lobby"];
+  const NEXT_PHASES = ["betting", "lobby", "champion"];
 
   const MESSAGES = {
     invalidState: "配当の情報を確認できません。画面を開き直してください。",
@@ -79,6 +79,7 @@
       this.connected = false;
       this.advancedTo = "";
       this.error = "";
+      this.phase = "payout";
       this.raceIndex = 0;
       this.standings = [];
       this.balances = [];
@@ -120,7 +121,7 @@
       }
       let next;
       try {
-        if (payload.phase !== "payout") throw new TypeError("phase");
+        if (!["payout", "champion"].includes(payload.phase)) throw new TypeError("phase");
         const raceIndex = payload.raceIndex;
         if (!Number.isInteger(raceIndex) || raceIndex < 1 || raceIndex > 3) throw new TypeError("raceIndex");
         if (!Array.isArray(payload.standings) || !Array.isArray(payload.balances)) throw new TypeError("list");
@@ -132,7 +133,7 @@
         const breakdown = parseBreakdown(payload.myBreakdown, this.myPlayerId);
         const winners = payload.winners === undefined ? [] : payload.winners;
         if (!Array.isArray(winners) || !winners.every((id) => ids.includes(id))) throw new TypeError("winners");
-        next = { raceIndex, standings, balances, breakdown, winners: winners.slice() };
+        next = { phase: payload.phase, raceIndex, standings, balances, breakdown, winners: winners.slice() };
       } catch (error) {
         this.error = MESSAGES.invalidState;
         return false;

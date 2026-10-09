@@ -11,7 +11,23 @@
     let playerId = sessionStorage.getItem(storageKey) || '';
     let state, view, ws, timer, stopped = false, revision = -1, busy = false;
     let refreshTimer, refreshing = false;
-    const render = () => view.render(state);
+    let latestSnapshot;
+    const hostControls = document.getElementById('host-controls');
+    const hostButton = document.getElementById('host-advance');
+    const hostReason = document.getElementById('host-reason');
+    const render = () => {
+      view.render(state);
+      if (!hostControls || !latestSnapshot) return;
+      const host = Boolean(latestSnapshot.viewerPlayerId && latestSnapshot.viewerPlayerId === latestSnapshot.hostPlayerId);
+      hostControls.hidden = !host || latestSnapshot.phase === 'race';
+      hostButton.textContent = busy ? '進行中…' : (latestSnapshot.advanceLabel || '次へ');
+      hostButton.disabled = busy || !state.connected || !latestSnapshot.canAdvance;
+      hostReason.textContent = !state.connected ? '再接続しています…' : (latestSnapshot.advanceReason || 'あなたが進行役です');
+    };
+    if (hostButton) hostButton.addEventListener('click', () => {
+      if (!latestSnapshot || hostButton.disabled) return;
+      send('POST', '/advance', { revision: latestSnapshot.revision, phase: latestSnapshot.phase });
+    });
     const error = (message) => {
       state.pending = false;
       state.error = message;
@@ -19,7 +35,7 @@
     };
     const redirect = (phase) => {
       const target = { lobby: 'lobby', 'setup-cards': 'lobby', betting: 'betting',
-        'card-seed': 'card-seed', race: 'race', payout: 'payout' }[phase];
+        'card-seed': 'card-seed', race: 'race', payout: 'payout', champion: 'payout' }[phase];
       if (target && target !== page) {
         stopped = true;
         if (ws) ws.close();
@@ -30,6 +46,7 @@
     };
     const receive = (snapshot) => {
       if (stopped || snapshot.revision < revision || redirect(snapshot.phase)) return;
+      latestSnapshot = snapshot;
       revision = snapshot.revision;
       if (snapshot.viewerPlayerId) {
         playerId = snapshot.viewerPlayerId;
@@ -83,7 +100,7 @@
       } catch (e) {
         try { await fetchState(); } catch (_) { state.connected = false; }
         error(e.message);
-      } finally { busy = false; }
+      } finally { busy = false; if (!stopped) render(); }
     }
     if (page === 'lobby') {
       state = new HotStreakLobbyState.LobbyScreenState();

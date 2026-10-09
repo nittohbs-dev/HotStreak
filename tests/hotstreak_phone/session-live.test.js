@@ -16,7 +16,7 @@ async function phone() {
     constructor() { sockets.push(this); }
     close() { if (this.onclose) this.onclose(); }
   }
-  const document = { visibilityState: 'visible', addEventListener: (k, fn) => { documentEvents[k] = fn; } };
+  const document = { getElementById: () => null, visibilityState: 'visible', addEventListener: (k, fn) => { documentEvents[k] = fn; } };
   const window = { addEventListener: (k, fn) => { events[k] = fn; } };
   vm.runInNewContext(source, {
     window, document, URLSearchParams, AbortController, setTimeout, clearTimeout,

@@ -41,6 +41,8 @@ def test_computers_complete_three_races_without_human_input(humans):
                 break
         assert s.phase == 'payout'
         s.advance()
+    assert s.phase == 'champion'
+    s.advance()
     assert s.phase == 'lobby' and not s.players
 
 

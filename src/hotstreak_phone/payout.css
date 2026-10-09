@@ -193,3 +193,12 @@
   font-size: 0.85rem;
   text-align: right;
 }
+
+/* REQ-play-001: 配当表から独立した総合優勝画面。 */
+.champion-panel { text-align: center; padding: 2rem 1rem; }
+.champion-heading { font-size: 2rem; margin: 0 0 1.5rem; }
+.champion-winners { list-style: none; margin: 0; padding: 0; }
+.champion-winner { padding: 1rem 0; border-top: 1px solid var(--line); }
+.champion-name { display: block; font-size: 1.5rem; font-weight: 700; overflow-wrap: anywhere; }
+.champion-money { display: block; margin-top: .5rem; font-size: 2rem; }
+[hidden] { display: none !important; }

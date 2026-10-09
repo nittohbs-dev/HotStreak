@@ -209,16 +209,7 @@ class GameSession:
                 self.settle()
         elif self.phase == 'payout':
             if self.race_index == 3:
-                self.phase = 'lobby'
-                self.players = []
-                self.public_cards = []
-                self.dealt = False
-                self.engine = None
-                self.race_index = 1
-                self.settled = set()
-                self.breakdowns = {}
-                self.rng.shuffle(self.prompts)
-                self.prompt_index = 0
+                self.phase = 'champion'
             else:
                 deck = list(self.engine.cards)
                 self.rng.shuffle(deck)
@@ -229,17 +220,56 @@ class GameSession:
                 self.prompt_index += 1
                 self.engine = None
                 self.start_betting()
+        elif self.phase == 'champion':
+            self.phase = 'lobby'
+            self.players = []
+            self.public_cards = []
+            self.dealt = False
+            self.engine = None
+            self.race_index = 1
+            self.settled = set()
+            self.breakdowns = {}
+            self.rng.shuffle(self.prompts)
+            self.prompt_index = 0
+
+    @property
+    def host_player_id(self):
+        return next((p.player_id for p in self.players if not p.is_computer), None)
+
+    def advance_reason(self):
+        if self.phase == 'lobby' and not self.players:
+            return '参加者を待っています'
+        if self.phase == 'setup-cards' and not self.dealt:
+            return 'カード準備中です'
+        if self.phase == 'betting':
+            if self.turn != len(self.order):
+                return '全員の札選びを待っています'
+            if self.race_index == 3 and any(sum(t['double'] for t in p.tickets) != 1 for p in self.players):
+                return '全員のダブル選択を待っています'
+        if self.phase == 'card-seed' and any(p.seed is None for p in self.players):
+            return '全員の仕込みを待っています'
+        if self.phase == 'race':
+            return 'レースは会場のEnterで進行します'
+        return ''
 
     def snapshot(self, pid=None):
         state = dict(sessionId=self.session_id, phase=self.phase, revision=self.revision,
                      raceIndex=self.race_index, playerCount=len(self.players),
                      players=[p.public() for p in self.players])
+        labels = {'lobby': '公開カードへ', 'setup-cards': 'マ券選びへ',
+                  'betting': 'カード仕込みへ', 'card-seed': 'レースへ',
+                  'payout': '総合優勝へ' if self.race_index == 3 else '次のレースへ',
+                  'champion': '参加受付へ'}
+        reason = self.advance_reason()
+        state.update(hostPlayerId=self.host_player_id,
+                     canAdvance=bool(pid and pid == self.host_player_id and not reason),
+                     advanceLabel=labels.get(self.phase, ''), advanceReason=reason)
         if pid:
             state['viewerPlayerId'] = self.player(pid).player_id
         if self.phase == 'setup-cards':
             state.update(dealt=self.dealt, faceUpCards=[c.public() for c in self.public_cards],
                          handsReady=[dict(playerId=p.player_id, count=len(p.hand)) for p in self.players])
-        if self.phase in ('betting', 'card-seed', 'race', 'payout'):
+        if self.phase in ('betting', 'card-seed', 'race', 'payout', 'champion'):
             prompt = self.prompts[self.prompt_index]
             state['prompt'] = dict(cardId=prompt['id'], text=prompt['label'])
         if self.phase in ('betting', 'card-seed'):
@@ -261,7 +291,7 @@ class GameSession:
                 # 既存Phoneの cardId は選択用識別子。描画はrectを使う。
                 state['hand'] = [dict(c.public(), cardId=c.instance_id, catalogId=c.card_id) for c in p.hand]
                 state['seededCard'] = dict(p.seed.public(), cardId=p.seed.instance_id) if p.seed else None
-        if self.phase in ('race', 'payout'):
+        if self.phase in ('race', 'payout', 'champion'):
             for entry, p in zip(state['players'], self.players):
                 entry.update(rank=1+sum(o.balance > p.balance for o in self.players), bets=p.tickets)
             state.update(self.engine.public())
@@ -270,7 +300,7 @@ class GameSession:
                 if m['rank'] is None:
                     m['rank'] = 1+sum(o.status == 'goal' for o in self.engine.mascots)+sum(o.position > m['position'] for o in live)
             state['myBets'] = self.player(pid).tickets if pid else []
-        if self.phase == 'payout':
+        if self.phase in ('payout', 'champion'):
             state.update(standings=sorted([m.public() for m in self.engine.mascots], key=lambda m: m['rank']),
                 sideBetOutcome=self.engine.outcome(self.prompts[self.prompt_index]['effect']),
                 balances=[dict(p.public(), rank=1+sum(o.balance > p.balance for o in self.players),

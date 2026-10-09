@@ -10,7 +10,7 @@ from hotstreak_core.session import GameSession, RuleError
 
 ROOT = Path(__file__).resolve().parents[2]
 PREFIX = {'lobby': 'lobby', 'setup-cards': 'setup', 'betting': 'betting',
-          'card-seed': 'seed', 'race': 'race', 'payout': 'payout'}
+          'card-seed': 'seed', 'race': 'race', 'payout': 'payout', 'champion': 'champion'}
 
 
 class Room:
@@ -105,7 +105,12 @@ def create_app(session_factory=GameSession):
             s = r.session
             pid = None
             if host:
-                display(s, request)
+                if request.headers.get('X-Display-Token'):
+                    display(s, request)
+                else:
+                    pid = player_id(s, request, True)
+                    if pid != s.host_player_id or s.phase == 'race':
+                        raise RuleError('最初の参加者だけが画面を進められます（レースは会場操作）', 403)
             else:
                 pid = player_id(s, request, True)
             try:
@@ -130,7 +135,8 @@ def create_app(session_factory=GameSession):
             old_phase = s.phase
             operation(s, pid, body)
             s.revision += 1
-            result = deepcopy(s.snapshot(pid))
+            viewer = pid if any(p.player_id == pid for p in s.players) else None
+            result = deepcopy(s.snapshot(viewer))
             r.receipts[receipt_key] = (deepcopy(fingerprint), result)
             if len(r.receipts) > 1024:
                 r.receipts.pop(next(iter(r.receipts)))
@@ -164,7 +170,7 @@ def create_app(session_factory=GameSession):
     @app.get('/api/sessions/{sid}/{section}')
     async def feature(sid: str, section: str, request: Request):
         expected = {'setup': 'setup-cards', 'betting': 'betting', 'seed': 'card-seed',
-                    'race': 'race', 'payout': 'payout'}
+                    'race': 'race', 'payout': 'payout', 'champion': 'champion'}
         if section not in expected:
             raise RuleError('画面が見つかりません', 404)
         r = room(sid)

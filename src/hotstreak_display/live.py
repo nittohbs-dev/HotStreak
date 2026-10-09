@@ -177,7 +177,7 @@ class Application:
         font = japanese_font(font)
         self.views = {'lobby': DisplaySetupRoot(font), 'setup-cards': DisplaySetupRoot(font),
                       'betting': DisplayBettingRoot(font), 'card-seed': DisplaySeedRoot(font),
-                      'race': RaceView(font), 'payout': PayoutView(font)}
+                      'race': RaceView(font), 'payout': PayoutView(font), 'champion': PayoutView(font)}
         self.state = None
         self.race = None
         self.error = ''
@@ -214,7 +214,7 @@ class Application:
             self.manual_requested = False
         if new_race:
             self.start_delay = 3.5 if state['revealed'] == 0 else 0.
-        if state['phase'] in ('race', 'payout') and state.get('course'):
+        if state['phase'] in ('race', 'payout', 'champion') and state.get('course'):
             if self.race is None or self.race.race != state['raceIndex']:
                 self.race = RacePresentation(state)
             else:
@@ -345,6 +345,8 @@ class Application:
             view.draw(canvas, SimpleNamespace(confirmed=False, state=SeedPreview('', completed,
                 len(s['progress']), 18, completed == len(s['progress']),
                 tuple(card['cardId'] for card in s['faceUpCards']))))
+        elif phase == 'champion':
+            view.draw_champion(canvas, s)
         elif phase == 'payout':
             winners = [p['displayName'] for p in s['balances'] if p['playerId'] in s['winners']]
             view.draw(canvas, SimpleNamespace(race=s['raceIndex'], confirmed=False, state='normal',

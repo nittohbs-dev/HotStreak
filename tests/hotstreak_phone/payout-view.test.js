@@ -115,10 +115,10 @@ test("フッターは Enter 案内、進行後は行き先を出す", () => {
   const { view, nodes } = setup();
   const state = stateOf();
   view.render(state);
-  assert.equal(nodes.notice.textContent, "ラズパイ Enter で次のレースへ");
+  assert.equal(nodes.notice.textContent, "進行役のスマホ、または会場のEnterで次のレースへ");
 
   view.render(stateOf({ raceIndex: 3 }));
-  assert.equal(nodes.notice.textContent, "ラズパイ Enter でロビーへ");
+  assert.equal(nodes.notice.textContent, "進行役のスマホ、または会場のEnterで総合優勝へ");
 
   state.handleMessage("payout.advanced", { phase: "betting" });
   view.render(state);
@@ -135,4 +135,17 @@ test("受信前は集計中、エラー時はエラー表示にする", () => {
   state.applyState({ phase: "race" });
   view.render(state);
   assert.equal(nodes.notice.dataset.error, "true");
+});
+
+test('総合優勝フェーズでは独立した画面に勝者全員を表示する', () => {
+  const { view, nodes } = setup();
+  view.render(stateOf({ phase: 'champion', raceIndex: 3, winners: ['p_2', ME] }));
+  assert.equal(nodes['champion-panel'].hidden, false);
+  assert.equal(nodes['champion-heading'].textContent, '共同優勝');
+  assert.equal(nodes['champion-winners'].children.length, 2);
+  assert.match(nodes['champion-winners'].text, /サトウ/);
+  assert.match(nodes['champion-winners'].text, /ヤマダ/);
+  assert.match(nodes.notice.textContent, /参加受付へ/);
+  view.render(stateOf());
+  assert.equal(nodes['champion-panel'].hidden, true);
 });
